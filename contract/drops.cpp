@@ -14,6 +14,48 @@ std::string hexStr(unsigned char* data, int len)
    return s;
 }
 
+drops::epoch_row drops::advance_epoch()
+{
+   // Retrieve contract state
+   drops::state_table state(_self, _self.value);
+   auto               state_itr = state.find(1);
+   uint64_t           epoch     = state_itr->epoch;
+   check(state_itr->enabled, "Contract is currently disabled.");
+
+   // Retrieve current epoch based on state
+   drops::epochs_table epochs(_self, _self.value);
+   auto                epoch_itr = epochs.find(epoch);
+   check(epoch_itr != epochs.end(), "Epoch from state does not exist.");
+   check(current_time_point() >= epoch_itr->end,
+         "Current epoch " + std::to_string(epoch) + " has not ended (" + epoch_itr->end.to_string() + ").");
+
+   // Advance epoch number
+   uint64_t new_epoch = epoch + 1;
+
+   // Update the epoch in state
+   state.modify(state_itr, _self, [&](auto& row) { row.epoch = new_epoch; });
+
+   // Base the next epoch off the current epoch
+   time_point new_epoch_start    = epoch_itr->end;
+   time_point new_epoch_end      = epoch_itr->end + eosio::seconds(epochphasetimer * 1);
+   time_point new_epoch_reveal   = epoch_itr->end + eosio::seconds(epochphasetimer * 2);
+   time_point new_epoch_complete = epoch_itr->end + eosio::seconds(epochphasetimer * 3);
+
+   // Save the next epoch
+   epochs.emplace(_self, [&](auto& row) {
+      row.epoch    = new_epoch;
+      row.start    = new_epoch_start;
+      row.end      = new_epoch_end;
+      row.reveal   = new_epoch_reveal;
+      row.complete = new_epoch_complete;
+   });
+
+   // Return the next epoch
+   return {
+      new_epoch, new_epoch_start, new_epoch_end, new_epoch_reveal, new_epoch_complete,
+   };
+}
+
 [[eosio::on_notify("eosio.token::transfer")]] drops::generate_return_value
 drops::generate(name from, name to, asset quantity, std::string memo)
 {
@@ -35,7 +77,15 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    epochs_table epochs(_self, _self.value);
    auto         epoch_itr = epochs.find(epoch);
    check(epoch_itr != epochs.end(), "Epoch does not exist.");
-   check(current_time_point() <= epoch_itr->end, "Epoch has ended and must be advanced.");
+
+   time_point epoch_end = epoch_itr->end;
+
+   // If the epoch has ended, advance until we exist in the current epoch
+   while (current_time_point() >= epoch_end) {
+      auto new_epoch = advance_epoch();
+      epoch          = new_epoch.epoch;
+      epoch_end      = new_epoch.end;
+   }
 
    // Process the memo field to determine the number of seeds to generate
    std::vector<std::string> parsed = split(memo, ',');
@@ -226,33 +276,18 @@ drops::generate(name from, name to, asset quantity, std::string memo)
                      "Reclaimed RAM value of " + std::to_string(to_destroy.size()) + " seed(s)");
 }
 
-[[eosio::action]] void drops::advance()
+[[eosio::action]] drops::epoch_row drops::advance()
 {
-   // TODO: Once implemented, remove this requirement or replace it. Anyone should be able to advance the contract.
-   require_auth(_self);
+   // Advance the epoch
+   auto new_epoch = advance_epoch();
 
-   // Retrieve contract state
-   state_table state(_self, _self.value);
-   auto        state_itr = state.find(1);
-   uint64_t    epoch     = state_itr->epoch;
-   check(state_itr->enabled, "Contract is currently disabled.");
+   // Advance until we exist in the current epoch
+   while (current_time_point() >= new_epoch.end) {
+      new_epoch = advance_epoch();
+   }
 
-   epochs_table epochs(_self, _self.value);
-   auto         epoch_itr = epochs.find(epoch);
-   check(epoch_itr != epochs.end(), "Epoch does not exist.");
-   check(current_time_point() >= epoch_itr->end, "Epoch has not ended.");
-
-   uint64_t new_epoch = epoch + 1;
-
-   state.modify(state_itr, _self, [&](auto& row) { row.epoch = new_epoch; });
-
-   epochs.emplace(_self, [&](auto& row) {
-      row.epoch    = new_epoch;
-      row.start    = current_time_point();
-      row.end      = current_time_point() + eosio::seconds(epochphasetimer * 1);
-      row.reveal   = current_time_point() + eosio::seconds(epochphasetimer * 2);
-      row.complete = current_time_point() + eosio::seconds(epochphasetimer * 3);
-   });
+   // Provide the epoch as a return value
+   return new_epoch;
 }
 
 [[eosio::action]] void drops::commit(name oracle, uint64_t epoch, checksum256 commit)

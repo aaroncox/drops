@@ -26,8 +26,8 @@ static constexpr uint64_t stats_row       = 144;                           // si
 static constexpr uint64_t record_size     = primary_row + secondary_index; // total record size
 static constexpr uint64_t purchase_buffer = 1; // Additional RAM bytes to purchase (buyrambytes bug)
 
-//    uint64_t epochphasetimer = 86400;
-uint64_t epochphasetimer = 60;
+uint64_t epochphasetimer = 86400;
+// uint64_t epochphasetimer = 60;
 
 static constexpr symbol EOS = symbol{"EOS", 4};
 
@@ -184,7 +184,7 @@ public:
    /*
     Oracle actions
    */
-   [[eosio::action]] void advance();
+   [[eosio::action]] drops::epoch_row advance();
    using advance_action = eosio::action_wrapper<"advance"_n, &drops::advance>;
 
    [[eosio::action]] void commit(name oracle, uint64_t epoch, checksum256 commit);
@@ -215,5 +215,6 @@ public:
    using wipesome_action = eosio::action_wrapper<"wipesome"_n, &drops::wipesome>;
 
 private:
+   drops::epoch_row         advance_epoch();
    std::vector<std::string> split(const std::string& str, char delim);
 };
