@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { t } from '$lib/i18n';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import '../app.postcss';
 	import { AppShell, AppBar, AppRail, AppRailAnchor, AppRailTile } from '@skeletonlabs/skeleton';
 	import type { Session } from '@wharfkit/session';
-	import type { Writable } from 'svelte/store';
+	import { readable, writable, type Writable } from 'svelte/store';
 	import { initializeStores, Drawer, getDrawerStore } from '@skeletonlabs/skeleton';
 	import { MemoryStick } from 'svelte-lucide';
 
@@ -19,16 +19,66 @@
 		document.cookie = `lang=${value} ;`;
 	};
 
+	let epochInterval;
+
 	let wharf: typeof import('$lib/wharf');
 	let session: Writable<Session | undefined>;
+	let dropscontract: typeof import('$lib/contracts/drops').Contract;
+
 	onMount(async () => {
 		wharf = await import('$lib/wharf');
 		wharf.restore();
 		session = wharf.session;
+
+		const drops = (await import('$lib/contracts/drops')).Contract;
+		dropscontract = new drops({ client: wharf.client });
+
+		loadEpoch();
+		epochInterval = setInterval(loadEpoch, 10000);
 	});
+
+	onDestroy(() => {
+		clearInterval(epochInterval);
+	});
+
+	let epochNumber: Writable<number> = writable();
+	let epochEnd: Writable<Date> = writable();
+
+	const remaining = readable(epochEnd, function start(set) {
+		const interval = setInterval(() => {
+			let r = Math.round(($epochEnd - new Date()) / 1000);
+			r = Math.max(r, 0);
+			set(r);
+			if (r <= 0) {
+				clearInterval(interval);
+			}
+		}, 1000);
+
+		return function stop() {
+			clearInterval(interval);
+		};
+	});
+
+	$: hh = Math.floor($remaining / 3600);
+	$: mm = Math.floor(($remaining - hh * 3600) / 60);
+	$: ss = $remaining - hh * 3600 - mm * 60;
+
+	async function loadEpoch() {
+		const state = await dropscontract.table('state').get();
+		const epoch = await dropscontract.table('epochs').get(state.epoch);
+		epochNumber.set(String(state.epoch));
+		epochEnd.set(new Date(epoch.end.toMilliseconds()));
+	}
 
 	function drawerOpen(): void {
 		drawerStore.open({});
+	}
+
+	function f(value) {
+		if (value < 10) {
+			return `0${value}`;
+		}
+		return value.toString();
 	}
 </script>
 
@@ -62,7 +112,13 @@
 					</button>
 				</div>
 			</svelte:fragment>
-
+			Epoch: {$epochNumber} (
+			{#if hh === 0 && mm === 0 && ss === 0}
+				<span title="Will advance to next epoch on next action">Ready to advance...</span>
+			{:else}
+				{f(hh)}:{f(mm)}:{f(ss)}
+			{/if}
+			)
 			<svelte:fragment slot="trail">
 				{#if $session}
 					<button type="button" class="btn variant-filled" on:click={wharf.logout}
