@@ -1,0 +1,59 @@
+<script lang="ts">
+	import { getDrawerStore } from '@skeletonlabs/skeleton';
+	import { BadgeInfo, Home } from 'svelte-lucide';
+
+	import Generate from '../headers/generate.svelte';
+	import Loot from '../headers/loot.svelte';
+	import Destroy from '../headers/destroy.svelte';
+	import { t } from '../../i18n';
+
+	const drawerStore = getDrawerStore();
+
+	function drawerClose(): void {
+		drawerStore.close();
+	}
+</script>
+
+<nav class="list-nav p-4">
+	<ul>
+		<li>
+			<a href="/" on:click={drawerClose}>
+				<div class={`h4 flex items-center`}>
+					<Home class={`dark:text-slate-300 inline size-6 mr-4`} />
+					<span
+						class="bg-gradient-to-br from-slate-400 to-slate-300 bg-clip-text text-transparent box-decoration-clone"
+					>
+						{$t('common.home')}
+					</span>
+				</div>
+			</a>
+		</li>
+		<li>
+			<a href="/generate" on:click={drawerClose}>
+				<Generate format="h4" size={6} />
+			</a>
+		</li>
+		<li>
+			<a href="/loot" on:click={drawerClose}>
+				<Loot format="h4" size={6} />
+			</a>
+		</li>
+		<li>
+			<a href="/destroy" on:click={drawerClose}>
+				<Destroy format="h4" size={6} />
+			</a>
+		</li>
+		<li>
+			<a href="/about" on:click={drawerClose}>
+				<div class={`h4 flex items-center`}>
+					<BadgeInfo class={`dark:text-slate-300 inline size-6 mr-4`} />
+					<span
+						class="bg-gradient-to-br from-slate-400 to-slate-300 bg-clip-text text-transparent box-decoration-clone"
+					>
+						{$t('common.about')}
+					</span>
+				</div>
+			</a>
+		</li>
+	</ul>
+</nav>
