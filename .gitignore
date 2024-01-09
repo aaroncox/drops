@@ -1,3 +1,5 @@
 .vscode
-build/
+contract/build/*.wasm
+contract/build/*.abi
+webapp/build
 old/

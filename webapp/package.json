@@ -41,7 +41,16 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@wharfkit/account": "^1.0.0",
+		"@wharfkit/contract": "^1.1.2",
 		"@wharfkit/session": "^1.2.2",
+		"@wharfkit/transact-plugin-resource-provider": "^1.1.0",
+		"@wharfkit/wallet-plugin-anchor": "^1.1.0",
+		"@wharfkit/wallet-plugin-privatekey": "^1.1.0",
+		"@wharfkit/wallet-plugin-scatter": "^1.1.0",
+		"@wharfkit/wallet-plugin-tokenpocket": "^1.1.0",
+		"@wharfkit/wallet-plugin-wombat": "^1.1.0",
+		"@wharfkit/web-renderer": "^1.1.4",
 		"sveltekit-i18n": "^2.4.2"
 	}
 }
