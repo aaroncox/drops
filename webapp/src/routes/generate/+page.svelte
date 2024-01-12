@@ -118,7 +118,7 @@
 	}
 
 	async function loadRamPrice() {
-		const cost_plus_fee = getRamPrice();
+		const cost_plus_fee = await getRamPrice();
 		if (cost_plus_fee) {
 			seedPrice.set(Number(cost_plus_fee) * sizeSeedRow);
 			accountPrice.set(Number(cost_plus_fee) * sizeAccountRow);
