@@ -60,7 +60,7 @@ drops::epoch_row drops::advance_epoch()
 drops::generate(name from, name to, asset quantity, std::string memo)
 {
    if (from == "eosio.ram"_n || to != _self || from == _self || memo == "bypass") {
-      return {(uint32_t)0, (uint64_t)0, asset{0, EOS}, asset{0, EOS}};
+      return {(uint32_t)0, (uint64_t)0, asset{0, EOS}, asset{0, EOS}, (uint64_t)0, (uint64_t)0};
    }
 
    require_auth(from);
@@ -153,23 +153,27 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    }
 
    // Either update the account row or insert a new row
+   uint64_t new_seeds_total = amount;
    if (account_row_exists) {
-      accounts.modify(account_itr, _self, [&](auto& row) { row.seeds = row.seeds + amount; });
+      new_seeds_total += account_itr->seeds;
+      accounts.modify(account_itr, _self, [&](auto& row) { row.seeds = new_seeds_total; });
    } else {
       accounts.emplace(_self, [&](auto& row) {
          row.account = from;
-         row.seeds   = amount;
+         row.seeds   = new_seeds_total;
       });
    }
 
    // Either update the stats row or insert a new row
+   uint64_t new_seeds_epoch = amount;
    if (stat_row_exists) {
-      stat_idx.modify(stat_itr, _self, [&](auto& row) { row.seeds = row.seeds + amount; });
+      new_seeds_epoch += stat_itr->seeds;
+      stat_idx.modify(stat_itr, _self, [&](auto& row) { row.seeds = new_seeds_epoch; });
    } else {
       stats.emplace(_self, [&](auto& row) {
          row.id      = stats.available_primary_key();
          row.account = from;
-         row.seeds   = amount;
+         row.seeds   = new_seeds_epoch;
          row.epoch   = epoch;
       });
    }
@@ -196,10 +200,12 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    //    };
 
    return {
-      (uint32_t)amount,
-      epoch,
-      ram_purchase_cost,
-      asset{remainder, EOS},
+      (uint32_t)amount,      // seeds bought
+      epoch,                 // epoch
+      ram_purchase_cost,     // cost
+      asset{remainder, EOS}, // refund
+      new_seeds_total,       // total seeds
+      new_seeds_epoch,       // epoch seeds
    };
 }
 

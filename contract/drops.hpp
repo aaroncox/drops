@@ -177,6 +177,8 @@ public:
       uint64_t epoch;
       asset    cost;
       asset    refund;
+      uint64_t total_seeds;
+      uint64_t epoch_seeds;
    };
 
    [[eosio::on_notify("eosio.token::transfer")]] generate_return_value
