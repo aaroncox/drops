@@ -8,9 +8,8 @@
 	import * as DropsContract from '$lib/contracts/drops';
 	import { Paginator, type PaginationSettings } from '@skeletonlabs/skeleton';
 
-	const epoch = derived(page, ($page) => $page.params.epoch);
 	const seeds: Readable<DropsContract.Types.seed_row[]> = derived([session], ([$session], set) => {
-		if ($epoch && $session) {
+		if ($session) {
 			const from = Serializer.decode({
 				data:
 					Serializer.encode({ object: UInt64.from(UInt64.min) }).hexString +
