@@ -7,7 +7,8 @@
 		Name,
 		Serializer,
 		Struct,
-		Int32
+		Int32,
+		type TransactResult
 	} from '@wharfkit/session';
 	import { onDestroy, onMount } from 'svelte';
 	import { derived, writable, type Readable, type Writable } from 'svelte/store';
@@ -35,7 +36,6 @@
 		[accountEpochStats, dropsState],
 		([$accountEpochStats, $dropsState], set) => {
 			if ($accountEpochStats.length) {
-				console.log($dropsState.epoch);
 				const thisEpoch = $accountEpochStats.find((e) => e.epoch.equals($dropsState.epoch));
 				if (thisEpoch) {
 					set(thisEpoch);
@@ -54,7 +54,6 @@
 			$accountStats,
 			$accountThisEpochStats
 		]) => {
-			console.log($seedAmount && $seedPrice && $accountPrice && $statsPrice);
 			if ($seedAmount && $seedPrice && $accountPrice && $statsPrice) {
 				let cost = $seedAmount * $seedPrice;
 				if (!$accountStats) {
@@ -152,10 +151,12 @@
 		@Struct.field(Asset) refund!: Asset;
 	}
 
-	const lastResult: Writable<GenerateReturnValue> = writable();
-	const lastResultId: Writable<string> = writable();
+	const lastResult: Writable<GenerateReturnValue | undefined> = writable();
+	const lastResultId: Writable<string | undefined> = writable();
+	const lastResultError: Writable<string> = writable();
 
 	async function buy(event: Event) {
+		lastResultError.set('');
 		if ($session) {
 			const hash = String(Checksum256.hash(Bytes.from(String($randomSeed), 'utf8')));
 			const quantity = Asset.fromUnits($totalPrice, '4,EOS');
@@ -167,7 +168,14 @@
 			};
 
 			const action = tokenContract.action('transfer', actionData);
-			const result = await $session.transact({ action });
+			let result: TransactResult;
+			try {
+				result = await $session.transact({ action });
+			} catch (e) {
+				lastResult.set(undefined);
+				lastResultId.set(undefined);
+				lastResultError.set(e);
+			}
 
 			// Set the last successful transaction ID
 			lastResultId.set(String(result.resolved?.transaction.id));
@@ -177,8 +185,36 @@
 				try {
 					const data = Serializer.decode({
 						data: returnValue.hex,
-						type: GenerateReturnValue
+						type: DropsContract.Types.generate_return_value
 					});
+					if (Number(data.epoch_seeds) > 0) {
+						accountEpochStats.update((stats) => {
+							const newStats = [...stats];
+							const index = newStats.findIndex((s) => s.epoch.equals(data.epoch));
+							if (index >= 0) {
+								newStats[index].seeds = data.epoch_seeds;
+							} else {
+								newStats.push(
+									DropsContract.Types.stat_row.from({
+										account: $session?.actor,
+										epoch: data.epoch,
+										id: 0,
+										seeds: data.epoch_seeds
+									})
+								);
+							}
+							return newStats;
+						});
+					}
+					if (Number(data.total_seeds) > 0) {
+						accountStats.update((stats) => {
+							return {
+								...stats,
+								account: $session?.actor,
+								seeds: data.total_seeds
+							};
+						});
+					}
 					if (Number(data.seeds) > 0) {
 						lastResult.set(data);
 					}
@@ -188,7 +224,6 @@
 			});
 			randomSeed.set(randomName());
 			loadRamPrice();
-			setTimeout(loadAccountData, 500);
 		}
 	}
 
@@ -333,6 +368,16 @@
 					<div class="text-slate-400">Current</div>
 				</div>
 			</div>
+			{#if $lastResultError}
+				<aside class="alert variant-filled-error">
+					<div><AlertCircle /></div>
+					<div class="alert-message">
+						<h3 class="h3">Error processing transaction</h3>
+						<p>{$lastResultError}</p>
+					</div>
+					<div class="alert-actions"></div>
+				</aside>
+			{/if}
 			{#if $lastResult}
 				<div class="table-container">
 					<table class="table">
