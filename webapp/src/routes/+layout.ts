@@ -1,3 +1,4 @@
+export const ssr = false;
 export const prerender = true;
 
 import { addTranslations, setLocale, setRoute } from '$lib/i18n';

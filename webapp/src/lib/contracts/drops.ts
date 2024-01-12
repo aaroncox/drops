@@ -1,6 +1,7 @@
 import type {Action, Checksum256Type, NameType, UInt64Type} from '@wharfkit/antelope'
 import {
     ABI,
+    Asset,
     Blob,
     Checksum256,
     Name,
@@ -13,7 +14,7 @@ import {
 import type {ActionOptions, ContractArgs, PartialBy, Table} from '@wharfkit/contract'
 import {Contract as BaseContract} from '@wharfkit/contract'
 export const abiBlob = Blob.from(
-    'DmVvc2lvOjphYmkvMS4yABMLYWNjb3VudF9yb3cAAgdhY2NvdW50BG5hbWUFc2VlZHMGdWludDMyCWFkZG9yYWNsZQABBm9yYWNsZQRuYW1lB2FkdmFuY2UAAAZjb21taXQAAwZvcmFjbGUEbmFtZQVlcG9jaAZ1aW50NjQGY29tbWl0C2NoZWNrc3VtMjU2CmNvbW1pdF9yb3cABAJpZAZ1aW50NjQFZXBvY2gGdWludDY0Bm9yYWNsZQRuYW1lBmNvbW1pdAtjaGVja3N1bTI1NgdkZXN0cm95AAIFb3duZXIEbmFtZQp0b19kZXN0cm95CHVpbnQ2NFtdBmVuYWJsZQABB2VuYWJsZWQEYm9vbAllcG9jaF9yb3cABQVlcG9jaAZ1aW50NjQFc3RhcnQKdGltZV9wb2ludANlbmQKdGltZV9wb2ludAZyZXZlYWwKdGltZV9wb2ludAhjb21wbGV0ZQp0aW1lX3BvaW50BGluaXQAAApvcmFjbGVfcm93AAEGb3JhY2xlBG5hbWUMcmVtb3Zlb3JhY2xlAAEGb3JhY2xlBG5hbWUGcmV2ZWFsAAMGb3JhY2xlBG5hbWUFZXBvY2gGdWludDY0BnJldmVhbAZzdHJpbmcKcmV2ZWFsX3JvdwAEAmlkBnVpbnQ2NAVlcG9jaAZ1aW50NjQGb3JhY2xlBG5hbWUGcmV2ZWFsBnN0cmluZwhzZWVkX3JvdwADBHNlZWQGdWludDY0BW93bmVyBG5hbWUFZXBvY2gGdWludDY0CHN0YXRfcm93AAQCaWQGdWludDY0B2FjY291bnQEbmFtZQVlcG9jaAZ1aW50NjQFc2VlZHMGdWludDMyCXN0YXRlX3JvdwADAmlkBnVpbnQxNgVlcG9jaAZ1aW50NjQHZW5hYmxlZARib29sCHRyYW5zZmVyAAMEZnJvbQRuYW1lAnRvBG5hbWULdG9fdHJhbnNmZXIIdWludDY0W10Ed2lwZQAACHdpcGVzb21lAAALAABQEZlLUzIJYWRkb3JhY2xlAAAAAEChaXYyB2FkdmFuY2UAAAAAAGQnJUUGY29tbWl0AAAAAMDTm7FKB2Rlc3Ryb3kAAAAAAKh4zFQGZW5hYmxlAAAAAAAAkN10BGluaXQAoCIyl6pNpboMcmVtb3Zlb3JhY2xlAAAAAABEo7a6BnJldmVhbAAAAABXLTzNzQh0cmFuc2ZlcgAAAAAAAKCq4wR3aXBlAAAAAEpSrKrjCHdpcGVzb21lAAgAAAA4T00RMgNpNjQAAAthY2NvdW50X3JvdwAAAABnJyVFA2k2NAAACmNvbW1pdF9yb3cAAAAA4IZoVQNpNjQAAAllcG9jaF9yb3cAAAAAq4jMpQNpNjQAAApvcmFjbGVfcm93AAAAAEejtroDaTY0AAAKcmV2ZWFsX3JvdwAAAAAAnJTCA2k2NAAACHNlZWRfcm93AAAAAACVTcYDaTY0AAAJc3RhdGVfcm93AAAAAACcTcYDaTY0AAAIc3RhdF9yb3cAAAAAAA=='
+    'DmVvc2lvOjphYmkvMS4yABYLYWNjb3VudF9yb3cAAgdhY2NvdW50BG5hbWUFc2VlZHMGdWludDMyCWFkZG9yYWNsZQABBm9yYWNsZQRuYW1lB2FkdmFuY2UAAAZjb21taXQAAwZvcmFjbGUEbmFtZQVlcG9jaAZ1aW50NjQGY29tbWl0C2NoZWNrc3VtMjU2CmNvbW1pdF9yb3cABAJpZAZ1aW50NjQFZXBvY2gGdWludDY0Bm9yYWNsZQRuYW1lBmNvbW1pdAtjaGVja3N1bTI1NgdkZXN0cm95AAIFb3duZXIEbmFtZQp0b19kZXN0cm95CHVpbnQ2NFtdBmVuYWJsZQABB2VuYWJsZWQEYm9vbAZlbnJvbGwAAgdhY2NvdW50BG5hbWUFZXBvY2gGdWludDY0CWVwb2NoX3JvdwAFBWVwb2NoBnVpbnQ2NAVzdGFydAp0aW1lX3BvaW50A2VuZAp0aW1lX3BvaW50BnJldmVhbAp0aW1lX3BvaW50CGNvbXBsZXRlCnRpbWVfcG9pbnQVZ2VuZXJhdGVfcmV0dXJuX3ZhbHVlAAQFc2VlZHMGdWludDMyBWVwb2NoBnVpbnQ2NARjb3N0BWFzc2V0BnJlZnVuZAVhc3NldAxnZW5lcmF0ZXJ0cm4AAARpbml0AAAKb3JhY2xlX3JvdwABBm9yYWNsZQRuYW1lDHJlbW92ZW9yYWNsZQABBm9yYWNsZQRuYW1lBnJldmVhbAADBm9yYWNsZQRuYW1lBWVwb2NoBnVpbnQ2NAZyZXZlYWwGc3RyaW5nCnJldmVhbF9yb3cABAJpZAZ1aW50NjQFZXBvY2gGdWludDY0Bm9yYWNsZQRuYW1lBnJldmVhbAZzdHJpbmcIc2VlZF9yb3cAAwRzZWVkBnVpbnQ2NAVvd25lcgRuYW1lBWVwb2NoBnVpbnQ2NAhzdGF0X3JvdwAEAmlkBnVpbnQ2NAdhY2NvdW50BG5hbWUFZXBvY2gGdWludDY0BXNlZWRzBnVpbnQzMglzdGF0ZV9yb3cAAwJpZAZ1aW50MTYFZXBvY2gGdWludDY0B2VuYWJsZWQEYm9vbAh0cmFuc2ZlcgADBGZyb20EbmFtZQJ0bwRuYW1lC3RvX3RyYW5zZmVyCHVpbnQ2NFtdBHdpcGUAAAh3aXBlc29tZQAADQAAUBGZS1MyCWFkZG9yYWNsZQAAAABAoWl2MgdhZHZhbmNlAAAAAABkJyVFBmNvbW1pdAAAAADA05uxSgdkZXN0cm95AAAAAACoeMxUBmVuYWJsZQAAAAAAxEjvVAZlbnJvbGwAMG++KpurpmIMZ2VuZXJhdGVydHJuAAAAAAAAkN10BGluaXQAoCIyl6pNpboMcmVtb3Zlb3JhY2xlAAAAAABEo7a6BnJldmVhbAAAAABXLTzNzQh0cmFuc2ZlcgAAAAAAAKCq4wR3aXBlAAAAAEpSrKrjCHdpcGVzb21lAAgAAAA4T00RMgNpNjQAAAthY2NvdW50X3JvdwAAAABnJyVFA2k2NAAACmNvbW1pdF9yb3cAAAAA4IZoVQNpNjQAAAllcG9jaF9yb3cAAAAAq4jMpQNpNjQAAApvcmFjbGVfcm93AAAAAEejtroDaTY0AAAKcmV2ZWFsX3JvdwAAAAAAnJTCA2k2NAAACHNlZWRfcm93AAAAAACVTcYDaTY0AAAJc3RhdGVfcm93AAAAAACcTcYDaTY0AAAIc3RhdF9yb3cAAAAAAgAAAEChaXYyCWVwb2NoX3JvdzBvviqbq6ZiFWdlbmVyYXRlX3JldHVybl92YWx1ZQ=='
 )
 export const abi = ABI.from(abiBlob)
 export class Contract extends BaseContract {
@@ -41,6 +42,8 @@ export interface ActionNameParams {
     commit: ActionParams.commit
     destroy: ActionParams.destroy
     enable: ActionParams.enable
+    enroll: ActionParams.enroll
+    generatertrn: ActionParams.generatertrn
     init: ActionParams.init
     removeoracle: ActionParams.removeoracle
     reveal: ActionParams.reveal
@@ -66,6 +69,11 @@ export namespace ActionParams {
     export interface enable {
         enabled: boolean
     }
+    export interface enroll {
+        account: NameType
+        epoch: UInt64Type
+    }
+    export interface generatertrn {}
     export interface init {}
     export interface removeoracle {
         oracle: NameType
@@ -130,6 +138,13 @@ export namespace Types {
         @Struct.field('bool')
         enabled!: boolean
     }
+    @Struct.type('enroll')
+    export class enroll extends Struct {
+        @Struct.field(Name)
+        account!: Name
+        @Struct.field(UInt64)
+        epoch!: UInt64
+    }
     @Struct.type('epoch_row')
     export class epoch_row extends Struct {
         @Struct.field(UInt64)
@@ -143,6 +158,19 @@ export namespace Types {
         @Struct.field(TimePoint)
         complete!: TimePoint
     }
+    @Struct.type('generate_return_value')
+    export class generate_return_value extends Struct {
+        @Struct.field(UInt32)
+        seeds!: UInt32
+        @Struct.field(UInt64)
+        epoch!: UInt64
+        @Struct.field(Asset)
+        cost!: Asset
+        @Struct.field(Asset)
+        refund!: Asset
+    }
+    @Struct.type('generatertrn')
+    export class generatertrn extends Struct {}
     @Struct.type('init')
     export class init extends Struct {}
     @Struct.type('oracle_row')

@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { getDrawerStore } from '@skeletonlabs/skeleton';
-	import { BadgeInfo, Home } from 'svelte-lucide';
+	import { BadgeInfo, Home, LogOut } from 'svelte-lucide';
 
 	import Generate from '../headers/generate.svelte';
 	import Seeds from '../headers/seeds.svelte';
 	import Loot from '../headers/loot.svelte';
 	import Destroy from '../headers/destroy.svelte';
 	import { t } from '$lib/i18n';
+	import { logout, login, session } from '$lib/wharf';
 
 	const drawerStore = getDrawerStore();
 
@@ -60,6 +61,20 @@
 					</span>
 				</div>
 			</a>
+		</li>
+		<li>
+			{#if $session}
+				<a href="/about" on:click={logout}>
+					<div class={`h4 flex items-center`}>
+						<LogOut class={`dark:text-slate-300 inline size-6 mr-4`} />
+						<span
+							class="bg-gradient-to-br from-slate-400 to-slate-300 bg-clip-text text-transparent box-decoration-clone"
+						>
+							{$t('common.signout')}
+						</span>
+					</div>
+				</a>
+			{/if}
 		</li>
 	</ul>
 </nav>

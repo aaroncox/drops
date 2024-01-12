@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { t } from '$lib/i18n';
-	import { Accordion, AccordionItem, ProgressBar } from '@skeletonlabs/skeleton';
 	import {
 		Asset,
 		Bytes,
@@ -9,77 +7,130 @@
 		Name,
 		Serializer,
 		Struct,
-		type Session,
-		Int,
 		Int32
 	} from '@wharfkit/session';
 	import { onDestroy, onMount } from 'svelte';
-	import { writable, type Readable, type Writable, derived } from 'svelte/store';
-	import { PackageOpen, PackagePlus, PackageX } from 'svelte-lucide';
-	import type { Contract } from '@wharfkit/contract';
-	import { MemoryStick } from 'svelte-lucide';
+	import { derived, writable, type Readable, type Writable } from 'svelte/store';
+	import { AlertCircle, MemoryStick, PackagePlus } from 'svelte-lucide';
+	import { DropsContract, dropsContract, session, systemContract, tokenContract } from '$lib/wharf';
+	import { get_bancor_input } from '$lib/bancor';
 
-	const link = 'https://kit.svelte.dev';
+	const sizeSeedRow = 282;
+	const sizeAccountRow = 124;
+	const sizeStatRow = 412;
 
-	const recordSize = 281;
 	const useRandomSeed: Writable<boolean> = writable(true);
 	const seedAmount: Writable<number> = writable(1);
 	const randomSeed: Writable<Name> = writable(randomName());
-	const dropPrice: Writable<number> = writable();
-	// const dropPrice: Readable<number> = derived([ramPrice], ($ramPrice) => {
-	// 	if ($ramPrice) {
-	// 		return $ramPrice * recordSize;
-	// 	}
-	// 	return 0;
-	// });
 
-	let session: Writable<Session | undefined>;
-	let wharf: typeof import('$lib/wharf');
-	let systemcontract: typeof import('$lib/contracts/eosio').Contract;
-	let tokencontract: typeof import('$lib/contracts/eosio-token').Contract;
+	// Price of individual seed
+	const seedPrice: Writable<number> = writable();
+	const accountPrice: Writable<number> = writable();
+	const statsPrice: Writable<number> = writable();
 
-	let ramLoader;
+	const dropsState: Writable<DropsContract.Types.state_row> = writable();
+	const accountStats: Writable<DropsContract.Types.account_row> = writable();
+	const accountEpochStats: Writable<DropsContract.Types.stat_row[]> = writable([]);
+	const accountThisEpochStats: Readable<DropsContract.Types.stat_row> = derived(
+		[accountEpochStats, dropsState],
+		([$accountEpochStats, $dropsState], set) => {
+			if ($accountEpochStats.length) {
+				console.log($dropsState.epoch);
+				const thisEpoch = $accountEpochStats.find((e) => e.epoch.equals($dropsState.epoch));
+				if (thisEpoch) {
+					set(thisEpoch);
+				}
+			}
+		}
+	);
+
+	const totalPrice: Readable<number | undefined> = derived(
+		[seedAmount, seedPrice, accountPrice, statsPrice, accountStats, accountThisEpochStats],
+		([
+			$seedAmount,
+			$seedPrice,
+			$accountPrice,
+			$statsPrice,
+			$accountStats,
+			$accountThisEpochStats
+		]) => {
+			console.log($seedAmount && $seedPrice && $accountPrice && $statsPrice);
+			if ($seedAmount && $seedPrice && $accountPrice && $statsPrice) {
+				let cost = $seedAmount * $seedPrice;
+				if (!$accountStats) {
+					cost += $accountPrice;
+				}
+				if (!$accountThisEpochStats) {
+					cost += $statsPrice;
+				}
+				return cost;
+			}
+		}
+	);
+
+	let ramLoader: ReturnType<typeof setInterval>;
 
 	onMount(async () => {
-		let wharf: typeof import('$lib/wharf');
-		wharf = await import('$lib/wharf');
-		session = wharf.session;
-
-		const system = (await import('$lib/contracts/eosio')).Contract;
-		systemcontract = new system({ client: wharf.client });
-
-		const token = (await import('$lib/contracts/eosio-token')).Contract;
-		tokencontract = new token({ client: wharf.client });
-
 		loadRamPrice();
+		loadState();
 		ramLoader = setInterval(loadRamPrice, 2000);
-		// const contract = new system.Contract({ client });
-		// console.log(contract);
 	});
 
 	onDestroy(() => {
 		clearInterval(ramLoader);
 	});
 
-	function get_bancor_input(out_reserve: Asset, inp_reserve: Asset, out: number): Int64 {
-		const ob = out_reserve.units;
-		const ib = inp_reserve.units;
-		return ib.multiplying(out).dividing(ob.subtracting(out));
+	session.subscribe(() => {
+		loadAccountData();
+	});
+
+	async function loadAccountData() {
+		await loadAccountStats();
+		await loadAccountEpochStats();
 	}
 
-	function get_bancor_output(inp_reserve: Asset, out_reserve: Asset, inp: number): Int64 {
-		const ib = inp_reserve.units;
-		const ob = out_reserve.units;
-		return ob.multiplying(inp).dividing(ib.adding(inp));
+	async function loadAccountStats() {
+		if ($session) {
+			const results = await dropsContract.table('accounts').get($session.actor);
+			if (results) {
+				accountStats.set(results);
+			}
+		}
+	}
+
+	async function loadState() {
+		const state = await dropsContract.table('state').get();
+		if (state) {
+			dropsState.set(state);
+		}
+	}
+
+	async function loadAccountEpochStats() {
+		if ($session) {
+			const results = await dropsContract
+				.table('stats')
+				.query({
+					index_position: 'secondary',
+					from: $session.actor,
+					to: $session.actor
+				})
+				.all();
+			if (results) {
+				accountEpochStats.set(results);
+			}
+		}
 	}
 
 	async function loadRamPrice() {
-		if (systemcontract) {
-			const { base, quote } = await systemcontract.table('rammarket').get();
-			const bytes = 2810000;
+		const results = await systemContract.table('rammarket').get();
+		if (results) {
+			const { base, quote } = results;
+			const bytes = 10000;
 			const cost = get_bancor_input(base.balance, quote.balance, bytes);
 			const cost_plus_fee = Number(cost) / 0.995;
-			dropPrice.set(cost_plus_fee / 10000);
+			seedPrice.set((cost_plus_fee / 10000) * sizeSeedRow);
+			accountPrice.set((cost_plus_fee / 10000) * sizeAccountRow);
+			statsPrice.set((cost_plus_fee / 10000) * sizeStatRow);
 		}
 	}
 
@@ -104,32 +155,18 @@
 	const lastResult: Writable<GenerateReturnValue> = writable();
 	const lastResultId: Writable<string> = writable();
 
-	//     struct generate_return_value
-	//    {
-	//       int   seeds;
-	//       asset cost;
-	//       asset refund;
-	//    };
-
 	async function buy(event: Event) {
-		const form = event.target as HTMLFormElement;
-
-		const data = new FormData(form);
-
-		const amount = data.get('amount');
-		console.log('amount', amount);
-		if (amount) {
+		if ($session) {
+			const hash = String(Checksum256.hash(Bytes.from(String($randomSeed), 'utf8')));
+			const quantity = Asset.fromUnits($totalPrice, '4,EOS');
 			const actionData = {
 				from: $session?.actor,
 				to: 'testing.gm',
-				// quantity: Asset.fromUnits(amount * $dropPrice, '4,EOS'),
-				quantity: '1.0000 EOS',
-
-				memo: [amount, String(Checksum256.hash(Bytes.from(String($randomSeed), 'utf8')))].join(',')
+				quantity,
+				memo: [$seedAmount, hash].join(',')
 			};
-			console.log(JSON.stringify(actionData));
-			const action = tokencontract.action('transfer', actionData);
 
+			const action = tokenContract.action('transfer', actionData);
 			const result = await $session.transact({ action });
 
 			// Set the last successful transaction ID
@@ -151,25 +188,12 @@
 			});
 			randomSeed.set(randomName());
 			loadRamPrice();
+			setTimeout(loadAccountData, 500);
 		}
-
-		// const actionData = {
-		// 	from: $session?.actor,
-		// 	to: 'testing.gm',
-		// 	quantity: Asset.fromUnits(amount * $dropPrice, '4,EOS'),
-		// 	memo: [amount, String(Checksum256.hash(Bytes.from(String($randomSeed), 'utf8')))].join(',')
-		// };
-		// console.log(JSON.stringify(actionData));
-		// const action = tokencontract.action('transfer', actionData);
-
-		// await $session.transact({ action });
-		// randomSeed.set(randomName());
 	}
 
 	const selectAmount = (amount: number) => seedAmount.set(amount);
 </script>
-
-<!-- YOU CAN DELETE EVERYTHING IN THIS PAGE -->
 
 <div class="container p-4 sm:p-8 lg:p-16 mx-auto flex justify-center items-center">
 	<div class="space-y-4 flex flex-col bg-surface-900 p-8 rounded-lg shadow-xl">
@@ -180,7 +204,7 @@
 				>Generate</span
 			>
 		</div>
-		<p>Use EOS tokens to purchase RAM and automatically generate seeds.</p>
+		<p>Use EOS tokens to purchase RAM from the blockchain and generate seeds.</p>
 		<form class="space-y-8" on:submit|preventDefault={buy}>
 			<div class="space-y-2">
 				<div class="table-container">
@@ -209,19 +233,37 @@
 										+ {amount}
 									</td>
 									<td class="text-right">
-										{#key $dropPrice}
-											{#if $dropPrice}
-												{Asset.fromUnits(amount * $dropPrice, '4,EOS')}
+										{#key $seedPrice}
+											{#if $seedPrice}
+												{Asset.fromUnits(amount * $seedPrice, '4,EOS')}
 											{/if}
 										{/key}
 									</td>
 								</tr>
 							{/each}
 						</tbody>
+						<tfoot>
+							<tr>
+								<td colspan="3" class="text-right">
+									{#if !$accountStats}
+										<div>
+											+ {sizeAccountRow} bytes / + {Asset.fromUnits($accountPrice, '4,EOS')}
+										</div>
+									{/if}
+									{#if !$accountThisEpochStats}
+										<div>
+											+ {sizeStatRow} bytes / + {Asset.fromUnits($statsPrice, '4,EOS')}
+										</div>
+									{/if}
+									<div class="font-bold text-xl">
+										Total: {Asset.fromUnits($totalPrice, '4,EOS')}
+									</div>
+								</td>
+							</tr>
+						</tfoot>
 					</table>
 				</div>
 			</div>
-
 			<!-- <label>
 				<label class="flex items-center space-x-2">
 					<input
@@ -239,12 +281,58 @@
 					<input class="input" type="text" placeholder="Random Seed" value={$randomSeed} />
 				</label>
 			{/if}
-			<button
-				class="btn btn-lg variant-filled w-full bg-gradient-to-br from-blue-300 to-cyan-400 box-decoration-clone"
-			>
-				<span><MemoryStick /></span>
-				<span>Generate</span>
-			</button>
+			{#if $session}
+				<button
+					class="btn btn-lg variant-filled w-full bg-gradient-to-br from-blue-300 to-cyan-400 box-decoration-clone"
+				>
+					<span><MemoryStick /></span>
+					<span>Generate for {Asset.fromUnits($totalPrice, '4,EOS')}</span>
+				</button>
+			{:else}
+				<aside class="alert variant-filled-error">
+					<div><AlertCircle /></div>
+					<div class="alert-message">
+						<h3 class="h3">Sign-in first</h3>
+						<p>You must be signed in to generate seeds.</p>
+					</div>
+					<div class="alert-actions"></div>
+				</aside>
+			{/if}
+			<div class="text-center grid grid-cols-3 gap-4">
+				<div>
+					<div class="h2 font-bold">
+						{#if $accountStats}
+							{$accountStats.seeds}
+						{:else}
+							0
+						{/if}
+					</div>
+					Seeds
+					<div class="text-slate-400">Total</div>
+				</div>
+				<div>
+					<div class="h2 font-bold">
+						{#if $accountThisEpochStats}
+							{$accountThisEpochStats.seeds}
+						{:else}
+							0
+						{/if}
+					</div>
+					Seeds
+					<div class="text-slate-400">Epoch</div>
+				</div>
+				<div>
+					<div class="h2 font-bold">
+						{#if $dropsState}
+							{$dropsState.epoch}
+						{:else}
+							~
+						{/if}
+					</div>
+					Epoch
+					<div class="text-slate-400">Current</div>
+				</div>
+			</div>
 			{#if $lastResult}
 				<div class="table-container">
 					<table class="table">

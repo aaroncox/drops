@@ -1,6 +1,6 @@
 import { AccountKit } from '@wharfkit/account';
 import ContractKit from '@wharfkit/contract';
-import SessionKit, { APIClient, ChainDefinition, Chains, Session } from '@wharfkit/session';
+import SessionKit, { APIClient, Chains, Session } from '@wharfkit/session';
 import { TransactPluginResourceProvider } from '@wharfkit/transact-plugin-resource-provider';
 import { WalletPluginAnchor } from '@wharfkit/wallet-plugin-anchor';
 import { WalletPluginPrivateKey } from '@wharfkit/wallet-plugin-privatekey';
@@ -9,6 +9,15 @@ import { WalletPluginTokenPocket } from '@wharfkit/wallet-plugin-tokenpocket';
 import { WalletPluginWombat } from '@wharfkit/wallet-plugin-wombat';
 import WebRenderer from '@wharfkit/web-renderer';
 import { writable, type Writable } from 'svelte/store';
+
+import { Contract as SystemContract } from './contracts/eosio';
+export * as SystemContract from './contracts/drops';
+
+import { Contract as TokenContract } from './contracts/eosio-token';
+export * as TokenContract from './contracts/drops';
+
+import { Contract as DropsContract } from './contracts/drops';
+export * as DropsContract from './contracts/drops';
 
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
@@ -23,6 +32,10 @@ export const accountKit = new AccountKit(Chains.EOS, { client });
 export const contractKit = new ContractKit({
 	client
 });
+
+export const systemContract = new SystemContract({ client });
+export const tokenContract = new TokenContract({ client });
+export const dropsContract: DropsContract = new DropsContract({ client });
 
 export const sessionKit = new SessionKit(
 	{

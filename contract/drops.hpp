@@ -22,7 +22,7 @@ using namespace std;
 static constexpr uint64_t primary_row     = 136;                           // size to create a row
 static constexpr uint64_t secondary_index = 144;                           // size of secondary index
 static constexpr uint64_t accounts_row    = 124;                           // size of record in account table
-static constexpr uint64_t stats_row       = 144;                           // size of record in stats table
+static constexpr uint64_t stats_row       = 412;                           // size of record in stats table
 static constexpr uint64_t record_size     = primary_row + secondary_index; // total record size
 static constexpr uint64_t purchase_buffer = 1; // Additional RAM bytes to purchase (buyrambytes bug)
 
@@ -165,6 +165,9 @@ public:
    [[eosio::action]] void transfer(name from, name to, std::vector<uint64_t> to_transfer);
    using transfer_action = eosio::action_wrapper<"transfer"_n, &drops::transfer>;
 
+   [[eosio::action]] void enroll(name account, uint64_t epoch);
+   using enroll_action = eosio::action_wrapper<"enroll"_n, &drops::enroll>;
+
    [[eosio::action]] void destroy(name owner, std::vector<uint64_t> to_destroy);
    using destroy_action = eosio::action_wrapper<"destroy"_n, &drops::destroy>;
 
@@ -178,8 +181,11 @@ public:
 
    [[eosio::on_notify("eosio.token::transfer")]] generate_return_value
    generate(name from, name to, asset quantity, std::string memo);
-
    using generate_action = eosio::action_wrapper<"generate"_n, &drops::generate>;
+
+   // Dummy action that'll help the ABI export the generate_return_value struct
+   [[eosio::action]] generate_return_value generatertrn();
+   using generatertrn_action = eosio::action_wrapper<"generatertrn"_n, &drops::generatertrn>;
 
    /*
     Oracle actions

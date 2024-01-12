@@ -203,6 +203,8 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    };
 }
 
+[[eosio::action]] drops::generate_return_value drops::generatertrn() {}
+
 [[eosio::action]] void drops::transfer(name from, name to, std::vector<uint64_t> to_transfer)
 {
    require_auth(from);
@@ -274,6 +276,37 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    //    check(false, "ram_sell_proceeds: " + ram_sell_proceeds.to_string());
    transfer_act.send(_self, owner, ram_sell_proceeds,
                      "Reclaimed RAM value of " + std::to_string(to_destroy.size()) + " seed(s)");
+}
+
+[[eosio::action]] void drops::enroll(name account, uint64_t epoch)
+{
+   require_auth(account);
+
+   // Determine if this account exists in the accounts table
+   accounts_table accounts(_self, _self.value);
+   auto           account_itr        = accounts.find(account.value);
+   bool           account_row_exists = account_itr != accounts.end();
+
+   // Register the account into the accounts table
+   if (!account_row_exists) {
+      accounts.emplace(account, [&](auto& row) {
+         row.account = account;
+         row.seeds   = 0;
+      });
+   }
+
+   // Determine if this account exists in the epoch stats table for the epoch
+   stats_table stats(_self, _self.value);
+   auto        stat_idx = stats.get_index<"accountepoch"_n>();
+   auto        stat_itr = stat_idx.find((uint128_t)account.value << 64 | epoch);
+   check(stat_itr != stat_idx.end(), "This account is already registered for this epoch.");
+
+   stats.emplace(account, [&](auto& row) {
+      row.id      = stats.available_primary_key();
+      row.account = account;
+      row.seeds   = 0;
+      row.epoch   = epoch;
+   });
 }
 
 [[eosio::action]] drops::epoch_row drops::advance()

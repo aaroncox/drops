@@ -1,11 +1,13 @@
 <script lang="ts">
-	import { t } from '$lib/i18n';
 	import { onDestroy, onMount } from 'svelte';
-	import '../app.postcss';
-	import { AppShell, AppBar, AppRail, AppRailAnchor, AppRailTile } from '@skeletonlabs/skeleton';
-	import type { Session } from '@wharfkit/session';
 	import { readable, writable, type Writable } from 'svelte/store';
 	import { initializeStores, Drawer, getDrawerStore } from '@skeletonlabs/skeleton';
+	import { AppShell, AppBar } from '@skeletonlabs/skeleton';
+
+	import { t } from '$lib/i18n';
+	import { login, logout, session, restore } from '$lib/wharf';
+
+	import '../app.postcss';
 	import { MemoryStick } from 'svelte-lucide';
 
 	initializeStores();
@@ -13,6 +15,7 @@
 	const drawerStore = getDrawerStore();
 
 	import Navigation from '$lib/components/navigation/navigation.svelte';
+	import { dropsContract } from '../lib/wharf';
 
 	const handleChange = ({ currentTarget }) => {
 		const { value } = currentTarget;
@@ -21,18 +24,8 @@
 
 	let epochInterval;
 
-	let wharf: typeof import('$lib/wharf');
-	let session: Writable<Session | undefined>;
-	let dropscontract: typeof import('$lib/contracts/drops').Contract;
-
 	onMount(async () => {
-		wharf = await import('$lib/wharf');
-		wharf.restore();
-		session = wharf.session;
-
-		const drops = (await import('$lib/contracts/drops')).Contract;
-		dropscontract = new drops({ client: wharf.client });
-
+		restore();
 		loadEpoch();
 		epochInterval = setInterval(loadEpoch, 10000);
 	});
@@ -64,8 +57,8 @@
 	$: ss = $remaining - hh * 3600 - mm * 60;
 
 	async function loadEpoch() {
-		const state = await dropscontract.table('state').get();
-		const epoch = await dropscontract.table('epochs').get(state.epoch);
+		const state = await dropsContract.table('state').get();
+		const epoch = await dropsContract.table('epochs').get(state.epoch);
 		epochNumber.set(String(state.epoch));
 		epochEnd.set(new Date(epoch.end.toMilliseconds()));
 	}
@@ -112,20 +105,29 @@
 					</button>
 				</div>
 			</svelte:fragment>
-			Epoch: {$epochNumber} (
-			{#if hh === 0 && mm === 0 && ss === 0}
-				<span title="Will advance to next epoch on next action">Ready to advance...</span>
-			{:else}
-				{f(hh)}:{f(mm)}:{f(ss)}
-			{/if}
-			)
+			<span class="text-center">
+				{#if $epochNumber}
+					<p>Epoch: {$epochNumber}</p>
+					<span class="text-sm">
+						{#if hh && mm && ss}
+							{#if hh === 0 && mm === 0 && ss === 0}
+								<span title="Will advance to next epoch on next action">Ready to advance...</span>
+							{:else}
+								{f(hh)}:{f(mm)}:{f(ss)}
+							{/if}
+						{:else}
+							--:--:--
+						{/if}
+					</span>
+				{/if}
+			</span>
 			<svelte:fragment slot="trail">
 				{#if $session}
-					<button type="button" class="btn variant-filled" on:click={wharf.logout}
+					<button type="button" class="btn variant-filled" on:click={logout}
 						>{$t('common.signout')}</button
 					>
 				{:else}
-					<button type="button" class="btn variant-filled" on:click={wharf.login}
+					<button type="button" class="btn variant-filled" on:click={login}
 						>{$t('common.signin')}</button
 					>
 				{/if}
