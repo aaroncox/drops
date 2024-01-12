@@ -227,7 +227,7 @@
 		}
 	}
 
-	const selectAmount = (amount: number) => seedAmount.set(amount);
+	const selectSeedAmount = (e: Event) => seedAmount.set(Number(e.target.value));
 </script>
 
 <div class="container p-4 sm:p-8 lg:p-16 mx-auto flex justify-center items-center">
@@ -239,100 +239,8 @@
 				>Generate</span
 			>
 		</div>
-		<p>Use EOS tokens to purchase RAM from the blockchain and generate seeds.</p>
 		<form class="space-y-8" on:submit|preventDefault={buy}>
-			<div class="space-y-2">
-				<div class="table-container">
-					<table class="table table-hover">
-						<thead>
-							<tr>
-								<th />
-								<th class="text-right">Seeds</th>
-								<th class="text-right">RAM Cost</th>
-							</tr>
-						</thead>
-						<tbody>
-							{#each [1, 10, 100, 1000, 10000] as amount}
-								<tr on:click={() => selectAmount(amount)}>
-									<td>
-										<input
-											class="radio"
-											type="radio"
-											checked={$seedAmount === amount}
-											on:change={() => selectAmount(amount)}
-											name="amount"
-											value={amount}
-										/>
-									</td>
-									<td class="text-right">
-										+ {amount}
-									</td>
-									<td class="text-right">
-										{#key $seedPrice}
-											{#if $seedPrice}
-												{Asset.fromUnits(amount * $seedPrice, '4,EOS')}
-											{/if}
-										{/key}
-									</td>
-								</tr>
-							{/each}
-						</tbody>
-						<tfoot>
-							<tr>
-								<td colspan="3" class="text-right">
-									{#if !$accountStats}
-										<div>
-											+ {sizeAccountRow} bytes / + {Asset.fromUnits($accountPrice, '4,EOS')}
-										</div>
-									{/if}
-									{#if !$accountThisEpochStats}
-										<div>
-											+ {sizeStatRow} bytes / + {Asset.fromUnits($statsPrice, '4,EOS')}
-										</div>
-									{/if}
-									<div class="font-bold text-xl">
-										Total: {Asset.fromUnits($totalPrice, '4,EOS')}
-									</div>
-								</td>
-							</tr>
-						</tfoot>
-					</table>
-				</div>
-			</div>
-			<!-- <label>
-				<label class="flex items-center space-x-2">
-					<input
-						class="checkbox"
-						type="checkbox"
-						checked={$useRandomSeed}
-						on:change={(e) => useRandomSeed.set(e.target?.checked)}
-					/>
-					<p>Randomly generate seed value</p>
-				</label>
-			</label> -->
-			{#if !$useRandomSeed}
-				<label class="label space-y-4">
-					<span class="h4 font-bold">Unique Seed Value</span>
-					<input class="input" type="text" placeholder="Random Seed" value={$randomSeed} />
-				</label>
-			{/if}
-			{#if $session}
-				<button
-					class="btn btn-lg variant-filled w-full bg-gradient-to-br from-blue-300 to-cyan-400 box-decoration-clone"
-				>
-					<span><MemoryStick /></span>
-					<span>Generate for {Asset.fromUnits($totalPrice, '4,EOS')}</span>
-				</button>
-			{:else}
-				<aside class="alert variant-filled-error">
-					<div><AlertCircle /></div>
-					<div class="alert-message">
-						<h3 class="h3">Sign-in first</h3>
-						<p>You must be signed in to generate seeds.</p>
-					</div>
-					<div class="alert-actions"></div>
-				</aside>
-			{/if}
+			<p>Use EOS tokens to purchase RAM from the blockchain and generate seeds.</p>
 			<div class="text-center grid grid-cols-3 gap-4">
 				<div>
 					<div class="h2 font-bold">
@@ -368,6 +276,48 @@
 					<div class="text-slate-400">Current</div>
 				</div>
 			</div>
+			<label class="label">
+				<span>Number of Seeds to generate</span>
+				<select class="select" on:change={selectSeedAmount} value={$seedAmount}>
+					{#each [1, 10, 100, 1000, 10000] as amount}
+						<option value={amount}>+ {amount.toLocaleString()} seed(s)</option>
+					{/each}
+				</select>
+			</label>
+			<!-- <label>
+				<label class="flex items-center space-x-2">
+					<input
+						class="checkbox"
+						type="checkbox"
+						checked={$useRandomSeed}
+						on:change={(e) => useRandomSeed.set(e.target?.checked)}
+					/>
+					<p>Randomly generate seed value</p>
+				</label>
+			</label> -->
+			{#if !$useRandomSeed}
+				<label class="label space-y-4">
+					<span class="h4 font-bold">Unique Seed Value</span>
+					<input class="input" type="text" placeholder="Random Seed" value={$randomSeed} />
+				</label>
+			{/if}
+			{#if $session}
+				<button
+					class="btn btn-lg variant-filled w-full bg-gradient-to-br from-blue-300 to-cyan-400 box-decoration-clone"
+				>
+					<span><MemoryStick /></span>
+					<span>Generate {$seedAmount}x for {Asset.fromUnits($totalPrice, '4,EOS')}</span>
+				</button>
+			{:else}
+				<aside class="alert variant-filled-error">
+					<div><AlertCircle /></div>
+					<div class="alert-message">
+						<h3 class="h3">Sign-in first</h3>
+						<p>You must be signed in to generate seeds.</p>
+					</div>
+					<div class="alert-actions"></div>
+				</aside>
+			{/if}
 			{#if $lastResultError}
 				<aside class="alert variant-filled-error">
 					<div><AlertCircle /></div>
@@ -407,6 +357,72 @@
 								<td>Overpayment refunded</td>
 							</tr>
 						</tbody>
+					</table>
+				</div>
+			{/if}
+			{#if $seedAmount && $seedPrice}
+				<div class="table-container">
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th colspan="3"> Cost Breakdown </th>
+							</tr>
+							<tr>
+								<th class="text-right">Item</th>
+								<th class="text-center">Count</th>
+								<th class="text-right">Cost</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr class="text-right">
+								<td>Seeds</td>
+								<td class="text-center">
+									<div class="text-lg font-bold">
+										{$seedAmount}
+									</div>
+								</td>
+								<td>
+									<div class="text-lg font-bold">
+										{Asset.fromUnits($seedAmount * $seedPrice, '4,EOS')}
+									</div>
+									<div>{$seedAmount * sizeSeedRow} bytes</div>
+								</td>
+							</tr>
+							{#if !$accountStats}
+								<tr class="text-right">
+									<td>Account</td>
+									<td class="text-center">
+										<div class="text-lg font-bold">1</div>
+									</td>
+									<td>
+										<div class="text-lg font-bold">{Asset.fromUnits($accountPrice, '4,EOS')}</div>
+										<div>{sizeAccountRow} bytes</div>
+									</td>
+								</tr>
+							{/if}
+							{#if !$accountThisEpochStats}
+								<tr class="text-right">
+									<td>Epoch</td>
+									<td class="text-center">
+										<div class="text-lg font-bold">1</div>
+									</td>
+									<td>
+										<div class="text-lg font-bold">{Asset.fromUnits($statsPrice, '4,EOS')}</div>
+										<div>{sizeStatRow} bytes</div>
+									</td>
+								</tr>
+							{/if}
+						</tbody>
+						<tfoot>
+							<tr>
+								<td colspan="3" class="text-right">
+									<div class="font-bold text-xl">
+										<div class="text-sm">Total</div>
+										{Asset.fromUnits($totalPrice, '4,EOS')}
+									</div>
+								</td>
+							</tr>
+						</tfoot>
 					</table>
 				</div>
 			{/if}
