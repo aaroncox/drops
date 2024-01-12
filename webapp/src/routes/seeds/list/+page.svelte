@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { derived, writable, type Readable, type Writable } from 'svelte/store';
-	import { page } from '$app/stores';
 	import { Serializer, UInt64 } from '@wharfkit/session';
 
 	import Seeds from '$lib/components/headers/seeds.svelte';
 	import { session, dropsContract } from '$lib/wharf';
 	import * as DropsContract from '$lib/contracts/drops';
 	import { Paginator, type PaginationSettings } from '@skeletonlabs/skeleton';
+
+	const loaded = writable(false);
 
 	const seeds: Readable<DropsContract.Types.seed_row[]> = derived([session], ([$session], set) => {
 		if ($session) {
@@ -34,57 +35,12 @@
 				})
 				.all()
 				.then((results) => {
-					console.log(results);
 					set(results);
+					loaded.set(true);
 				});
 		}
 		set([]);
 	});
-
-	// const seeds: Writable<DropsContract.Types.seed_row[]> = writable([]);
-
-	// const iterator: Readable<TableRowCursor<DropsContract.Types.seed_row>> = derived(
-	// 	[epoch, session],
-	// 	([$epoch, $session], set) => {
-	// if ($epoch && $session) {
-	// 	const from = Serializer.decode({
-	// 		data:
-	// 			Serializer.encode({ object: UInt64.from(UInt64.min) }).hexString +
-	// 			Serializer.encode({ object: $session.actor }).hexString,
-	// 		type: 'uint128'
-	// 	});
-
-	// 	const to = Serializer.decode({
-	// 		data:
-	// 			Serializer.encode({ object: UInt64.from(UInt64.max) }).hexString +
-	// 			Serializer.encode({ object: $session.actor }).hexString,
-	// 		type: 'uint128'
-	// 	});
-
-	// 	set(
-	// 		dropsContract.table('seeds').query({
-	// 			key_type: 'i128',
-	// 			index_position: 'secondary',
-	// 			from,
-	// 			to
-	// 		})
-	// 	);
-	// }
-	// 	}
-	// );
-
-	// onMount(() => {
-	// 	loadSeeds();
-	// });
-
-	// function loadSeeds() {
-	// 	$iterator.next(500).then((results) => {
-	// 		seeds.update((seeds) => {
-	// 			seeds.push(...results);
-	// 			return seeds;
-	// 		});
-	// 	});
-	// }
 
 	let paginationSettings = {
 		page: 0,
@@ -130,17 +86,32 @@
 <div class="container p-4 sm:p-8 lg:p-16 mx-auto flex justify-center items-center">
 	<div class="space-y-4 flex flex-col bg-surface-900 p-8 rounded-lg shadow-xl">
 		<Seeds />
-		<div class="text-center"></div>
-		<p></p>
-		{#if $seeds.length}
+		<p>The individual seeds you currently own.</p>
+		{#if !$loaded}
+			<section class="card w-full">
+				<div class="p-4 space-y-4">
+					<div class="text-center h3">Loading</div>
+					<div class="grid grid-cols-3 gap-8">
+						<div class="placeholder animate-pulse" />
+						<div class="placeholder animate-pulse" />
+						<div class="placeholder animate-pulse" />
+					</div>
+					<div class="grid grid-cols-4 gap-4">
+						<div class="placeholder animate-pulse" />
+						<div class="placeholder animate-pulse" />
+						<div class="placeholder animate-pulse" />
+						<div class="placeholder animate-pulse" />
+					</div>
+				</div>
+			</section>
+		{:else if $seeds.length}
 			<div class="table-container text-center">
+				<div class="h2 font-bold p-6 text-center">{$seeds.length.toLocaleString()} total seeds</div>
+				{#if $selected}
+					<div class="h3">Selected: {$selected.length}</div>
+				{/if}
 				<table class="table">
 					<thead>
-						<tr>
-							<td colspan="3">
-								<div class="h2 font-bold p-6 text-center">{$seeds.length} total seeds</div>
-							</td>
-						</tr>
 						<tr>
 							<th class="text-center">
 								<input type="checkbox" on:change={selectAll} />
@@ -184,6 +155,8 @@
 					</tfoot>
 				</table>
 			</div>
+		{:else}
+			<p>No seeds found.</p>
 		{/if}
 	</div>
 </div>

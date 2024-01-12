@@ -64,13 +64,12 @@
 		<Seeds />
 		<p>The number of seeds your account currently owns, by epoch.</p>
 		{#if $session}
-			<div class="table-container text-center">
+			<div class="table-container text-center space-y-10">
 				<table class="table">
 					<thead>
 						<tr>
 							<th class="text-center">Seeds</th>
 							<th class="text-center">Epoch</th>
-							<th></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -82,15 +81,6 @@
 								<td>
 									<span class="text-2xl">{epoch.epoch}</span>
 								</td>
-								<td>
-									<a
-										href={`/seeds/list`}
-										type="button"
-										class="btn variant-filled w-full bg-gradient-to-br from-green-500 to-blue-400 box-decoration-clone"
-									>
-										<span>View Epoch {epoch.epoch}</span>
-									</a>
-								</td>
 							</tr>
 						{:else}
 							<tr>
@@ -99,6 +89,13 @@
 						{/each}
 					</tbody>
 				</table>
+				<a
+					href={`/seeds/list`}
+					type="button"
+					class="btn variant-filled w-full bg-gradient-to-br from-green-500 to-blue-400 box-decoration-clone"
+				>
+					<span>View Individual Seeds</span>
+				</a>
 			</div>
 		{:else}
 			<aside class="alert variant-filled-error">

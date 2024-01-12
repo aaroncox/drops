@@ -14,11 +14,8 @@
 	import { derived, writable, type Readable, type Writable } from 'svelte/store';
 	import { AlertCircle, MemoryStick, PackagePlus } from 'svelte-lucide';
 	import { DropsContract, dropsContract, session, systemContract, tokenContract } from '$lib/wharf';
-	import { get_bancor_input } from '$lib/bancor';
-
-	const sizeSeedRow = 282;
-	const sizeAccountRow = 124;
-	const sizeStatRow = 412;
+	import { getRamPrice, get_bancor_input } from '$lib/bancor';
+	import { sizeSeedRow, sizeAccountRow, sizeStatRow } from '$lib/constants';
 
 	const useRandomSeed: Writable<boolean> = writable(true);
 	const seedAmount: Writable<number> = writable(1);
@@ -121,15 +118,11 @@
 	}
 
 	async function loadRamPrice() {
-		const results = await systemContract.table('rammarket').get();
-		if (results) {
-			const { base, quote } = results;
-			const bytes = 10000;
-			const cost = get_bancor_input(base.balance, quote.balance, bytes);
-			const cost_plus_fee = Number(cost) / 0.995;
-			seedPrice.set((cost_plus_fee / 10000) * sizeSeedRow);
-			accountPrice.set((cost_plus_fee / 10000) * sizeAccountRow);
-			statsPrice.set((cost_plus_fee / 10000) * sizeStatRow);
+		const cost_plus_fee = getRamPrice();
+		if (cost_plus_fee) {
+			seedPrice.set(Number(cost_plus_fee) * sizeSeedRow);
+			accountPrice.set(Number(cost_plus_fee) * sizeAccountRow);
+			statsPrice.set(Number(cost_plus_fee) * sizeStatRow);
 		}
 	}
 
