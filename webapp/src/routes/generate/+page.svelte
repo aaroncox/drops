@@ -367,16 +367,17 @@
 							</tr> -->
 						</thead>
 						<tbody>
-							<tr class="text-right">
+							<tr>
 								<td>
 									<div class="text-lg font-bold">Seeds</div>
+									RAM Storage
 								</td>
 								<td class="text-center">
 									<div class="text-lg font-bold">
 										{$seedAmount}
 									</div>
 								</td>
-								<td>
+								<td class="text-right">
 									<div class="text-lg font-bold">
 										{Asset.fromUnits($seedAmount * $seedPrice, '4,EOS')}
 									</div>
@@ -384,28 +385,30 @@
 								</td>
 							</tr>
 							{#if !$accountStats}
-								<tr class="text-right">
+								<tr>
 									<td>
 										<div class="text-lg font-bold">Account</div>
+										RAM Signup
 									</td>
 									<td class="text-center">
 										<div class="text-lg font-bold">1</div>
 									</td>
-									<td>
+									<td class="text-right">
 										<div class="text-lg font-bold">{Asset.fromUnits($accountPrice, '4,EOS')}</div>
 										<div>{sizeAccountRow} bytes</div>
 									</td>
 								</tr>
 							{/if}
 							{#if !$accountThisEpochStats}
-								<tr class="text-right">
+								<tr>
 									<td>
 										<div class="text-lg font-bold">Epoch</div>
+										RAM Epoch
 									</td>
 									<td class="text-center">
 										<div class="text-lg font-bold">1</div>
 									</td>
-									<td>
+									<td class="text-right">
 										<div class="text-lg font-bold">{Asset.fromUnits($statsPrice, '4,EOS')}</div>
 										<div>{sizeStatRow} bytes</div>
 									</td>

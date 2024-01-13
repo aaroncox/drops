@@ -6,7 +6,7 @@
 	import { derived, writable } from 'svelte/store';
 	import { onMount } from 'svelte';
 	import { getRamPrice } from '$lib/bancor';
-	import { Asset } from '@wharfkit/session';
+	import { Asset, Name, UInt64 } from '@wharfkit/session';
 
 	let ramLoader: ReturnType<typeof setInterval>;
 
@@ -39,26 +39,40 @@
 		}
 	}
 
-	const stats: Readable<DropsContract.Types.account_row[]> = derived(
-		[ramPrice],
-		([$ramPrice], set) => {
-			dropsContract
-				.table('accounts')
-				.all()
-				.then((results) => {
-					results.sort((a, b) => {
+	interface AccountStats {
+		account: Name;
+		seeds: UInt64;
+		ram: string;
+		value: Asset;
+	}
+
+	const accounts: Readable<AccountStats[]> = derived([ramPrice], ([$ramPrice], set) => {
+		dropsContract
+			.table('accounts')
+			.all()
+			.then((results) => {
+				const sorted = results
+					.sort((a, b) => {
 						return Number(b.seeds) - Number(a.seeds);
-					});
-					totalSeeds.set(results.reduce((t, result) => t + Number(result.seeds), 0));
-					set(results);
-				});
-			set([]);
-		}
-	);
+					})
+					.filter((s) => Number(s.seeds) > 0)
+					.map((s) => ({
+						...s,
+						ram: ((Number(s.seeds) * sizeSeedRow) / 1024).toLocaleString(undefined, {
+							minimumFractionDigits: 3,
+							maximumFractionDigits: 3
+						}),
+						value: Asset.fromUnits(Number(s.seeds) * sizeSeedRow * $ramPrice, '4,EOS')
+					}));
+				totalSeeds.set(results.reduce((t, result) => t + Number(result.seeds), 0));
+				set(sorted);
+			});
+		set([]);
+	});
 </script>
 
 <div class="p-8 space-y-8">
-	<div class="h2">Statistics</div>
+	<div class="h2 font-bold">Statistics</div>
 	<table class="table">
 		<thead>
 			<tr>
@@ -68,11 +82,15 @@
 		</thead>
 		<tbody>
 			<tr>
-				<td>Total Seeds</td>
+				<td>Seed Price</td>
+				<td class="text-right">{Asset.fromUnits($seedPrice, '4,EOS')}</td>
+			</tr>
+			<tr>
+				<td>Seeds Reserved</td>
 				<td class="text-right">{$totalSeeds}</td>
 			</tr>
 			<tr>
-				<td>Total RAM/kb</td>
+				<td>RAM Reserved</td>
 				<td class="text-right">
 					{$totalRam}
 					kb
@@ -83,10 +101,6 @@
 				<td class="text-right">{Asset.fromUnits($ramPrice * 1024, '4,EOS')}</td>
 			</tr>
 			<tr>
-				<td>Seed Price</td>
-				<td class="text-right">{Asset.fromUnits($seedPrice, '4,EOS')}</td>
-			</tr>
-			<tr>
 				<td>TVL</td>
 				<td class="text-right">
 					{Asset.fromUnits($tvl, '4,EOS')}
@@ -94,26 +108,23 @@
 			</tr>
 		</tbody>
 	</table>
-	<div class="h2">Distribution</div>
+	<div class="h2 font-bold">Distribution</div>
 	<table class="table">
 		<thead>
 			<tr>
 				<th>Account</th>
+				<th class="text-right">Value</th>
 				<th class="text-right">RAM (kb)</th>
 				<th class="text-right">Seeds</th>
 			</tr>
 		</thead>
 		<tbody>
-			{#each $stats as stat}
+			{#each $accounts as row}
 				<tr>
-					<td>{stat.account}</td>
-					<td class="text-right"
-						>{((Number(stat.seeds) * sizeSeedRow) / 1024).toLocaleString(undefined, {
-							minimumFractionDigits: 3,
-							maximumFractionDigits: 3
-						})}</td
-					>
-					<td class="text-right">{Number(stat.seeds).toLocaleString()}</td>
+					<td>{row.account}</td>
+					<td class="text-right">{row.value}</td>
+					<td class="text-right">{row.ram}</td>
+					<td class="text-right">{Number(row.seeds).toLocaleString()}</td>
 				</tr>
 			{/each}
 		</tbody>
