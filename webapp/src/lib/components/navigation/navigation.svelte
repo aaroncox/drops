@@ -40,17 +40,17 @@
 				<Generate format="h4" size={6} />
 			</a>
 		</li>
-		<li>
+		<!-- <li>
 			<a href="/loot" on:click={drawerClose}>
 				<Loot format="h4" size={6} />
 			</a>
-		</li>
-		<li>
+		</li> -->
+		<!-- <li>
 			<a href="/destroy" on:click={drawerClose}>
 				<Destroy format="h4" size={6} />
 			</a>
-		</li>
-		<li>
+		</li> -->
+		<!-- <li>
 			<a href="/about" on:click={drawerClose}>
 				<div class={`h4 flex items-center`}>
 					<BadgeInfo class={`dark:text-slate-300 inline size-6 mr-4`} />
@@ -61,7 +61,7 @@
 					</span>
 				</div>
 			</a>
-		</li>
+		</li> -->
 		<li>
 			{#if $session}
 				<a href="/about" on:click={logout}>
