@@ -261,9 +261,19 @@ drops::generate(name from, name to, asset quantity, std::string memo)
 
    // Iterate over map that recorded which epochs were transferred in for to, increment table values
    for (auto& iter : epochs_transferred_in) {
-      auto stat_idx = stats.get_index<"accountepoch"_n>();
-      auto stat_itr = stat_idx.find((uint128_t)to.value << 64 | iter.first);
-      stat_idx.modify(stat_itr, _self, [&](auto& row) { row.seeds = row.seeds + iter.second; });
+      auto stat_idx        = stats.get_index<"accountepoch"_n>();
+      auto stat_itr        = stat_idx.find((uint128_t)to.value << 64 | iter.first);
+      bool stat_row_exists = stat_itr != stat_idx.end();
+      if (stat_row_exists) {
+         stat_idx.modify(stat_itr, _self, [&](auto& row) { row.seeds = row.seeds + iter.second; });
+      } else {
+         stats.emplace(from, [&](auto& row) {
+            row.id      = stats.available_primary_key();
+            row.account = to;
+            row.seeds   = iter.second;
+            row.epoch   = iter.first;
+         });
+      }
    }
 }
 
