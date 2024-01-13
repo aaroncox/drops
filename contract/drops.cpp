@@ -324,7 +324,6 @@ drops::generate(name from, name to, asset quantity, std::string memo)
                      "Reclaimed RAM value of " + std::to_string(to_destroy.size()) + " seed(s)");
 
    return {
-      to_destroy,       // assets destroyed
       ram_sell_amount,  // ram sold
       ram_sell_proceeds // redeemed ram value
    };

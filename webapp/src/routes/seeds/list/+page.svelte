@@ -194,16 +194,16 @@
 						type: DropsContract.Types.destroy_return_value
 					});
 
-					if (Number(data.destroyed.length) > 0) {
-						// Clear selected
-						selected.set([]);
-						selectingAll.set(false);
-
+					if (Number(data.ram_sold.value) > 0) {
 						// Remove destroyed from list
-						const seedsDestroyed = data.destroyed.map((s) => String(s));
+						const seedsDestroyed = $selected.map((s) => String(s));
 						seeds.update((current) =>
 							current.filter((row) => !seedsDestroyed.includes(String(row.seed)))
 						);
+
+						// Clear selected
+						selected.set([]);
+						selectingAll.set(false);
 
 						lastDestroyResult.set({
 							destroyed: seedsDestroyed.length,

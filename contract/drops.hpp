@@ -170,9 +170,8 @@ public:
 
    struct destroy_return_value
    {
-      std::vector<uint64_t> destroyed;
-      uint64_t              ram_sold;
-      asset                 redeemed;
+      uint64_t ram_sold;
+      asset    redeemed;
    };
 
    [[eosio::action]] destroy_return_value destroy(name owner, std::vector<uint64_t> to_destroy);
