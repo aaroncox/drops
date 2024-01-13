@@ -56,7 +56,7 @@ export const sessionKit = new SessionKit(
 		]
 	},
 	{
-		// transactPlugins: [new TransactPluginResourceProvider()],
+		transactPlugins: [new TransactPluginResourceProvider()]
 	}
 );
 
