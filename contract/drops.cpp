@@ -218,16 +218,25 @@ drops::generate(name from, name to, asset quantity, std::string memo)
 
    drops::seeds_table seeds(_self, _self.value);
 
+   // Map to record which epochs seeds were destroyed in
+   map<uint64_t, uint64_t> epochs_transferred_in;
+
    for (auto it = begin(to_transfer); it != end(to_transfer); ++it) {
       auto seed_itr = seeds.find(*it);
       check(seed_itr != seeds.end(), "Seed not found");
       check(seed_itr->owner == from, "Account does not own this seed");
+      // Incremenent the values of all epochs we destroyed seeds in
+      if (epochs_transferred_in.find(seed_itr->epoch) == epochs_transferred_in.end()) {
+         epochs_transferred_in[seed_itr->epoch] = 1;
+      } else {
+         epochs_transferred_in[seed_itr->epoch] += 1;
+      }
+      // Perform the transfer
       seeds.modify(seed_itr, _self, [&](auto& row) { row.owner = to; });
    }
 
    accounts_table accounts(_self, _self.value);
-
-   auto account_from_itr = accounts.find(from.value);
+   auto           account_from_itr = accounts.find(from.value);
    check(account_from_itr != accounts.end(), "From account not found");
    accounts.modify(account_from_itr, _self, [&](auto& row) { row.seeds = row.seeds - to_transfer.size(); });
 
@@ -239,6 +248,22 @@ drops::generate(name from, name to, asset quantity, std::string memo)
          row.account = to;
          row.seeds   = to_transfer.size();
       });
+   }
+
+   stats_table stats(_self, _self.value);
+
+   // Iterate over map that recorded which epochs were transferred in for from, decrement table values
+   for (auto& iter : epochs_transferred_in) {
+      auto stat_idx = stats.get_index<"accountepoch"_n>();
+      auto stat_itr = stat_idx.find((uint128_t)from.value << 64 | iter.first);
+      stat_idx.modify(stat_itr, _self, [&](auto& row) { row.seeds = row.seeds - iter.second; });
+   }
+
+   // Iterate over map that recorded which epochs were transferred in for to, increment table values
+   for (auto& iter : epochs_transferred_in) {
+      auto stat_idx = stats.get_index<"accountepoch"_n>();
+      auto stat_itr = stat_idx.find((uint128_t)to.value << 64 | iter.first);
+      stat_idx.modify(stat_itr, _self, [&](auto& row) { row.seeds = row.seeds + iter.second; });
    }
 }
 
@@ -256,17 +281,38 @@ drops::generate(name from, name to, asset quantity, std::string memo)
 
    drops::seeds_table seeds(_self, _self.value);
 
+   // Map to record which epochs seeds were destroyed in
+   map<uint64_t, uint64_t> epochs_destroyed_in;
+
+   // Loop to destroy specified seeds
    for (auto it = begin(to_destroy); it != end(to_destroy); ++it) {
       auto seed_itr = seeds.find(*it);
       check(seed_itr != seeds.end(), "Seed not found");
       check(seed_itr->owner == owner, "Account does not own this seed");
+      // Incremenent the values of all epochs we destroyed seeds in
+      if (epochs_destroyed_in.find(seed_itr->epoch) == epochs_destroyed_in.end()) {
+         epochs_destroyed_in[seed_itr->epoch] = 1;
+      } else {
+         epochs_destroyed_in[seed_itr->epoch] += 1;
+      }
+      // Destroy the seed
       seeds.erase(seed_itr);
    }
 
+   // Iterate over map that recorded which epochs were destroyed in, decrement table values
+   for (auto& iter : epochs_destroyed_in) {
+      stats_table stats(_self, _self.value);
+      auto        stat_idx = stats.get_index<"accountepoch"_n>();
+      auto        stat_itr = stat_idx.find((uint128_t)owner.value << 64 | iter.first);
+      stat_idx.modify(stat_itr, _self, [&](auto& row) { row.seeds = row.seeds - iter.second; });
+   }
+
+   // Decrement the account row
    accounts_table accounts(_self, _self.value);
    auto           account_itr = accounts.find(owner.value);
    accounts.modify(account_itr, _self, [&](auto& row) { row.seeds = row.seeds - to_destroy.size(); });
 
+   // Calculate RAM sell amount and proceeds
    uint64_t ram_sell_amount   = to_destroy.size() * record_size;
    asset    ram_sell_proceeds = eosiosystem::ramproceedstminusfee(ram_sell_amount, EOS);
 
