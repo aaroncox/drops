@@ -4,7 +4,7 @@
 	import { initializeStores, Drawer, getDrawerStore } from '@skeletonlabs/skeleton';
 	import { AppShell, AppBar } from '@skeletonlabs/skeleton';
 
-	import { t } from '$lib/i18n';
+	import { setLocale, t } from '$lib/i18n';
 	import { login, logout, session, restore } from '$lib/wharf';
 
 	import '../app.postcss';
@@ -24,7 +24,23 @@
 
 	let epochInterval;
 
+	function getLanguage(name: string) {
+		const value = `; ${document.cookie}`;
+		const parts = value.split(`; ${name}=`);
+		if (parts && parts.length === 2) {
+			return parts.pop().split(';').shift();
+		}
+		const defaultLanguage = navigator.language.split('-')[0];
+		if (defaultLanguage) {
+			return defaultLanguage;
+		}
+	}
+
 	onMount(async () => {
+		const lang = getLanguage('lang');
+		if (lang) {
+			setLocale(lang);
+		}
 		restore();
 		loadEpoch();
 		epochInterval = setInterval(loadEpoch, 10000);
