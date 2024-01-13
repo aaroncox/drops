@@ -112,6 +112,7 @@
 
 	async function transferSelected() {
 		if ($session) {
+			lastTransferError.set(undefined);
 			const to = Name.from($transferTo);
 
 			const action = dropsContract.action('transfer', {
