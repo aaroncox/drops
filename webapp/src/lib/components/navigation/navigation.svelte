@@ -6,7 +6,7 @@
 	import Seeds from '../headers/seeds.svelte';
 	import Loot from '../headers/loot.svelte';
 	import Destroy from '../headers/destroy.svelte';
-	import { t } from '$lib/i18n';
+	import { t, locales, locale } from '$lib/i18n';
 	import { logout, login, session } from '$lib/wharf';
 
 	const drawerStore = getDrawerStore();
@@ -14,6 +14,12 @@
 	function drawerClose(): void {
 		drawerStore.close();
 	}
+
+	const handleChange = ({ currentTarget }) => {
+		const { value } = currentTarget;
+
+		document.cookie = `lang=${value} ;`;
+	};
 </script>
 
 <nav class="list-nav p-4">
@@ -75,6 +81,16 @@
 					</div>
 				</a>
 			{/if}
+		</li>
+		<li class="space-y-4 py-8">
+			<label>
+				<span>Language</span>
+				<select class="select" bind:value={$locale} on:change={handleChange}>
+					{#each $locales as value}
+						<option {value} selected={$locale === value}>{value}</option>
+					{/each}
+				</select>
+			</label>
 		</li>
 	</ul>
 </nav>

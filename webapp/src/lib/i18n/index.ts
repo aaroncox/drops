@@ -11,9 +11,10 @@ export const config = {
 	},
 	translations: {
 		en: { lang },
-		cs: { lang }
+		zh: { lang }
 	},
 	loaders: [
+		// English
 		{
 			locale: 'en',
 			key: 'common',
@@ -26,15 +27,52 @@ export const config = {
 			loader: async () => (await import('./en/home.json')).default
 		},
 		{
-			locale: 'cs',
-			key: 'common',
-			loader: async () => (await import('./cs/common.json')).default
+			locale: 'en',
+			key: 'seeds',
+			routes: ['/seeds', '/seeds/list'],
+			loader: async () => (await import('./en/seeds.json')).default
 		},
 		{
-			locale: 'cs',
+			locale: 'en',
+			key: 'generate',
+			routes: ['/generate'],
+			loader: async () => (await import('./en/generate.json')).default
+		},
+		{
+			locale: 'en',
+			key: 'extra',
+			routes: ['/'],
+			loader: async () => (await import('./en/extra.json')).default
+		},
+		// Chinese (Simplified)
+		{
+			locale: 'zh',
+			key: 'common',
+			loader: async () => (await import('./zh/common.json')).default
+		},
+		{
+			locale: 'zh',
 			key: 'home',
 			routes: ['/'],
-			loader: async () => (await import('./cs/home.json')).default
+			loader: async () => (await import('./zh/home.json')).default
+		},
+		{
+			locale: 'zh',
+			key: 'seeds',
+			routes: ['/seeds', '/seeds/list'],
+			loader: async () => (await import('./zh/seeds.json')).default
+		},
+		{
+			locale: 'zh',
+			key: 'generate',
+			routes: ['/generate'],
+			loader: async () => (await import('./zh/generate.json')).default
+		},
+		{
+			locale: 'zh',
+			key: 'extra',
+			routes: ['/'],
+			loader: async () => (await import('./zh/extra.json')).default
 		}
 	]
 };

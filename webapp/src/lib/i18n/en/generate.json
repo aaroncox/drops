@@ -1,0 +1,12 @@
+{
+	"header": "Use EOS tokens to purchase RAM from the blockchain and generate seeds.",
+	"togenerate": "Number of Seeds to generate",
+	"signinfirst": "You must be signed in to generate seeds.",
+	"generateseedsepoch": "Seeds in epoch",
+	"ramcost": "RAM Cost",
+	"overpaymentrefund": "Overpayment refunded",
+	"costbreakdown": "Cost Breakdown",
+	"ramstorage": "RAM Storage",
+	"ramsignup": "RAM Signup",
+	"ramepoch": "RAM Epoch"
+}

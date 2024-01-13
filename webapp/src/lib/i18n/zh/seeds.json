@@ -1,0 +1,18 @@
+{
+	"subheader": "您的帳戶當前擁有的種子數量（按週期劃分）。",
+	"owned": "您目前擁有的單個種子。",
+	"none": "沒有找到種子。",
+	"manage": "管理種子",
+	"signinfirst": "您必須登錄才能查看您的種子。",
+	"totalseeds": "種子總數",
+	"seedsselected": "選擇的種子：",
+	"destroyseeds": "摧毀種子：",
+	"transferaccount": "將種子轉入的帳戶",
+	"transferseeds": "轉移種子：",
+	"seedstransferred": "轉移的種子",
+	"seedssentto": "發送到",
+	"seedsdestroyed": "種子被摧毀",
+	"seedsramreclaimed": "RAM回收",
+	"seedseosredeemed": "EOS已兌換",
+	"destroyheader": "此操作將銷毀選定的種子並兌換所用 RAM 的值。"
+}

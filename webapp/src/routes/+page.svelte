@@ -72,50 +72,50 @@
 </script>
 
 <div class="p-8 space-y-8">
-	<div class="h2 font-bold">Statistics</div>
+	<div class="h2 font-bold">{$t('home.statistics')}</div>
 	<table class="table">
 		<thead>
 			<tr>
-				<th>Stat</th>
-				<th class="text-right">Value</th>
+				<th>{$t('home.stat')}</th>
+				<th class="text-right">{$t('home.value')}</th>
 			</tr>
 		</thead>
 		<tbody>
 			<tr>
-				<td>Seed Price</td>
+				<td>{$t('home.seedprice')}</td>
 				<td class="text-right">{Asset.fromUnits($seedPrice, '4,EOS')}</td>
 			</tr>
 			<tr>
-				<td>Seeds Reserved</td>
+				<td>{$t('home.seedsreserved')}</td>
 				<td class="text-right">{$totalSeeds}</td>
 			</tr>
 			<tr>
-				<td>RAM Reserved</td>
+				<td>{$t('home.ramreserved')}</td>
 				<td class="text-right">
 					{$totalRam}
 					kb
 				</td>
 			</tr>
 			<tr>
-				<td>RAM/kb Price</td>
+				<td>{$t('home.rampricekb')}</td>
 				<td class="text-right">{Asset.fromUnits($ramPrice * 1024, '4,EOS')}</td>
 			</tr>
 			<tr>
-				<td>TVL</td>
+				<td>{$t('home.tvl')}</td>
 				<td class="text-right">
 					{Asset.fromUnits($tvl, '4,EOS')}
 				</td>
 			</tr>
 		</tbody>
 	</table>
-	<div class="h2 font-bold">Distribution</div>
+	<div class="h2 font-bold">{$t('home.distribution')}</div>
 	<table class="table">
 		<thead>
 			<tr>
-				<th>Account</th>
-				<th class="text-right">Value</th>
-				<th class="text-right">RAM (kb)</th>
-				<th class="text-right">Seeds</th>
+				<th>{$t('home.account')}</th>
+				<th class="text-right">{$t('home.value')}</th>
+				<th class="text-right">{$t('home.ramkb')}</th>
+				<th class="text-right">{$t('common.seeds')}</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -129,25 +129,23 @@
 			{/each}
 		</tbody>
 	</table>
-	<div class="h2">Notes on how this all works...</div>
-	<p>This will all be removed once a homepage is created.</p>
+	<div class="h2">{$t('extra.header')}</div>
+	<p>{$t('extra.subheader')}</p>
 	<ul class="list p-8">
-		<li>Seeds are created by sending EOS tokens to the drops contract.</li>
-		<li>The drops contract automatically spends these tokens to purchase RAM for the seed data.</li>
-		<li>Any overage paid that is not used to buy RAM is automatically returned to the sender.</li>
-		<li>Seeds can be destroyed at any time by the owner.</li>
-		<li>
-			Released RAM after destroying seeds is automatically sold and tokens given to the owner.
-		</li>
-		<li>Seeds are transferable and can be sent to other accounts.</li>
-		<li>Seeds are unique, no two have the same data within them.</li>
-		<li>Every seed created has a marking that indicates which epoch it was created in.</li>
-		<li>The epoch automatically advanced every 1 day.</li>
-		<li>Oracles commit and reveal additional seed data to aid in randomization.</li>
-		<li>At the end of each epoch, each seed is combined with additional data.</li>
-		<li>Drops can be created to distribute things to seed holders.</li>
-		<li>A seed must exist before the epoch ends to be eligible for any drops in in that epoch.</li>
-		<li>Seeds from prior epochs are eligible for distributions in any future epoch.</li>
+		<li>{$t('extra.extra1')}</li>
+		<li>{$t('extra.extra2')}</li>
+		<li>{$t('extra.extra3')}</li>
+		<li>{$t('extra.extra4')}</li>
+		<li>{$t('extra.extra5')}</li>
+		<li>{$t('extra.extra6')}</li>
+		<li>{$t('extra.extra7')}</li>
+		<li>{$t('extra.extra8')}</li>
+		<li>{$t('extra.extra9')}</li>
+		<li>{$t('extra.extra10')}</li>
+		<li>{$t('extra.extra11')}</li>
+		<li>{$t('extra.extra12')}</li>
+		<li>{$t('extra.extra13')}</li>
+		<li>{$t('extra.extra14')}</li>
 	</ul>
 </div>
 

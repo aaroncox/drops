@@ -22,6 +22,8 @@ export const load = async ({ url, cookies, request }) => {
 		locale = defaultLocale;
 	}
 
+	console.log('locale', locale);
+
 	await loadTranslations(locale, pathname); // keep this just before the `return`
 
 	return {

@@ -16,6 +16,7 @@
 	import { DropsContract, dropsContract, session, systemContract, tokenContract } from '$lib/wharf';
 	import { getRamPrice, get_bancor_input } from '$lib/bancor';
 	import { sizeSeedRow, sizeAccountRow, sizeStatRow } from '$lib/constants';
+	import { t } from '$lib/i18n';
 
 	const useRandomSeed: Writable<boolean> = writable(true);
 	const seedAmount: Writable<number> = writable(1);
@@ -229,11 +230,11 @@
 			<PackagePlus class="dark:text-blue-400 inline size-12 mr-4" />
 			<span
 				class="bg-gradient-to-br from-blue-500 to-cyan-300 bg-clip-text text-transparent box-decoration-clone"
-				>Generate</span
+				>{$t('common.generate')}</span
 			>
 		</div>
 		<form class="space-y-8" on:submit|preventDefault={buy}>
-			<p>Use EOS tokens to purchase RAM from the blockchain and generate seeds.</p>
+			<p>{$t('generate.header')}</p>
 			<div class="text-center grid grid-cols-3 gap-4">
 				<div>
 					<div class="h2 font-bold">
@@ -243,8 +244,8 @@
 							0
 						{/if}
 					</div>
-					Seeds
-					<div class="text-slate-400">Total</div>
+					{$t('common.seeds')}
+					<div class="text-slate-400">{$t('common.total')}</div>
 				</div>
 				<div>
 					<div class="h2 font-bold">
@@ -254,8 +255,8 @@
 							0
 						{/if}
 					</div>
-					Seeds
-					<div class="text-slate-400">Epoch</div>
+					{$t('common.seeds')}
+					<div class="text-slate-400">{$t('common.epoch')}</div>
 				</div>
 				<div>
 					<div class="h2 font-bold">
@@ -265,15 +266,15 @@
 							~
 						{/if}
 					</div>
-					Epoch
-					<div class="text-slate-400">Current</div>
+					{$t('common.epoch')}
+					<div class="text-slate-400">{$t('common.current')}</div>
 				</div>
 			</div>
 			<label class="label">
-				<span>Number of Seeds to generate</span>
+				<span>{$t('generate.togenerate')}</span>
 				<select class="select" on:change={selectSeedAmount} value={$seedAmount}>
 					{#each [1, 10, 100, 1000, 10000] as amount}
-						<option value={amount}>+ {amount.toLocaleString()} seed(s)</option>
+						<option value={amount}>+ {amount.toLocaleString()} {$t('common.seeds')}</option>
 					{/each}
 				</select>
 			</label>
@@ -299,14 +300,18 @@
 					class="btn btn-lg variant-filled w-full bg-gradient-to-br from-blue-300 to-cyan-400 box-decoration-clone"
 				>
 					<span><MemoryStick /></span>
-					<span>Generate {$seedAmount}x for {Asset.fromUnits($totalPrice, '4,EOS')}</span>
+					<span
+						>{$t('common.generate')}
+						{$seedAmount}x {$t('common.costof')}
+						{Asset.fromUnits($totalPrice, '4,EOS')}</span
+					>
 				</button>
 			{:else}
 				<aside class="alert variant-filled-error">
 					<div><AlertCircle /></div>
 					<div class="alert-message">
-						<h3 class="h3">Sign-in first</h3>
-						<p>You must be signed in to generate seeds.</p>
+						<h3 class="h3">{$t('common.signinfirst')}</h3>
+						<p>{$t('generate.signinfirst')}</p>
 					</div>
 					<div class="alert-actions"></div>
 				</aside>
@@ -315,7 +320,7 @@
 				<aside class="alert variant-filled-error">
 					<div><AlertCircle /></div>
 					<div class="alert-message">
-						<h3 class="h3">Error processing transaction</h3>
+						<h3 class="h3">{$t('common.transacterror')}</h3>
 						<p>{$lastResultError}</p>
 					</div>
 					<div class="alert-actions"></div>
@@ -339,15 +344,15 @@
 						<tbody>
 							<tr>
 								<td class="text-right">{$lastResult.seeds}</td>
-								<td>Seeds in epoch {$lastResult.epoch}</td>
+								<td>{$t('generate.generateseedsepoch')} {$lastResult.epoch}</td>
 							</tr>
 							<tr>
 								<td class="text-right">{$lastResult.cost}</td>
-								<td>RAM Cost</td>
+								<td>{$t('generate.ramcost')}</td>
 							</tr>
 							<tr>
 								<td class="text-right">{$lastResult.refund}</td>
-								<td>Overpayment refunded</td>
+								<td>{$t('generate.overpaymentrefund')}</td>
 							</tr>
 						</tbody>
 					</table>
@@ -369,8 +374,8 @@
 						<tbody>
 							<tr>
 								<td>
-									<div class="text-lg font-bold">Seeds</div>
-									RAM Storage
+									<div class="text-lg font-bold">{$t('common.seeds')}</div>
+									{$t('generate.ramstorage')}
 								</td>
 								<td class="text-center">
 									<div class="text-lg font-bold">
@@ -387,8 +392,8 @@
 							{#if !$accountStats}
 								<tr>
 									<td>
-										<div class="text-lg font-bold">Account</div>
-										RAM Signup
+										<div class="text-lg font-bold">{$t('common.account')}</div>
+										{$t('generate.ramsignup')}
 									</td>
 									<td class="text-center">
 										<div class="text-lg font-bold">1</div>
@@ -402,8 +407,8 @@
 							{#if !$accountThisEpochStats}
 								<tr>
 									<td>
-										<div class="text-lg font-bold">Epoch</div>
-										RAM Epoch
+										<div class="text-lg font-bold">{$t('common.epoch')}</div>
+										{$t('generate.ramepoch')}
 									</td>
 									<td class="text-center">
 										<div class="text-lg font-bold">1</div>
@@ -419,7 +424,7 @@
 							<tr>
 								<td colspan="3" class="text-right">
 									<div class="font-bold text-xl">
-										<div class="text-sm">Total</div>
+										<div class="text-sm">{$t('common.total')}</div>
 										{Asset.fromUnits($totalPrice, '4,EOS')}
 									</div>
 								</td>

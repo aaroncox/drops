@@ -9,6 +9,8 @@
 		Name
 	} from '@wharfkit/session';
 
+	import { t } from '$lib/i18n';
+
 	import Seeds from '$lib/components/headers/seeds.svelte';
 	import { session, dropsContract } from '$lib/wharf';
 	import * as DropsContract from '$lib/contracts/drops';
@@ -144,23 +146,6 @@
 				lastTransferError.set(e);
 			}
 		}
-		// await $session.transact(
-		// 	{
-		// 		action: {
-		// 			account: contractName,
-		// 			name: 'transfer',
-		// 			authorization: [$session?.permissionLevel],
-		// 			data: {
-		// 				from: $session.actor,
-		// 				to: $to_account,
-		// 				to_transfer: $selected
-		// 			}
-		// 		}
-		// 	},
-		// 	{
-		// 		expireSeconds
-		// 	}
-		// );
 	}
 
 	interface DestroyResult {
@@ -213,8 +198,6 @@
 							txid: String(result.resolved?.transaction.id)
 						});
 					}
-
-					// show result with refund amount
 				} catch (e) {
 					// console.warn(e);
 				}
@@ -228,11 +211,11 @@
 <div class="container p-4 sm:p-8 lg:p-16 mx-auto flex justify-center items-center">
 	<div class="space-y-4 flex flex-col bg-surface-900 p-8 rounded-lg shadow-xl">
 		<Seeds />
-		<p>The individual seeds you currently own.</p>
+		<p>{$t('seeds.owned')}</p>
 		{#if !$loaded}
 			<section class="card w-full">
 				<div class="p-4 space-y-4">
-					<div class="text-center h3">Loading</div>
+					<div class="text-center h3">{$t('common.loading')}</div>
 					<div class="grid grid-cols-3 gap-8">
 						<div class="placeholder animate-pulse" />
 						<div class="placeholder animate-pulse" />
@@ -248,26 +231,38 @@
 			</section>
 		{:else if $seeds.length}
 			<div class="table-container text-center space-y-4">
-				<div class="h2 font-bold p-6 text-center">{$seeds.length.toLocaleString()} total seeds</div>
+				<div class="h2 font-bold p-6 text-center">
+					{$seeds.length.toLocaleString()}
+					{$t('seeds.totalseeds')}
+				</div>
 				<TabGroup justify="justify-center">
 					<Tab bind:group={tabSet} name="tab1" value={0}>
-						<span><Package2 class={`dark:text-green-400 inline size-4 mr-2`} /> List</span>
+						<span
+							><Package2 class={`dark:text-green-400 inline size-4 mr-2`} />
+							{$t('common.list')}</span
+						>
 					</Tab>
 					<Tab bind:group={tabSet} name="tab1" value={1}>
-						<span><Combine class={`dark:text-yellow-400 inline size-4 mr-2`} /> Transfer</span>
+						<span
+							><Combine class={`dark:text-yellow-400 inline size-4 mr-2`} />
+							{$t('common.transfer')}</span
+						>
 					</Tab>
 					<Tab bind:group={tabSet} name="tab2" value={2}>
-						<span><PackageX class={`dark:text-pink-400 inline size-4 mr-2`} /> Destroy</span>
+						<span
+							><PackageX class={`dark:text-pink-400 inline size-4 mr-2`} />
+							{$t('common.destroy')}</span
+						>
 					</Tab>
 					<svelte:fragment slot="panel">
 						{#if tabSet === 1}
 							<form class="space-y-4 p-8">
 								<label class="label">
-									<span>Account to transfer seeds to</span>
+									<span>{$t('seeds.transferaccount')}</span>
 									<input
 										class="input"
 										type="text"
-										placeholder="Account Name"
+										placeholder={$t('common.accountname')}
 										bind:value={$transferTo}
 									/>
 								</label>
@@ -277,13 +272,14 @@
 									on:click={transferSelected}
 									disabled={!$selected.length || !$transferTo}
 								>
-									Transfer {$selected.length} Seeds
+									{$t('seeds.transferseeds')}
+									{$selected.length}
 								</button>
 								{#if $lastTransferError}
 									<aside class="alert variant-filled-error">
 										<div><AlertCircle /></div>
 										<div class="alert-message">
-											<h3 class="h3">Error processing transaction</h3>
+											<h3 class="h3">{$t('common.transacterror')}</h3>
 											<p>{$lastTransferError}</p>
 										</div>
 										<div class="alert-actions"></div>
@@ -308,11 +304,11 @@
 											</thead>
 											<tbody>
 												<tr>
-													<td class="text-right">Seeds Transfered</td>
+													<td class="text-right">{$t('seeds.seedstransferred')}</td>
 													<td>{$lastTransferResult.seeds}</td>
 												</tr>
 												<tr>
-													<td class="text-right">Sent to</td>
+													<td class="text-right">{$t('seeds.seedssentto')}</td>
 													<td>{$lastTransferResult.to}</td>
 												</tr>
 											</tbody>
@@ -323,8 +319,7 @@
 						{:else if tabSet === 2}
 							<form class="space-y-4 p-8">
 								<p>
-									This action will destroy the {$selected.length} seeds and redeem the value of the RAM
-									used.
+									{$t('seeds.destroyheader')}
 								</p>
 								<button
 									type="button"
@@ -332,13 +327,14 @@
 									on:click={destroySelected}
 									disabled={!$selected.length}
 								>
-									Destroy {$selected.length} Seeds
+									{$t('seeds.destroyseeds')}
+									{$selected.length}
 								</button>
 								{#if $lastDestroyError}
 									<aside class="alert variant-filled-error">
 										<div><AlertCircle /></div>
 										<div class="alert-message">
-											<h3 class="h3">Error processing transaction</h3>
+											<h3 class="h3">{$t('common.transacterror')}</h3>
 											<p>{$lastDestroyError}</p>
 										</div>
 										<div class="alert-actions"></div>
@@ -363,15 +359,15 @@
 											</thead>
 											<tbody>
 												<tr>
-													<td class="text-right">Seeds Destroyed</td>
+													<td class="text-right">{$t('seeds.seedsdestroyed')}</td>
 													<td>{$lastDestroyResult.destroyed}</td>
 												</tr>
 												<tr>
-													<td class="text-right">RAM Reclaimed</td>
+													<td class="text-right">{$t('seeds.seedsramreclaimed')}</td>
 													<td>{$lastDestroyResult.ram}</td>
 												</tr>
 												<tr>
-													<td class="text-right">EOS Redeemed</td>
+													<td class="text-right">{$t('seeds.seedseosredeemed')}</td>
 													<td>{$lastDestroyResult.redeemed}</td>
 												</tr>
 											</tbody>
@@ -382,15 +378,15 @@
 						{/if}
 					</svelte:fragment>
 				</TabGroup>
-				<div class="h5">Seeds selected: {$selected.length}</div>
+				<div class="h5">{$t('seeds.seedsselected')} {$selected.length}</div>
 				<table class="table">
 					<thead>
 						<tr>
 							<th class="text-center">
 								<input type="checkbox" checked={$selectingAll} on:change={selectAll} />
 							</th>
-							<th class="text-center">Seed</th>
-							<th class="text-center">Epoch</th>
+							<th class="text-center">{$t('common.seed')}</th>
+							<th class="text-center">{$t('common.epoch')}</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -429,7 +425,7 @@
 				</table>
 			</div>
 		{:else}
-			<p>No seeds found.</p>
+			<p>{$t('seeds.none')}</p>
 		{/if}
 	</div>
 </div>

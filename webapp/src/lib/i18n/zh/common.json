@@ -1,0 +1,22 @@
+{
+	"signin": "登錄",
+	"signout": "登出",
+	"home": "家",
+	"generate": "生成",
+	"accountname": "帳戶名稱",
+	"seed": "種子",
+	"seeds": "種子",
+	"current": "當前",
+	"costof": "以",
+	"epoch": "時代",
+	"loot": "戰利品",
+	"total": "總",
+	"list": "清單",
+	"transfer": "轉移",
+	"loading": "裝載",
+	"destroy": "摧毀",
+	"about": "大約",
+	"readytoadvance": "準備前進...",
+	"signinfirst": "先登錄",
+	"transacterror": "處理事務時出錯"
+}

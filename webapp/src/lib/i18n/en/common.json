@@ -3,7 +3,20 @@
 	"signout": "Sign out",
 	"home": "Home",
 	"generate": "Generate",
+	"accountname": "Account Name",
+	"seed": "Seed",
+	"seeds": "Seeds",
+	"current": "Current",
+	"costof": "at cost of",
+	"epoch": "Epoch",
 	"loot": "Loot",
+	"total": "Total",
+	"list": "List",
+	"transfer": "Transfer",
+	"loading": "Loading",
 	"destroy": "Destroy",
-	"about": "About"
+	"about": "About",
+	"readytoadvance": "Ready to advance...",
+	"signinfirst": "Sign-in first",
+	"transacterror": "Error processing transaction"
 }

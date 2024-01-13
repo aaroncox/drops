@@ -4,6 +4,8 @@
 	import { writable, type Writable } from 'svelte/store';
 	import { AlertCircle } from 'svelte-lucide';
 
+	import { t } from '$lib/i18n';
+
 	import Seeds from '../../lib/components/headers/seeds.svelte';
 	import { DropsContract, dropsContract, session, systemContract } from '../../lib/wharf';
 
@@ -62,14 +64,14 @@
 <div class="container p-4 sm:p-8 lg:p-16 mx-auto flex justify-center items-center">
 	<div class="space-y-4 flex flex-col bg-surface-900 p-8 rounded-lg shadow-xl">
 		<Seeds />
-		<p>The number of seeds your account currently owns, by epoch.</p>
+		<p>{$t('seeds.subheader')}</p>
 		{#if $session}
 			<div class="table-container text-center space-y-10">
 				<table class="table">
 					<thead>
 						<tr>
-							<th class="text-center">Seeds</th>
-							<th class="text-center">Epoch</th>
+							<th class="text-center">{$t('common.seeds')}</th>
+							<th class="text-center">{$t('common.epoch')}</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -84,7 +86,7 @@
 							</tr>
 						{:else}
 							<tr>
-								<td class="text-center" colspan="3"> No seeds found. </td>
+								<td class="text-center" colspan="3">{$t('seeds.none')}</td>
 							</tr>
 						{/each}
 					</tbody>
@@ -94,15 +96,15 @@
 					type="button"
 					class="btn variant-filled w-full bg-gradient-to-br from-green-500 to-blue-400 box-decoration-clone"
 				>
-					<span>Manage Seeds</span>
+					<span>{$t('seeds.manage')}</span>
 				</a>
 			</div>
 		{:else}
 			<aside class="alert variant-filled-error">
 				<div><AlertCircle /></div>
 				<div class="alert-message">
-					<h3 class="h3">Sign-in first</h3>
-					<p>You must be signed in to view your seeds.</p>
+					<h3 class="h3">{$t('common.signinfirst')}</h3>
+					<p>{$t('seeds.signinfirst')}</p>
 				</div>
 				<div class="alert-actions"></div>
 			</aside>

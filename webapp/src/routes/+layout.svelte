@@ -111,7 +111,9 @@
 					<span class="text-sm">
 						{#if hh && mm && ss}
 							{#if hh === 0 && mm === 0 && ss === 0}
-								<span title="Will advance to next epoch on next action">Ready to advance...</span>
+								<span title="Will advance to next epoch on next action"
+									>{$t('common.readytoadvance')}</span
+								>
 							{:else}
 								{f(hh)}:{f(mm)}:{f(ss)}
 							{/if}

@@ -1,4 +1,13 @@
 {
-	"title": "Welcome to SvelteKit",
-	"text": "Visit <a href=\"{{link}}\">kit.svelte.dev</a> to read the documentation"
+	"account": "Account",
+	"distribution": "Distribution",
+	"rampricekb": "RAM/kb Price",
+	"ramkb": "RAM (kb)",
+	"ramreserved": "RAM Reserved",
+	"seedprice": "Seed Price",
+	"seedsreserved": "Seeds Reserved",
+	"stat": "Stat",
+	"statistics": "Statistics",
+	"tvl": "TVL",
+	"value": "Value"
 }

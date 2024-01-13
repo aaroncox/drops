@@ -8,6 +8,10 @@ export const load = async ({ data }) => {
 	const { i18n, translations } = data;
 	const { locale, route } = i18n;
 
+	const defaultLanguage = navigator.language.split('-')[0];
+
+	console.log(defaultLanguage);
+
 	addTranslations(translations);
 
 	await setRoute(route);

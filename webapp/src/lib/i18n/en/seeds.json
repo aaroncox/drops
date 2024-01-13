@@ -1,0 +1,18 @@
+{
+	"subheader": "The number of seeds your account currently owns, by epoch.",
+	"owned": "The individual seeds you currently own.",
+	"none": "No seeds found.",
+	"manage": "Manage Seeds",
+	"signinfirst": "You must be signed in to view your seeds.",
+	"totalseeds": "Total Seeds",
+	"seedsselected": "Seeds Selected:",
+	"destroyseeds": "Destroy Seeds:",
+	"transferaccount": "Account to transfer seeds to",
+	"transferseeds": "Transfer Seeds:",
+	"seedstransferred": "Seeds Transfered",
+	"seedssentto": "Sent to",
+	"seedsdestroyed": "Seeds Destroyed",
+	"seedsramreclaimed": "RAM Reclaimed",
+	"seedseosredeemed": "EOS Redeemed",
+	"destroyheader": "This action will destroy the selected seeds and redeem the value of the RAM used."
+}
