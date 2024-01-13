@@ -1,15 +1,30 @@
 <script lang="ts">
 	import { derived, writable, type Readable, type Writable } from 'svelte/store';
-	import { Serializer, UInt64 } from '@wharfkit/session';
+	import {
+		Asset,
+		Checksum256,
+		Serializer,
+		UInt64,
+		type TransactResult,
+		Name
+	} from '@wharfkit/session';
 
 	import Seeds from '$lib/components/headers/seeds.svelte';
 	import { session, dropsContract } from '$lib/wharf';
 	import * as DropsContract from '$lib/contracts/drops';
-	import { Paginator, type PaginationSettings } from '@skeletonlabs/skeleton';
+	import { Paginator, type PaginationSettings, TabGroup, Tab } from '@skeletonlabs/skeleton';
+	import { AlertCircle, Combine, Package2, PackageX } from 'svelte-lucide';
+	import { onMount } from 'svelte';
 
 	const loaded = writable(false);
 
-	const seeds: Readable<DropsContract.Types.seed_row[]> = derived([session], ([$session], set) => {
+	const seeds: Writable<DropsContract.Types.seed_row[]> = writable([]);
+
+	session.subscribe(() => {
+		loadSeeds();
+	});
+
+	async function loadSeeds() {
 		if ($session) {
 			const from = Serializer.decode({
 				data:
@@ -25,7 +40,7 @@
 				type: 'uint128'
 			});
 
-			dropsContract
+			const rows = await dropsContract
 				.table('seeds')
 				.query({
 					key_type: 'i128',
@@ -33,14 +48,12 @@
 					from,
 					to
 				})
-				.all()
-				.then((results) => {
-					set(results);
-					loaded.set(true);
-				});
+				.all();
+
+			loaded.set(true);
+			seeds.set(rows);
 		}
-		set([]);
-	});
+	}
 
 	let paginationSettings = {
 		page: 0,
@@ -68,19 +81,147 @@
 		} else {
 			selected.update((s) => {
 				const index = s.indexOf(value);
+				console.log(s, index, s.splice(index, 1));
 				return s.splice(index, 1);
 			});
 		}
 	}
 
+	const selectingAll = writable(false);
+
 	function selectAll(e: Event) {
 		const { checked } = e.target;
 		if (checked) {
-			selected.set($seeds.map((s) => s.seed));
+			selectingAll.set(true);
+			selected.set(paginatedSource.map((s) => s.seed));
 		} else {
+			selectingAll.set(false);
 			selected.set([]);
 		}
 	}
+
+	interface TransferResult {
+		from: Name;
+		to: Name;
+		seeds: number;
+		txid: string;
+	}
+	const transferTo: Writable<string> = writable();
+	const lastTransferResult: Writable<TransferResult | undefined> = writable();
+	const lastTransferError = writable();
+
+	async function transferSelected() {
+		if ($session) {
+			const to = Name.from($transferTo);
+
+			const action = dropsContract.action('transfer', {
+				from: $session?.actor,
+				to,
+				to_transfer: $selected
+			});
+
+			let result: TransactResult;
+			try {
+				result = await $session.transact({ action });
+				// Remove transferred from list
+				const seedsTransferred = $selected.map((s) => String(s));
+				seeds.update((current) =>
+					current.filter((row) => !seedsTransferred.includes(String(row.seed)))
+				);
+
+				selected.set([]);
+				selectingAll.set(false);
+
+				lastTransferResult.set({
+					from: $session.actor,
+					to,
+					seeds: seedsTransferred.length,
+					txid: String(result.resolved?.transaction.id)
+				});
+			} catch (e) {
+				lastTransferResult.set(undefined);
+				lastTransferError.set(e);
+			}
+		}
+		// await $session.transact(
+		// 	{
+		// 		action: {
+		// 			account: contractName,
+		// 			name: 'transfer',
+		// 			authorization: [$session?.permissionLevel],
+		// 			data: {
+		// 				from: $session.actor,
+		// 				to: $to_account,
+		// 				to_transfer: $selected
+		// 			}
+		// 		}
+		// 	},
+		// 	{
+		// 		expireSeconds
+		// 	}
+		// );
+	}
+
+	interface DestroyResult {
+		destroyed: number;
+		ram: number;
+		redeemed: Asset;
+		txid: string;
+	}
+	const lastDestroyResult: Writable<DestroyResult | undefined> = writable();
+	const lastDestroyError = writable();
+
+	async function destroySelected() {
+		console.log('destroy', $selected);
+		if ($session) {
+			const action = dropsContract.action('destroy', {
+				owner: $session?.actor,
+				to_destroy: $selected
+			});
+
+			let result: TransactResult;
+			try {
+				result = await $session.transact({ action });
+			} catch (e) {
+				lastDestroyResult.set(undefined);
+				lastDestroyError.set(e);
+			}
+
+			result.returns.forEach((returnValue) => {
+				try {
+					const data = Serializer.decode({
+						data: returnValue.hex,
+						type: DropsContract.Types.destroy_return_value
+					});
+
+					if (Number(data.destroyed.length) > 0) {
+						// Clear selected
+						selected.set([]);
+						selectingAll.set(false);
+
+						// Remove destroyed from list
+						const seedsDestroyed = data.destroyed.map((s) => String(s));
+						seeds.update((current) =>
+							current.filter((row) => !seedsDestroyed.includes(String(row.seed)))
+						);
+
+						lastDestroyResult.set({
+							destroyed: seedsDestroyed.length,
+							ram: Number(data.ram_sold),
+							redeemed: data.redeemed,
+							txid: String(result.resolved?.transaction.id)
+						});
+					}
+
+					// show result with refund amount
+				} catch (e) {
+					// console.warn(e);
+				}
+			});
+		}
+	}
+
+	let tabSet: number = 1;
 </script>
 
 <div class="container p-4 sm:p-8 lg:p-16 mx-auto flex justify-center items-center">
@@ -105,16 +246,147 @@
 				</div>
 			</section>
 		{:else if $seeds.length}
-			<div class="table-container text-center">
+			<div class="table-container text-center space-y-4">
 				<div class="h2 font-bold p-6 text-center">{$seeds.length.toLocaleString()} total seeds</div>
-				{#if $selected}
-					<div class="h3">Selected: {$selected.length}</div>
-				{/if}
+				<TabGroup justify="justify-center">
+					<Tab bind:group={tabSet} name="tab1" value={0}>
+						<span><Package2 class={`dark:text-green-400 inline size-4 mr-2`} /> List</span>
+					</Tab>
+					<Tab bind:group={tabSet} name="tab1" value={1}>
+						<span><Combine class={`dark:text-yellow-400 inline size-4 mr-2`} /> Transfer</span>
+					</Tab>
+					<Tab bind:group={tabSet} name="tab2" value={2}>
+						<span><PackageX class={`dark:text-pink-400 inline size-4 mr-2`} /> Destroy</span>
+					</Tab>
+					<svelte:fragment slot="panel">
+						{#if tabSet === 1}
+							<form class="space-y-4 p-8">
+								<label class="label">
+									<span>Account to transfer seeds to</span>
+									<input
+										class="input"
+										type="text"
+										placeholder="Account Name"
+										bind:value={$transferTo}
+									/>
+								</label>
+								<button
+									type="button"
+									class="btn variant-filled"
+									on:click={transferSelected}
+									disabled={!$selected.length || !$transferTo}
+								>
+									Transfer {$selected.length} Seeds
+								</button>
+								{#if $lastTransferError}
+									<aside class="alert variant-filled-error">
+										<div><AlertCircle /></div>
+										<div class="alert-message">
+											<h3 class="h3">Error processing transaction</h3>
+											<p>{$lastTransferError}</p>
+										</div>
+										<div class="alert-actions"></div>
+									</aside>
+								{/if}
+								{#if $lastTransferResult}
+									<div class="table-container">
+										<table class="table">
+											<thead>
+												<tr>
+													<th
+														colspan="3"
+														class="variant-filled w-full bg-gradient-to-br from-green-500 to-green-700 box-decoration-clone"
+													>
+														<div class="lowercase text-sm text-white">
+															<a href={`https://bloks.io/transaction/${$lastTransferResult.txid}`}
+																>{$lastTransferResult.txid}</a
+															>
+														</div>
+													</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr>
+													<td class="text-right">Seeds Transfered</td>
+													<td>{$lastTransferResult.seeds}</td>
+												</tr>
+												<tr>
+													<td class="text-right">Sent to</td>
+													<td>{$lastTransferResult.to}</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								{/if}
+							</form>
+						{:else if tabSet === 2}
+							<form class="space-y-4 p-8">
+								<p>
+									This action will destroy the {$selected.length} seeds and redeem the value of the RAM
+									used.
+								</p>
+								<button
+									type="button"
+									class="btn variant-filled"
+									on:click={destroySelected}
+									disabled={!$selected.length}
+								>
+									Destroy {$selected.length} Seeds
+								</button>
+								{#if $lastDestroyError}
+									<aside class="alert variant-filled-error">
+										<div><AlertCircle /></div>
+										<div class="alert-message">
+											<h3 class="h3">Error processing transaction</h3>
+											<p>{$lastDestroyError}</p>
+										</div>
+										<div class="alert-actions"></div>
+									</aside>
+								{/if}
+								{#if $lastDestroyResult}
+									<div class="table-container">
+										<table class="table">
+											<thead>
+												<tr>
+													<th
+														colspan="3"
+														class="variant-filled w-full bg-gradient-to-br from-green-500 to-green-700 box-decoration-clone"
+													>
+														<div class="lowercase text-sm text-white">
+															<a href={`https://bloks.io/transaction/${$lastDestroyResult.txid}`}
+																>{$lastDestroyResult.txid}</a
+															>
+														</div>
+													</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr>
+													<td class="text-right">Seeds Destroyed</td>
+													<td>{$lastDestroyResult.destroyed}</td>
+												</tr>
+												<tr>
+													<td class="text-right">RAM Reclaimed</td>
+													<td>{$lastDestroyResult.ram}</td>
+												</tr>
+												<tr>
+													<td class="text-right">EOS Redeemed</td>
+													<td>{$lastDestroyResult.redeemed}</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								{/if}
+							</form>
+						{/if}
+					</svelte:fragment>
+				</TabGroup>
+				<div class="h5">Seeds selected: {$selected.length}</div>
 				<table class="table">
 					<thead>
 						<tr>
 							<th class="text-center">
-								<input type="checkbox" on:change={selectAll} />
+								<input type="checkbox" checked={$selectingAll} on:change={selectAll} />
 							</th>
 							<th class="text-center">Seed</th>
 							<th class="text-center">Epoch</th>

@@ -168,7 +168,14 @@ public:
    [[eosio::action]] void enroll(name account, uint64_t epoch);
    using enroll_action = eosio::action_wrapper<"enroll"_n, &drops::enroll>;
 
-   [[eosio::action]] void destroy(name owner, std::vector<uint64_t> to_destroy);
+   struct destroy_return_value
+   {
+      std::vector<uint64_t> destroyed;
+      uint64_t              ram_sold;
+      asset                 redeemed;
+   };
+
+   [[eosio::action]] destroy_return_value destroy(name owner, std::vector<uint64_t> to_destroy);
    using destroy_action = eosio::action_wrapper<"destroy"_n, &drops::destroy>;
 
    struct generate_return_value

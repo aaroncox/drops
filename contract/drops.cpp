@@ -193,12 +193,6 @@ drops::generate(name from, name to, asset quantity, std::string memo)
          .send();
    }
 
-   //    {
-   //       uint32_t seeds;
-   //       asset    cost;
-   //       asset    refund;
-   //    };
-
    return {
       (uint32_t)amount,      // seeds bought
       epoch,                 // epoch
@@ -248,7 +242,7 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    }
 }
 
-[[eosio::action]] void drops::destroy(name owner, std::vector<uint64_t> to_destroy)
+[[eosio::action]] drops::destroy_return_value drops::destroy(name owner, std::vector<uint64_t> to_destroy)
 {
    require_auth(owner);
 
@@ -258,7 +252,7 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    check(state_itr->enabled, "Contract is currently disabled.");
 
    check(to_destroy.size() > 0, "No seeds were provided to destroy.");
-   //    check(to_destroy.size() <= 100, "Cannot destroy more than 100 at a time.");
+   //    check(to_destroy.size() <= 5000, "Cannot destroy more than 5000 at a time.");
 
    drops::seeds_table seeds(_self, _self.value);
 
@@ -282,6 +276,12 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    //    check(false, "ram_sell_proceeds: " + ram_sell_proceeds.to_string());
    transfer_act.send(_self, owner, ram_sell_proceeds,
                      "Reclaimed RAM value of " + std::to_string(to_destroy.size()) + " seed(s)");
+
+   return {
+      to_destroy,       // assets destroyed
+      ram_sell_amount,  // ram sold
+      ram_sell_proceeds // redeemed ram value
+   };
 }
 
 [[eosio::action]] void drops::enroll(name account, uint64_t epoch)

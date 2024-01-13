@@ -360,15 +360,17 @@
 							<tr>
 								<th colspan="3"> Cost Breakdown </th>
 							</tr>
-							<tr>
+							<!-- <tr>
 								<th class="text-right">Item</th>
 								<th class="text-center">Count</th>
 								<th class="text-right">Cost</th>
-							</tr>
+							</tr> -->
 						</thead>
 						<tbody>
 							<tr class="text-right">
-								<td>Seeds</td>
+								<td>
+									<div class="text-lg font-bold">Seeds</div>
+								</td>
 								<td class="text-center">
 									<div class="text-lg font-bold">
 										{$seedAmount}
@@ -383,7 +385,9 @@
 							</tr>
 							{#if !$accountStats}
 								<tr class="text-right">
-									<td>Account</td>
+									<td>
+										<div class="text-lg font-bold">Account</div>
+									</td>
 									<td class="text-center">
 										<div class="text-lg font-bold">1</div>
 									</td>
@@ -395,7 +399,9 @@
 							{/if}
 							{#if !$accountThisEpochStats}
 								<tr class="text-right">
-									<td>Epoch</td>
+									<td>
+										<div class="text-lg font-bold">Epoch</div>
+									</td>
 									<td class="text-center">
 										<div class="text-lg font-bold">1</div>
 									</td>
