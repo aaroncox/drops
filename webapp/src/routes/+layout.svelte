@@ -34,14 +34,11 @@
 		if (defaultLanguage) {
 			return defaultLanguage;
 		}
+		return 'en';
 	}
 
 	onMount(async () => {
-		const lang = getLanguage('lang');
-		if (lang) {
-			console.log('setting lang on mount', lang);
-			setLocale(lang);
-		}
+		setLocale(getLanguage('lang'));
 		restore();
 		loadEpoch();
 		epochInterval = setInterval(loadEpoch, 10000);
