@@ -11,6 +11,7 @@ export const load = async ({ data }) => {
 	addTranslations(translations);
 
 	await setRoute(route);
+	console.log('setting locale on load', locale);
 	await setLocale(locale);
 
 	return i18n;

@@ -39,6 +39,7 @@
 	onMount(async () => {
 		const lang = getLanguage('lang');
 		if (lang) {
+			console.log('setting lang on mount', lang);
 			setLocale(lang);
 		}
 		restore();
