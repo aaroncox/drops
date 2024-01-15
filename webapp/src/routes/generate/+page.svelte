@@ -13,10 +13,11 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { derived, writable, type Readable, type Writable } from 'svelte/store';
 	import { AlertCircle, MemoryStick, PackagePlus } from 'svelte-lucide';
-	import { DropsContract, dropsContract, session, systemContract, tokenContract } from '$lib/wharf';
-	import { getRamPrice, get_bancor_input } from '$lib/bancor';
+	import { DropsContract, dropsContract, session, tokenContract } from '$lib/wharf';
+	import { getRamPrice } from '$lib/bancor';
 	import { sizeSeedRow, sizeAccountRow, sizeStatRow } from '$lib/constants';
 	import { t } from '$lib/i18n';
+	import { epochEnd, epochEnded } from '$lib/epoch';
 
 	const useRandomSeed: Writable<boolean> = writable(true);
 	const seedAmount: Writable<number> = writable(1);
@@ -43,21 +44,30 @@
 	);
 
 	const totalPrice: Readable<number | undefined> = derived(
-		[seedAmount, seedPrice, accountPrice, statsPrice, accountStats, accountThisEpochStats],
+		[
+			seedAmount,
+			seedPrice,
+			accountPrice,
+			statsPrice,
+			accountStats,
+			accountThisEpochStats,
+			epochEnded
+		],
 		([
 			$seedAmount,
 			$seedPrice,
 			$accountPrice,
 			$statsPrice,
 			$accountStats,
-			$accountThisEpochStats
+			$accountThisEpochStats,
+			$epochEnded
 		]) => {
 			if ($seedAmount && $seedPrice && $accountPrice && $statsPrice) {
 				let cost = $seedAmount * $seedPrice;
 				if (!$accountStats) {
 					cost += $accountPrice;
 				}
-				if (!$accountThisEpochStats) {
+				if (!$accountThisEpochStats || $epochEnded) {
 					cost += $statsPrice;
 				}
 				return cost;
@@ -404,7 +414,7 @@
 									</td>
 								</tr>
 							{/if}
-							{#if !$accountThisEpochStats}
+							{#if !$accountThisEpochStats || $epochEnded}
 								<tr>
 									<td>
 										<div class="text-lg font-bold">{$t('common.epoch')}</div>

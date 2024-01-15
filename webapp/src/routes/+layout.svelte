@@ -16,6 +16,7 @@
 
 	import Navigation from '$lib/components/navigation/navigation.svelte';
 	import { dropsContract } from '../lib/wharf';
+	import { loadEpoch, epochEnd, epochNumber } from '$lib/epoch';
 
 	const handleChange = ({ currentTarget }) => {
 		const { value } = currentTarget;
@@ -48,9 +49,6 @@
 		clearInterval(epochInterval);
 	});
 
-	let epochNumber: Writable<number> = writable();
-	let epochEnd: Writable<Date> = writable();
-
 	const remaining = readable(epochEnd, function start(set) {
 		const interval = setInterval(() => {
 			let r = Math.round(($epochEnd - new Date()) / 1000);
@@ -69,13 +67,6 @@
 	$: hh = Math.floor($remaining / 3600);
 	$: mm = Math.floor(($remaining - hh * 3600) / 60);
 	$: ss = $remaining - hh * 3600 - mm * 60;
-
-	async function loadEpoch() {
-		const state = await dropsContract.table('state').get();
-		const epoch = await dropsContract.table('epochs').get(state.epoch);
-		epochNumber.set(String(state.epoch));
-		epochEnd.set(new Date(epoch.end.toMilliseconds()));
-	}
 
 	function drawerOpen(): void {
 		drawerStore.open({});
@@ -124,13 +115,11 @@
 					<p>Epoch: {$epochNumber}</p>
 					<span class="text-sm">
 						{#if hh && mm && ss}
-							{#if hh === 0 && mm === 0 && ss === 0}
-								<span title="Will advance to next epoch on next action"
-									>{$t('common.readytoadvance')}</span
-								>
-							{:else}
-								{f(hh)}:{f(mm)}:{f(ss)}
-							{/if}
+							{f(hh)}:{f(mm)}:{f(ss)}
+						{:else if hh == 0 && mm == 0 && ss == 0}
+							<span title="Will advance to next epoch on next action"
+								>{$t('common.readytoadvance')}</span
+							>
 						{:else}
 							--:--:--
 						{/if}
