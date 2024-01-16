@@ -454,8 +454,8 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    check(current_time < epoch_itr->end, "Epoch no longer accepting commits");
 
    drops::commits_table commits(_self, _self.value);
-   auto                 commit_idx = commits.get_index<"oracle"_n>();
-   auto                 commit_itr = commit_idx.find(oracle.value);
+   auto                 commit_idx = commits.get_index<"epochoracle"_n>();
+   auto                 commit_itr = commit_idx.find(((uint128_t)oracle.value << 64) + epoch);
    check(commit_itr == commit_idx.end(), "Oracle has already committed");
 
    commits.emplace(oracle, [&](auto& row) {
@@ -489,13 +489,13 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    check(current_time < epoch_itr->reveal, "Reveal phase has completed");
 
    drops::reveals_table reveals(_self, _self.value);
-   auto                 reveal_idx = reveals.get_index<"oracle"_n>();
-   auto                 reveal_itr = reveal_idx.find(oracle.value);
+   auto                 reveal_idx = reveals.get_index<"epochoracle"_n>();
+   auto                 reveal_itr = reveal_idx.find(((uint128_t)oracle.value << 64) + epoch);
    check(reveal_itr == reveal_idx.end(), "Oracle has already revealed");
 
    drops::commits_table commits(_self, _self.value);
-   auto                 commit_idx = commits.get_index<"oracle"_n>();
-   auto                 commit_itr = commit_idx.find(oracle.value);
+   auto                 commit_idx = commits.get_index<"epochoracle"_n>();
+   auto                 commit_itr = commit_idx.find(((uint128_t)oracle.value << 64) + epoch);
    check(commit_itr != commit_idx.end(), "Oracle never committed");
 
    checksum256 reveal_hash = sha256(reveal.c_str(), reveal.length());

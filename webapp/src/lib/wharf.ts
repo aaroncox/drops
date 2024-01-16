@@ -24,7 +24,7 @@ const urlParams = new URLSearchParams(queryString);
 export const url = urlParams.get('node') || 'https://jungle4.greymass.com';
 
 const debugWallet = new WalletPluginPrivateKey(
-	'5Jtoxgny5tT7NiNFp1MLogviuPJ9NniWjnU4wKzaX4t7pL4kJ8s'
+	'***REMOVED***'
 );
 
 export const client = new APIClient({ url });

@@ -67,14 +67,14 @@ public:
       checksum256 commit;
       uint64_t    primary_key() const { return id; }
       uint64_t    by_epoch() const { return epoch; }
-      uint64_t    by_oracle() const { return oracle.value; }
+      uint128_t   by_epochoracle() const { return ((uint128_t)oracle.value << 64) | epoch; }
    };
 
    typedef eosio::multi_index<
       "commits"_n,
       commit_row,
       eosio::indexed_by<"epoch"_n, eosio::const_mem_fun<commit_row, uint64_t, &commit_row::by_epoch>>,
-      eosio::indexed_by<"oracle"_n, eosio::const_mem_fun<commit_row, uint64_t, &commit_row::by_oracle>>>
+      eosio::indexed_by<"epochoracle"_n, eosio::const_mem_fun<commit_row, uint128_t, &commit_row::by_epochoracle>>>
       commits_table;
 
    struct [[eosio::table("oracles")]] oracle_row
@@ -87,20 +87,20 @@ public:
 
    struct [[eosio::table("reveal")]] reveal_row
    {
-      uint64_t id;
-      uint64_t epoch;
-      name     oracle;
-      string   reveal;
-      uint64_t primary_key() const { return id; }
-      uint64_t by_epoch() const { return epoch; }
-      uint64_t by_oracle() const { return oracle.value; }
+      uint64_t  id;
+      uint64_t  epoch;
+      name      oracle;
+      string    reveal;
+      uint64_t  primary_key() const { return id; }
+      uint64_t  by_epoch() const { return epoch; }
+      uint128_t by_epochoracle() const { return ((uint128_t)oracle.value << 64) | epoch; }
    };
 
    typedef eosio::multi_index<
       "reveals"_n,
       reveal_row,
       eosio::indexed_by<"epoch"_n, eosio::const_mem_fun<reveal_row, uint64_t, &reveal_row::by_epoch>>,
-      eosio::indexed_by<"oracle"_n, eosio::const_mem_fun<reveal_row, uint64_t, &reveal_row::by_oracle>>>
+      eosio::indexed_by<"epochoracle"_n, eosio::const_mem_fun<reveal_row, uint128_t, &reveal_row::by_epochoracle>>>
       reveals_table;
 
    struct [[eosio::table("seeds")]] seed_row
@@ -109,7 +109,7 @@ public:
       name      owner;
       uint64_t  epoch;
       uint64_t  primary_key() const { return seed; }
-      uint128_t by_owner() const { return ((uint128_t)owner.value << 64) + seed; }
+      uint128_t by_owner() const { return ((uint128_t)owner.value << 64) | seed; }
       uint64_t  by_epoch() const { return epoch; }
    };
 
