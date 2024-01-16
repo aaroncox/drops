@@ -14,6 +14,52 @@ std::string hexStr(unsigned char* data, int len)
    return s;
 }
 
+checksum256 drops::compute_epoch_value(uint64_t epoch, uint64_t seed)
+{
+   // Load the seed
+   drops::seeds_table seeds(_self, _self.value);
+   auto               seed_itr = seeds.find(seed);
+   check(seed_itr != seeds.end(), "Seed not found");
+
+   // Ensure this seed was valid for the given epoch
+   // A seed must be created before or during the provided epoch
+   check(seed_itr->epoch <= epoch, "Seed was generated after this epoch and is not valid for computation.");
+
+   // Load the epoch and ensure all secrets have been revealed
+   drops::epochs_table epochs(_self, _self.value);
+   auto                epoch_itr = epochs.find(epoch);
+   check(epoch_itr != epochs.end(), "Epoch does not exist");
+   // TODO: Check a value to ensure the epoch has been completely revealed
+
+   // Load all reveal values for the epoch
+   drops::reveals_table reveals_table(_self, _self.value);
+   auto                 reveal_idx = reveals_table.get_index<"epoch"_n>();
+   auto                 reveal_itr = reveal_idx.find(epoch);
+   check(reveal_itr != reveal_idx.end(), "Epoch has no reveal values?");
+
+   // Accumulator for all reveal values
+   std::vector<std::string> reveals;
+
+   // Iterate over reveals and build a vector containing them all
+   while (reveal_itr != reveal_idx.end() && reveal_itr->epoch == epoch) {
+      reveals.push_back(reveal_itr->reveal);
+      reveal_itr++;
+   }
+
+   // Sort the reveal values alphebetically for consistency
+   sort(reveals.begin(), reveals.end());
+
+   // Combine the epoch, seed, and reveals into a single string
+   string result = std::to_string(epoch) + std::to_string(seed);
+   for (const auto& reveal : reveals)
+      result += reveal;
+
+   // Generate the sha256 value of the combined string
+   return sha256(result.c_str(), result.length());
+}
+
+[[eosio::action]] checksum256 drops::compute(uint64_t epoch, uint64_t seed) { return compute_epoch_value(epoch, seed); }
+
 drops::epoch_row drops::advance_epoch()
 {
    // Retrieve contract state
@@ -514,6 +560,9 @@ drops::generate(name from, name to, asset quantity, std::string memo)
       row.oracle = oracle;
       row.reveal = reveal;
    });
+
+   // TODO: Determine if all secrets have been revealed. If so, mark the epoch as completed.
+   // TODO: Create an administrative action that can force an Epoch completed if an oracle fails to reveal.
 }
 
 [[eosio::action]] void drops::addoracle(name oracle)

@@ -26,8 +26,10 @@ static constexpr uint64_t stats_row       = 412;                           // si
 static constexpr uint64_t record_size     = primary_row + secondary_index; // total record size
 static constexpr uint64_t purchase_buffer = 1; // Additional RAM bytes to purchase (buyrambytes bug)
 
-uint64_t epochphasetimer = 86400;
-// uint64_t epochphasetimer = 60;
+uint64_t epochphasetimer = 86400; // 1-day
+// uint64_t epochphasetimer = 43200; // 12-hour
+// uint64_t epochphasetimer = 14400 // 4-hour
+// uint64_t epochphasetimer = 60; // 1-minute
 
 static constexpr symbol EOS = symbol{"EOS", 4};
 
@@ -231,6 +233,14 @@ public:
 
    [[eosio::action]] void wipesome();
    using wipesome_action = eosio::action_wrapper<"wipesome"_n, &drops::wipesome>;
+
+   /*
+    Computation helpers
+   */
+   [[eosio::action]] checksum256 compute(uint64_t epoch, uint64_t seed);
+   using compute_action = eosio::action_wrapper<"compute"_n, &drops::compute>;
+
+   checksum256 compute_epoch_value(uint64_t epoch, uint64_t seed);
 
 private:
    drops::epoch_row         advance_epoch();
