@@ -17,7 +17,7 @@
 	import { getRamPrice } from '$lib/bancor';
 	import { sizeSeedRow, sizeAccountRow, sizeStatRow } from '$lib/constants';
 	import { t } from '$lib/i18n';
-	import { epochEnd, epochEnded } from '$lib/epoch';
+	import { epochEnd, epochEnded, epochNumber } from '$lib/epoch';
 
 	const useRandomSeed: Writable<boolean> = writable(true);
 	const seedAmount: Writable<number> = writable(1);
@@ -28,17 +28,19 @@
 	const accountPrice: Writable<number> = writable();
 	const statsPrice: Writable<number> = writable();
 
-	const dropsState: Writable<DropsContract.Types.state_row> = writable();
 	const accountStats: Writable<DropsContract.Types.account_row> = writable();
 	const accountEpochStats: Writable<DropsContract.Types.stat_row[]> = writable([]);
 	const accountThisEpochStats: Readable<DropsContract.Types.stat_row> = derived(
-		[accountEpochStats, dropsState],
-		([$accountEpochStats, $dropsState], set) => {
+		[accountEpochStats, epochNumber],
+		([$accountEpochStats, $epochNumber], set) => {
 			if ($accountEpochStats.length) {
-				const thisEpoch = $accountEpochStats.find((e) => e.epoch.equals($dropsState.epoch));
+				const thisEpoch = $accountEpochStats.find((e) => e.epoch.equals($epochNumber));
+                console.log('this epoch', $epochNumber, thisEpoch)
 				if (thisEpoch) {
 					set(thisEpoch);
-				}
+                } else {
+                    set(undefined);
+                }
 			}
 		}
 	);
@@ -75,17 +77,24 @@
 		}
 	);
 
+    // let accountLoader: ReturnType<typeof setInterval>;
 	let ramLoader: ReturnType<typeof setInterval>;
 
 	onMount(async () => {
 		loadRamPrice();
-		loadState();
+		// loadState();
+        // accountLoader = setInterval(loadAccountData, 5000);
 		ramLoader = setInterval(loadRamPrice, 2000);
 	});
 
 	onDestroy(() => {
+        // clearInterval(accountLoader);
 		clearInterval(ramLoader);
 	});
+
+    epochNumber.subscribe(() => {
+        loadAccountData();
+    }) 
 
 	session.subscribe(() => {
 		loadAccountData();
@@ -105,12 +114,12 @@
 		}
 	}
 
-	async function loadState() {
-		const state = await dropsContract.table('state').get();
-		if (state) {
-			dropsState.set(state);
-		}
-	}
+	// async function loadState() {
+	// 	const state = await dropsContract.table('state').get();
+	// 	if (state) {
+	// 		dropsState.set(state);
+	// 	}
+	// }
 
 	async function loadAccountEpochStats() {
 		if ($session) {
@@ -123,6 +132,8 @@
 				})
 				.all();
 			if (results) {
+                console.log('loaded account epoch stats', JSON.stringify(results))
+
 				accountEpochStats.set(results);
 			}
 		}
@@ -270,8 +281,8 @@
 				</div>
 				<div>
 					<div class="h2 font-bold">
-						{#if $dropsState}
-							{$dropsState.epoch}
+						{#if $epochNumber}
+							{$epochNumber}
 						{:else}
 							~
 						{/if}

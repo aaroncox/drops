@@ -614,6 +614,12 @@ drops::generate(name from, name to, asset quantity, std::string memo)
       reveal_itr = reveals.erase(reveal_itr);
    }
 
+   drops::oracles_table oracles(_self, _self.value);
+   auto                 oracle_itr = oracles.begin();
+   while (oracle_itr != oracles.end()) {
+      oracle_itr = oracles.erase(oracle_itr);
+   }
+
    drops::seeds_table seeds(_self, _self.value);
    auto               seed_itr = seeds.begin();
    while (seed_itr != seeds.end()) {

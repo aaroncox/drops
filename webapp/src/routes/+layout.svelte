@@ -42,7 +42,7 @@
 		setLocale(getLanguage('lang'));
 		restore();
 		loadEpoch();
-		epochInterval = setInterval(loadEpoch, 10000);
+		epochInterval = setInterval(loadEpoch, 1000);
 	});
 
 	onDestroy(() => {
@@ -54,9 +54,6 @@
 			let r = Math.round(($epochEnd - new Date()) / 1000);
 			r = Math.max(r, 0);
 			set(r);
-			if (r <= 0) {
-				clearInterval(interval);
-			}
 		}, 1000);
 
 		return function stop() {
@@ -115,7 +112,7 @@
 					<p>Epoch: {$epochNumber}</p>
 					<span class="text-sm">
 						{#if hh || mm || ss}
-							{f(hh)}:{f(mm)}:{f(ss)}
+							Ends: {f(hh)}:{f(mm)}:{f(ss)}
 						{:else if hh == 0 && mm == 0 && ss == 0}
 							<span title="Will advance to next epoch on next action"
 								>{$t('common.readytoadvance')}</span
