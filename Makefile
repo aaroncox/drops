@@ -61,6 +61,10 @@ testnetinit:
 testnetaddoracle:
 	cleos -u $(NODE_URL) push action testing.gm addoracle '{"oracle": "wharfkittest"}' -p "testing.gm@active"
 
+.PHONY: testnetaddoracle2
+testnetaddoracle2:
+	cleos -u $(NODE_URL) push action testing.gm addoracle '{"oracle": "wharfkit1111"}' -p "testing.gm@active"
+
 .PHONY: testnetremoveoracle
 testnetremoveoracle:
 	cleos -u $(NODE_URL) push action testing.gm removeoracle '{"oracle": "wharfkittest"}' -p "testing.gm@active"
