@@ -177,6 +177,10 @@ public:
    [[eosio::action]] destroy_return_value destroy(name owner, std::vector<uint64_t> to_destroy);
    using destroy_action = eosio::action_wrapper<"destroy"_n, &drops::destroy>;
 
+   // DEBUGGING ACTION
+   [[eosio::action]] void destroyall();
+   using destroyall_action = eosio::action_wrapper<"destroyall"_n, &drops::destroyall>;
+
    struct generate_return_value
    {
       uint32_t seeds;

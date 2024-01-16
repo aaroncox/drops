@@ -339,6 +339,57 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    };
 }
 
+[[eosio::action]] void drops::destroyall()
+{
+   require_auth(_self);
+
+   drops::seeds_table seeds(_self, _self.value);
+   auto               seed_itr = seeds.begin();
+
+   uint64_t            seeds_destroyed = 0;
+   map<name, uint64_t> seeds_destroyed_for;
+
+   while (seed_itr != seeds.end()) {
+      seeds_destroyed += 1;
+      // Keep track of how many seeds were destroyed per owner for debug refund
+      if (seeds_destroyed_for.find(seed_itr->owner) == seeds_destroyed_for.end()) {
+         seeds_destroyed_for[seed_itr->owner] = 1;
+      } else {
+         seeds_destroyed_for[seed_itr->owner] += 1;
+      }
+      // Destroy the seed
+      seeds.erase(seed_itr);
+   }
+
+   // Reset all stat rows
+   stats_table stats(_self, _self.value);
+   auto        stat_itr = stats.begin();
+   while (stat_itr != stats.end()) {
+      stats.modify(stat_itr, _self, [&](auto& row) { row.seeds = 0; });
+   }
+
+   // Reset all account rows
+   accounts_table accounts(_self, _self.value);
+   auto           account_itr = accounts.begin();
+   while (account_itr != accounts.end()) {
+      accounts.modify(account_itr, _self, [&](auto& row) { row.seeds = 0; });
+   }
+
+   // Calculate RAM sell amount
+   uint64_t ram_to_sell = seeds_destroyed * record_size;
+   action(permission_level{_self, "active"_n}, "eosio"_n, "sellram"_n, std::make_tuple(_self, ram_to_sell)).send();
+
+   for (auto& iter : seeds_destroyed_for) {
+      uint64_t ram_sell_amount   = iter.second * record_size;
+      asset    ram_sell_proceeds = eosiosystem::ramproceedstminusfee(ram_sell_amount, EOS);
+
+      token::transfer_action transfer_act{"eosio.token"_n, {{_self, "active"_n}}};
+      //    check(false, "ram_sell_proceeds: " + ram_sell_proceeds.to_string());
+      transfer_act.send(_self, iter.first, ram_sell_proceeds,
+                        "Testnet Reset - Reclaimed RAM value of " + std::to_string(iter.second) + " seed(s)");
+   }
+}
+
 [[eosio::action]] void drops::enroll(name account, uint64_t epoch)
 {
    require_auth(account);
