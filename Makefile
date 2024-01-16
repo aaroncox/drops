@@ -69,6 +69,10 @@ testnetremoveoracle:
 testnetenable:
 	cleos -u $(NODE_URL) push action testing.gm enable '{"enabled": true}' -p "testing.gm@active"
 
+.PHONY: testnetdestroyall
+testnetdestroyall:
+	cleos -u $(NODE_URL) push action testing.gm destroyall '{}' -p "testing.gm@active"
+
 .PHONY: testnetdisable
 testnetdisable:
 	cleos -u $(NODE_URL) push action testing.gm enable '{"enabled": false}' -p "testing.gm@active"
