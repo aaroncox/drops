@@ -458,7 +458,7 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    auto                 commit_itr = commit_idx.find(((uint128_t)oracle.value << 64) + epoch);
    check(commit_itr == commit_idx.end(), "Oracle has already committed");
 
-   commits.emplace(oracle, [&](auto& row) {
+   commits.emplace(_self, [&](auto& row) {
       row.id     = commits.available_primary_key();
       row.epoch  = epoch;
       row.oracle = oracle;
@@ -508,7 +508,7 @@ drops::generate(name from, name to, asset quantity, std::string memo)
          "Reveal value '" + reveal + "' hashes to '" + hexStr(reveal_arr.data(), reveal_arr.size()) +
             "' which does not match commit value '" + hexStr(commit_arr.data(), commit_arr.size()) + "'.");
 
-   reveals.emplace(oracle, [&](auto& row) {
+   reveals.emplace(_self, [&](auto& row) {
       row.id     = reveals.available_primary_key();
       row.epoch  = epoch;
       row.oracle = oracle;
