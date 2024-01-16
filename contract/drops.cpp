@@ -343,12 +343,11 @@ drops::generate(name from, name to, asset quantity, std::string memo)
 {
    require_auth(_self);
 
-   drops::seeds_table seeds(_self, _self.value);
-   auto               seed_itr = seeds.begin();
-
    uint64_t            seeds_destroyed = 0;
    map<name, uint64_t> seeds_destroyed_for;
 
+   drops::seeds_table seeds(_self, _self.value);
+   auto               seed_itr = seeds.begin();
    while (seed_itr != seeds.end()) {
       seeds_destroyed += 1;
       // Keep track of how many seeds were destroyed per owner for debug refund
@@ -357,22 +356,19 @@ drops::generate(name from, name to, asset quantity, std::string memo)
       } else {
          seeds_destroyed_for[seed_itr->owner] += 1;
       }
-      // Destroy the seed
-      seeds.erase(seed_itr);
+      seed_itr = seeds.erase(seed_itr);
    }
 
-   // Reset all stat rows
-   stats_table stats(_self, _self.value);
-   auto        stat_itr = stats.begin();
-   while (stat_itr != stats.end()) {
-      stats.modify(stat_itr, _self, [&](auto& row) { row.seeds = 0; });
-   }
-
-   // Reset all account rows
-   accounts_table accounts(_self, _self.value);
-   auto           account_itr = accounts.begin();
+   drops::accounts_table accounts(_self, _self.value);
+   auto                  account_itr = accounts.begin();
    while (account_itr != accounts.end()) {
-      accounts.modify(account_itr, _self, [&](auto& row) { row.seeds = 0; });
+      account_itr = accounts.erase(account_itr);
+   }
+
+   drops::stats_table stats(_self, _self.value);
+   auto               stats_itr = stats.begin();
+   while (stats_itr != stats.end()) {
+      stats_itr = stats.erase(stats_itr);
    }
 
    // Calculate RAM sell amount
