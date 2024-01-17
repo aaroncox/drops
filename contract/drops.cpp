@@ -254,6 +254,8 @@ drops::generate(name from, name to, asset quantity, std::string memo)
 [[eosio::action]] void drops::transfer(name from, name to, std::vector<uint64_t> to_transfer)
 {
    require_auth(from);
+   require_recipient(from);
+   require_recipient(to);
 
    // Retrieve contract state
    state_table state(_self, _self.value);
