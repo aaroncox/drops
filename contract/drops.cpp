@@ -593,7 +593,7 @@ drops::generate(name from, name to, asset quantity, std::string memo)
       row.reveal = reveal;
    });
 
-   // Check if all oracles from the epoch have revealed
+   // TODO: This logic is the exact same as finishreveal, should be refactored
    vector<name> has_revealed;
    auto         completed_reveals_idx = reveals.get_index<"epochoracle"_n>();
    for (name oracle : epoch_itr->oracles) {
@@ -613,7 +613,6 @@ drops::generate(name from, name to, asset quantity, std::string memo)
       });
    }
 
-   // TODO: Determine if all secrets have been revealed. If so, mark the epoch as completed.
    // TODO: Create an administrative action that can force an Epoch completed if an oracle fails to reveal.
 }
 
@@ -750,6 +749,12 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    auto                epoch_itr = epochs.begin();
    while (epoch_itr != epochs.end()) {
       epoch_itr = epochs.erase(epoch_itr);
+   }
+
+   drops::epochseed_table epochseed(_self, _self.value);
+   auto                   epochseed_itr = epochseed.begin();
+   while (epochseed_itr != epochseed.end()) {
+      epochseed_itr = epochseed.erase(epochseed_itr);
    }
 
    drops::reveals_table reveals(_self, _self.value);
