@@ -629,10 +629,10 @@
     bn.js "^4.11.9"
     tslib "^2.1.0"
 
-"@wharfkit/session@^1.2.2":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@wharfkit/session/-/session-1.2.2.tgz#660cb72cfaa598c4733776dc7709b5cb9396e014"
-  integrity sha512-tkeuTq8AltJmVj7uos04vKhgNL7gFuq0VnrE7E+mAVFqpatr6XVT5/ShWrQxCDubHXraKK6nnZ6inUlETQkc9w==
+"@wharfkit/session@^1.2.3":
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/@wharfkit/session/-/session-1.2.3.tgz#358ae67eb0f1a19fcdc0883b9bcc3e1cdab5bf7b"
+  integrity sha512-J3axIrnw007YEtJQ/Vw+NYJGzZ3E5p7dovDAHHXlT2WfOkWs9UXE+dqQwenEWsc+0gHVwyBMTXEQIpGYD7wdQg==
   dependencies:
     "@wharfkit/abicache" "^1.2.1"
     "@wharfkit/antelope" "^1.0.2"
@@ -706,10 +706,10 @@
     "@wharfkit/protocol-scatter" "^1.1.0"
     tslib "^2.1.0"
 
-"@wharfkit/web-renderer@^1.1.4":
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/@wharfkit/web-renderer/-/web-renderer-1.1.4.tgz#49aae189f23e1b24b6aed786097bffa662b9461d"
-  integrity sha512-5eiTQIonilixNTq5xiqgI4JQRxufMw3ZlzTKhpA2hu546OnOy3bYW60WssJO6ZLAIXnDhN8SMgxhzJrfSf51xw==
+"@wharfkit/web-renderer@^1.1.5":
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/@wharfkit/web-renderer/-/web-renderer-1.1.5.tgz#92d6fc8a0ee8ebd2bdf31fc74f961aa16d27efb5"
+  integrity sha512-41+2clvHRSzDYULPDCHzlgP42aeX7UBkw7uNSybru3+0szrnxncr3LR3vbVS1iiXJJnaOy9o2J5ji2W5JlnF9w==
 
 acorn-jsx@^5.3.2:
   version "5.3.2"

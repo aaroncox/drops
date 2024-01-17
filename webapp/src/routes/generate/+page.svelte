@@ -8,11 +8,12 @@
 		Serializer,
 		Struct,
 		Int32,
-		type TransactResult
+		type TransactResult,
+		PrivateKey
 	} from '@wharfkit/session';
 	import { onDestroy, onMount } from 'svelte';
 	import { derived, writable, type Readable, type Writable } from 'svelte/store';
-	import { AlertCircle, MemoryStick, PackagePlus } from 'svelte-lucide';
+	import { AlertCircle, Loader2, MemoryStick, PackagePlus } from 'svelte-lucide';
 	import { DropsContract, dropsContract, session, tokenContract } from '$lib/wharf';
 	import { getRamPrice } from '$lib/bancor';
 	import { sizeSeedRow, sizeAccountRow, sizeStatRow } from '$lib/constants';
@@ -35,12 +36,12 @@
 		([$accountEpochStats, $epochNumber], set) => {
 			if ($accountEpochStats.length) {
 				const thisEpoch = $accountEpochStats.find((e) => e.epoch.equals($epochNumber));
-                console.log('this epoch', $epochNumber, thisEpoch)
+				console.log('this epoch', $epochNumber, thisEpoch);
 				if (thisEpoch) {
 					set(thisEpoch);
-                } else {
-                    set(undefined);
-                }
+				} else {
+					set(undefined);
+				}
 			}
 		}
 	);
@@ -77,24 +78,24 @@
 		}
 	);
 
-    // let accountLoader: ReturnType<typeof setInterval>;
+	// let accountLoader: ReturnType<typeof setInterval>;
 	let ramLoader: ReturnType<typeof setInterval>;
 
 	onMount(async () => {
 		loadRamPrice();
 		// loadState();
-        // accountLoader = setInterval(loadAccountData, 5000);
+		// accountLoader = setInterval(loadAccountData, 5000);
 		ramLoader = setInterval(loadRamPrice, 2000);
 	});
 
 	onDestroy(() => {
-        // clearInterval(accountLoader);
+		// clearInterval(accountLoader);
 		clearInterval(ramLoader);
 	});
 
-    epochNumber.subscribe(() => {
-        loadAccountData();
-    }) 
+	epochNumber.subscribe(() => {
+		loadAccountData();
+	});
 
 	session.subscribe(() => {
 		loadAccountData();
@@ -121,6 +122,10 @@
 	// 	}
 	// }
 
+	console.log(
+		String(PrivateKey.from('***REMOVED***').toPublic())
+	);
+
 	async function loadAccountEpochStats() {
 		if ($session) {
 			const results = await dropsContract
@@ -132,7 +137,7 @@
 				})
 				.all();
 			if (results) {
-                console.log('loaded account epoch stats', JSON.stringify(results))
+				console.log('loaded account epoch stats', JSON.stringify(results));
 
 				accountEpochStats.set(results);
 			}
@@ -169,9 +174,11 @@
 	const lastResult: Writable<GenerateReturnValue | undefined> = writable();
 	const lastResultId: Writable<string | undefined> = writable();
 	const lastResultError: Writable<string> = writable();
+	const transacting: Writable<boolean> = writable(false);
 
 	async function buy(event: Event) {
 		lastResultError.set('');
+		transacting.set(true);
 		if ($session) {
 			const hash = String(Checksum256.hash(Bytes.from(String($randomSeed), 'utf8')));
 			const quantity = Asset.fromUnits($totalPrice, '4,EOS');
@@ -186,59 +193,59 @@
 			let result: TransactResult;
 			try {
 				result = await $session.transact({ action });
+				// Set the last successful transaction ID
+				lastResultId.set(String(result.resolved?.transaction.id));
+
+				// Process return values
+				result.returns.forEach((returnValue) => {
+					try {
+						const data = Serializer.decode({
+							data: returnValue.hex,
+							type: DropsContract.Types.generate_return_value
+						});
+						if (Number(data.epoch_seeds) > 0) {
+							accountEpochStats.update((stats) => {
+								const newStats = [...stats];
+								const index = newStats.findIndex((s) => s.epoch.equals(data.epoch));
+								if (index >= 0) {
+									newStats[index].seeds = data.epoch_seeds;
+								} else {
+									newStats.push(
+										DropsContract.Types.stat_row.from({
+											account: $session?.actor,
+											epoch: data.epoch,
+											id: 0,
+											seeds: data.epoch_seeds
+										})
+									);
+								}
+								return newStats;
+							});
+						}
+						if (Number(data.total_seeds) > 0) {
+							accountStats.update((stats) => {
+								return {
+									...stats,
+									account: $session?.actor,
+									seeds: data.total_seeds
+								};
+							});
+						}
+						if (Number(data.seeds) > 0) {
+							lastResult.set(data);
+						}
+					} catch (e) {
+						console.warn(e);
+					}
+				});
+				randomSeed.set(randomName());
+				loadRamPrice();
 			} catch (e) {
 				lastResult.set(undefined);
 				lastResultId.set(undefined);
 				lastResultError.set(e);
 			}
-
-			// Set the last successful transaction ID
-			lastResultId.set(String(result.resolved?.transaction.id));
-
-			// Process return values
-			result.returns.forEach((returnValue) => {
-				try {
-					const data = Serializer.decode({
-						data: returnValue.hex,
-						type: DropsContract.Types.generate_return_value
-					});
-					if (Number(data.epoch_seeds) > 0) {
-						accountEpochStats.update((stats) => {
-							const newStats = [...stats];
-							const index = newStats.findIndex((s) => s.epoch.equals(data.epoch));
-							if (index >= 0) {
-								newStats[index].seeds = data.epoch_seeds;
-							} else {
-								newStats.push(
-									DropsContract.Types.stat_row.from({
-										account: $session?.actor,
-										epoch: data.epoch,
-										id: 0,
-										seeds: data.epoch_seeds
-									})
-								);
-							}
-							return newStats;
-						});
-					}
-					if (Number(data.total_seeds) > 0) {
-						accountStats.update((stats) => {
-							return {
-								...stats,
-								account: $session?.actor,
-								seeds: data.total_seeds
-							};
-						});
-					}
-					if (Number(data.seeds) > 0) {
-						lastResult.set(data);
-					}
-				} catch (e) {
-					console.warn(e);
-				}
-			});
-			randomSeed.set(randomName());
-			loadRamPrice();
+			transacting.set(false);
 		}
 	}
 
@@ -319,8 +326,15 @@
 			{#if $session}
 				<button
 					class="btn btn-lg variant-filled w-full bg-gradient-to-br from-blue-300 to-cyan-400 box-decoration-clone"
+					disabled={$transacting}
 				>
-					<span><MemoryStick /></span>
+					<span>
+						{#if $transacting}
+							<Loader2 class="animate-spin" />
+						{:else}
+							<MemoryStick />
+						{/if}
+					</span>
 					<span
 						>{$t('common.generate')}
 						{$seedAmount}x {$t('common.costof')}
