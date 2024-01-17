@@ -6,3 +6,4 @@ oracle/build
 old/
 drops.sqlite
 *.log
+.env

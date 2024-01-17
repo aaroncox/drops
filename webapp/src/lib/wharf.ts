@@ -8,7 +8,9 @@ import { WalletPluginScatter } from '@wharfkit/wallet-plugin-scatter';
 import { WalletPluginTokenPocket } from '@wharfkit/wallet-plugin-tokenpocket';
 import { WalletPluginWombat } from '@wharfkit/wallet-plugin-wombat';
 import WebRenderer from '@wharfkit/web-renderer';
+
 import { writable, type Writable } from 'svelte/store';
+import { env } from '$env/dynamic/public';
 
 import { Contract as SystemContract } from './contracts/eosio';
 export * as SystemContract from './contracts/drops';
@@ -23,7 +25,17 @@ const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 export const url = urlParams.get('node') || 'https://jungle4.greymass.com';
 
-const debugWallet = new WalletPluginPrivateKey('KEY');
+const walletPlugins = [
+	new WalletPluginAnchor(),
+	new WalletPluginScatter(),
+	new WalletPluginTokenPocket(),
+	new WalletPluginWombat()
+];
+
+// If a local key is provided, add the private key wallet
+if (env.PUBLIC_LOCAL_SIGNER) {
+	walletPlugins.unshift(new WalletPluginPrivateKey(env.PUBLIC_LOCAL_SIGNER));
+}
 
 export const client = new APIClient({ url });
 export const accountKit = new AccountKit(Chains.EOS, { client });
@@ -45,13 +57,7 @@ export const sessionKit = new SessionKit(
 			}
 		],
 		ui: new WebRenderer({ minimal: true }),
-		walletPlugins: [
-			debugWallet,
-			new WalletPluginAnchor(),
-			new WalletPluginTokenPocket(),
-			new WalletPluginScatter(),
-			new WalletPluginWombat()
-		]
+		walletPlugins
 	},
 	{
 		transactPlugins: [new TransactPluginResourceProvider()]
