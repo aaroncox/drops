@@ -1,0 +1,22 @@
+{
+  "name": "drops-oracle",
+  "module": "src/index.ts",
+  "type": "module",
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@wharfkit/antelope": "^1.0.3",
+    "@wharfkit/contract": "^1.1.2",
+    "@wharfkit/session": "^1.2.2",
+    "@wharfkit/transact-plugin-cosigner": "^1.1.0",
+    "@wharfkit/wallet-plugin-privatekey": "^1.1.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "toad-scheduler": "^3.0.0",
+    "winston": "^3.11.0"
+  }
+}

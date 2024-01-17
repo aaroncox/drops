@@ -15,16 +15,20 @@ build: contract webapp
 
 codegen:
 	npx @wharfkit/cli generate --json contract/build/drops.abi --url https://jungle4.greymass.com testing.gm -f webapp/src/lib/contracts/drops.ts
+	npx @wharfkit/cli generate --json contract/build/drops.abi --url https://jungle4.greymass.com testing.gm -f oracle/src/lib/contracts/drops.ts
 
 dev:
 	yarn --cwd webapp/ dev
+
+oracledev:
+	bun run --watch oracle/src/index.ts
 
 .PHONY: webapp
 webapp:
 	yarn --cwd webapp/ build
 
 contract/%.abi: contract/%.cpp contract/%.contracts.md
-	cdt-cpp -abigen -abigen_output=contract/build/drops.abi -o contract/build/drops.wasm -O3 contract/drops.cpp contract/ram.cpp $(INCLUDES)
+	cdt-cpp -abigen -abigen_output=contract/build/drops.abi -o contract/build/drops.wasm -O3 contract/api.cpp contract/drops.cpp contract/ram.cpp $(INCLUDES)
 
 src/contract-types.ts: contract/$(CONTRACT).abi
 	${BIN}/abi2core <$< > types/contract-types.ts

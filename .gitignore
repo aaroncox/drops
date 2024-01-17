@@ -2,4 +2,7 @@
 contract/build/*.wasm
 contract/build/*.abi
 webapp/build
+oracle/build
 old/
+drops.sqlite
+*.log
