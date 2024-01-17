@@ -120,7 +120,8 @@
 			const action = dropsContract.action('transfer', {
 				from: $session?.actor,
 				to,
-				to_transfer: $selected
+				seed_ids: $selected,
+				memo: ''
 			});
 
 			let result: TransactResult;
@@ -162,7 +163,8 @@
 		if ($session) {
 			const action = dropsContract.action('destroy', {
 				owner: $session?.actor,
-				to_destroy: $selected
+				seed_ids: $selected,
+				memo: ''
 			});
 
 			let result: TransactResult;
