@@ -122,10 +122,6 @@
 	// 	}
 	// }
 
-	console.log(
-		String(PrivateKey.from('***REMOVED***').toPublic())
-	);
-
 	async function loadAccountEpochStats() {
 		if ($session) {
 			const results = await dropsContract

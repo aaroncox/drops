@@ -23,9 +23,7 @@ const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 export const url = urlParams.get('node') || 'https://jungle4.greymass.com';
 
-const debugWallet = new WalletPluginPrivateKey(
-	'***REMOVED***'
-);
+const debugWallet = new WalletPluginPrivateKey('KEY');
 
 export const client = new APIClient({ url });
 export const accountKit = new AccountKit(Chains.EOS, { client });
