@@ -593,8 +593,57 @@ drops::generate(name from, name to, asset quantity, std::string memo)
       row.reveal = reveal;
    });
 
+   // Check if all oracles from the epoch have revealed
+   vector<name> has_revealed;
+   auto         completed_reveals_idx = reveals.get_index<"epochoracle"_n>();
+   for (name oracle : epoch_itr->oracles) {
+      auto completed_reveals_itr = completed_reveals_idx.find(((uint128_t)oracle.value << 64) + epoch);
+      if (completed_reveals_itr != completed_reveals_idx.end()) {
+         has_revealed.push_back(oracle);
+      }
+   }
+   if (has_revealed.size() == epoch_itr->oracles.size()) {
+      // Complete the epoch
+      epochs.modify(epoch_itr, _self, [&](auto& row) { row.completed = 1; });
+      // Persist the epoch seed
+      drops::epochseed_table epochseed(_self, _self.value);
+      epochseed.emplace(_self, [&](auto& row) {
+         row.epoch = epoch;
+         row.seed  = compute_epoch_value(epoch);
+      });
+   }
+
    // TODO: Determine if all secrets have been revealed. If so, mark the epoch as completed.
    // TODO: Create an administrative action that can force an Epoch completed if an oracle fails to reveal.
+}
+
+[[eosio::action]] void drops::finishreveal(uint64_t epoch)
+{
+   drops::epochs_table epochs(_self, _self.value);
+   auto                epoch_itr = epochs.find(epoch);
+   check(epoch_itr != epochs.end(), "Epoch does not exist");
+   check(epoch_itr->completed == 0, "Epoch has already completed");
+
+   vector<name>         has_revealed;
+   drops::reveals_table reveals(_self, _self.value);
+   auto                 reveals_idx = reveals.get_index<"epochoracle"_n>();
+   for (name oracle : epoch_itr->oracles) {
+      auto completed_reveals_itr = reveals_idx.find(((uint128_t)oracle.value << 64) + epoch);
+      if (completed_reveals_itr != reveals_idx.end()) {
+         has_revealed.push_back(oracle);
+      }
+   }
+
+   if (has_revealed.size() == epoch_itr->oracles.size()) {
+      // Complete the epoch
+      epochs.modify(epoch_itr, _self, [&](auto& row) { row.completed = 1; });
+      // Persist the computed epoch seed
+      drops::epochseed_table epochseed(_self, _self.value);
+      epochseed.emplace(_self, [&](auto& row) {
+         row.epoch = epoch;
+         row.seed  = compute_epoch_value(epoch);
+      });
+   }
 }
 
 [[eosio::action]] void drops::addoracle(name oracle)

@@ -69,6 +69,15 @@ public:
       eosio::indexed_by<"completed"_n, eosio::const_mem_fun<epoch_row, uint64_t, &epoch_row::by_completed>>>
       epochs_table;
 
+   struct [[eosio::table("epochseed")]] epochseed_row
+   {
+      uint64_t    epoch;
+      checksum256 seed;
+      uint64_t    primary_key() const { return epoch; }
+   };
+
+   typedef eosio::multi_index<"epochseed"_n, epochseed_row> epochseed_table;
+
    struct [[eosio::table("commit")]] commit_row
    {
       uint64_t    id;
@@ -232,6 +241,9 @@ public:
 
    [[eosio::action]] void enable(bool enabled);
    using enable_action = eosio::action_wrapper<"enable"_n, &drops::enable>;
+
+   [[eosio::action]] void finishreveal(uint64_t epoch);
+   using finishreveal_action = eosio::action_wrapper<"finishreveal"_n, &drops::finishreveal>;
 
    [[eosio::action]] void init();
    using init_action = eosio::action_wrapper<"init"_n, &drops::init>;
