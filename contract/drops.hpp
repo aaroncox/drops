@@ -237,10 +237,14 @@ public:
    /*
     Computation helpers
    */
-   [[eosio::action]] checksum256 compute(uint64_t epoch, uint64_t seed);
-   using compute_action = eosio::action_wrapper<"compute"_n, &drops::compute>;
+   [[eosio::action]] checksum256 computeepoch(uint64_t epoch);
+   using computeepoch_action = eosio::action_wrapper<"computeepoch"_n, &drops::computeepoch>;
 
-   checksum256 compute_epoch_value(uint64_t epoch, uint64_t seed);
+   [[eosio::action]] checksum256 computeseed(uint64_t epoch, uint64_t seed);
+   using computeseed_action = eosio::action_wrapper<"computeseed"_n, &drops::computeseed>;
+
+   checksum256 compute_epoch_value(uint64_t epoch);
+   checksum256 compute_epoch_seed_value(uint64_t epoch, uint64_t seed);
 
 private:
    drops::epoch_row         advance_epoch();

@@ -14,17 +14,8 @@ std::string hexStr(unsigned char* data, int len)
    return s;
 }
 
-checksum256 drops::compute_epoch_value(uint64_t epoch, uint64_t seed)
+checksum256 drops::compute_epoch_value(uint64_t epoch)
 {
-   // Load the seed
-   drops::seeds_table seeds(_self, _self.value);
-   auto               seed_itr = seeds.find(seed);
-   check(seed_itr != seeds.end(), "Seed not found");
-
-   // Ensure this seed was valid for the given epoch
-   // A seed must be created before or during the provided epoch
-   check(seed_itr->epoch <= epoch, "Seed was generated after this epoch and is not valid for computation.");
-
    // Load the epoch and ensure all secrets have been revealed
    drops::epochs_table epochs(_self, _self.value);
    auto                epoch_itr = epochs.find(epoch);
@@ -50,7 +41,7 @@ checksum256 drops::compute_epoch_value(uint64_t epoch, uint64_t seed)
    sort(reveals.begin(), reveals.end());
 
    // Combine the epoch, seed, and reveals into a single string
-   string result = std::to_string(epoch) + std::to_string(seed);
+   string result = std::to_string(epoch);
    for (const auto& reveal : reveals)
       result += reveal;
 
@@ -58,7 +49,34 @@ checksum256 drops::compute_epoch_value(uint64_t epoch, uint64_t seed)
    return sha256(result.c_str(), result.length());
 }
 
-[[eosio::action]] checksum256 drops::compute(uint64_t epoch, uint64_t seed) { return compute_epoch_value(epoch, seed); }
+checksum256 drops::compute_epoch_seed_value(uint64_t epoch, uint64_t seed)
+{
+   // Load the seed
+   drops::seeds_table seeds(_self, _self.value);
+   auto               seed_itr = seeds.find(seed);
+   check(seed_itr != seeds.end(), "Seed not found");
+
+   // Ensure this seed was valid for the given epoch
+   // A seed must be created before or during the provided epoch
+   check(seed_itr->epoch <= epoch, "Seed was generated after this epoch and is not valid for computation.");
+
+   // Generate epoch value
+   checksum256 epoch_seed = compute_epoch_value(epoch);
+
+   // Combine the epoch seed and seed into a single string
+   auto   epoch_arr = epoch_seed.extract_as_byte_array();
+   string result    = hexStr(epoch_arr.data(), epoch_arr.size()) + std::to_string(seed);
+
+   // Generate the sha256 value of the combined string
+   return sha256(result.c_str(), result.length());
+}
+
+[[eosio::action]] checksum256 drops::computeseed(uint64_t epoch, uint64_t seed)
+{
+   return compute_epoch_seed_value(epoch, seed);
+}
+
+[[eosio::action]] checksum256 drops::computeepoch(uint64_t epoch) { return compute_epoch_value(epoch); }
 
 drops::epoch_row drops::advance_epoch()
 {
