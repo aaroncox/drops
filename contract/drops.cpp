@@ -251,7 +251,7 @@ drops::generate(name from, name to, asset quantity, std::string memo)
 
 [[eosio::action]] drops::generate_return_value drops::generatertrn() {}
 
-[[eosio::action]] void drops::transfer(name from, name to, std::vector<uint64_t> to_transfer)
+[[eosio::action]] void drops::transfer(name from, name to, std::vector<uint64_t> seed_ids, string memo)
 {
    require_auth(from);
    require_recipient(from);
@@ -262,14 +262,14 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    auto        state_itr = state.find(1);
    check(state_itr->enabled, "Contract is currently disabled.");
 
-   check(to_transfer.size() > 0, "No seeds were provided to transfer.");
+   check(seed_ids.size() > 0, "No seeds were provided to transfer.");
 
    drops::seeds_table seeds(_self, _self.value);
 
    // Map to record which epochs seeds were destroyed in
    map<uint64_t, uint64_t> epochs_transferred_in;
 
-   for (auto it = begin(to_transfer); it != end(to_transfer); ++it) {
+   for (auto it = begin(seed_ids); it != end(seed_ids); ++it) {
       auto seed_itr = seeds.find(*it);
       check(seed_itr != seeds.end(), "Seed not found");
       check(seed_itr->owner == from, "Account does not own this seed");
@@ -286,15 +286,15 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    accounts_table accounts(_self, _self.value);
    auto           account_from_itr = accounts.find(from.value);
    check(account_from_itr != accounts.end(), "From account not found");
-   accounts.modify(account_from_itr, _self, [&](auto& row) { row.seeds = row.seeds - to_transfer.size(); });
+   accounts.modify(account_from_itr, _self, [&](auto& row) { row.seeds = row.seeds - seed_ids.size(); });
 
    auto account_to_itr = accounts.find(to.value);
    if (account_to_itr != accounts.end()) {
-      accounts.modify(account_to_itr, _self, [&](auto& row) { row.seeds = row.seeds + to_transfer.size(); });
+      accounts.modify(account_to_itr, _self, [&](auto& row) { row.seeds = row.seeds + seed_ids.size(); });
    } else {
       accounts.emplace(from, [&](auto& row) {
          row.account = to;
-         row.seeds   = to_transfer.size();
+         row.seeds   = seed_ids.size();
       });
    }
 
@@ -325,7 +325,7 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    }
 }
 
-[[eosio::action]] drops::destroy_return_value drops::destroy(name owner, std::vector<uint64_t> to_destroy)
+[[eosio::action]] drops::destroy_return_value drops::destroy(name owner, std::vector<uint64_t> seed_ids, string memo)
 {
    require_auth(owner);
 
@@ -334,8 +334,8 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    auto        state_itr = state.find(1);
    check(state_itr->enabled, "Contract is currently disabled.");
 
-   check(to_destroy.size() > 0, "No seeds were provided to destroy.");
-   //    check(to_destroy.size() <= 5000, "Cannot destroy more than 5000 at a time.");
+   check(seed_ids.size() > 0, "No seeds were provided to destroy.");
+   //    check(seed_ids.size() <= 5000, "Cannot destroy more than 5000 at a time.");
 
    drops::seeds_table seeds(_self, _self.value);
 
@@ -343,7 +343,7 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    map<uint64_t, uint64_t> epochs_destroyed_in;
 
    // Loop to destroy specified seeds
-   for (auto it = begin(to_destroy); it != end(to_destroy); ++it) {
+   for (auto it = begin(seed_ids); it != end(seed_ids); ++it) {
       auto seed_itr = seeds.find(*it);
       check(seed_itr != seeds.end(), "Seed not found");
       check(seed_itr->owner == owner, "Account does not own this seed");
@@ -368,10 +368,10 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    // Decrement the account row
    accounts_table accounts(_self, _self.value);
    auto           account_itr = accounts.find(owner.value);
-   accounts.modify(account_itr, _self, [&](auto& row) { row.seeds = row.seeds - to_destroy.size(); });
+   accounts.modify(account_itr, _self, [&](auto& row) { row.seeds = row.seeds - seed_ids.size(); });
 
    // Calculate RAM sell amount and proceeds
-   uint64_t ram_sell_amount   = to_destroy.size() * record_size;
+   uint64_t ram_sell_amount   = seed_ids.size() * record_size;
    asset    ram_sell_proceeds = eosiosystem::ramproceedstminusfee(ram_sell_amount, EOS);
 
    action(permission_level{_self, "active"_n}, "eosio"_n, "sellram"_n, std::make_tuple(_self, ram_sell_amount)).send();
@@ -379,7 +379,7 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    token::transfer_action transfer_act{"eosio.token"_n, {{_self, "active"_n}}};
    //    check(false, "ram_sell_proceeds: " + ram_sell_proceeds.to_string());
    transfer_act.send(_self, owner, ram_sell_proceeds,
-                     "Reclaimed RAM value of " + std::to_string(to_destroy.size()) + " seed(s)");
+                     "Reclaimed RAM value of " + std::to_string(seed_ids.size()) + " seed(s)");
 
    return {
       ram_sell_amount,  // ram sold

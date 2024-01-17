@@ -164,7 +164,7 @@ public:
    /*
     User actions
    */
-   [[eosio::action]] void transfer(name from, name to, std::vector<uint64_t> to_transfer);
+   [[eosio::action]] void transfer(name from, name to, std::vector<uint64_t> seed_ids, string memo);
    using transfer_action = eosio::action_wrapper<"transfer"_n, &drops::transfer>;
 
    [[eosio::action]] void enroll(name account, uint64_t epoch);
@@ -176,7 +176,7 @@ public:
       asset    redeemed;
    };
 
-   [[eosio::action]] destroy_return_value destroy(name owner, std::vector<uint64_t> to_destroy);
+   [[eosio::action]] destroy_return_value destroy(name owner, std::vector<uint64_t> seed_ids, string memo);
    using destroy_action = eosio::action_wrapper<"destroy"_n, &drops::destroy>;
 
    // DEBUGGING ACTION
