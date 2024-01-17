@@ -101,22 +101,34 @@ drops::epoch_row drops::advance_epoch()
 
    // Base the next epoch off the current epoch
    time_point new_epoch_start    = epoch_itr->end;
-   time_point new_epoch_end      = epoch_itr->end + eosio::seconds(epochphasetimer * 1);
-   time_point new_epoch_reveal   = epoch_itr->end + eosio::seconds(epochphasetimer * 2);
-   time_point new_epoch_complete = epoch_itr->end + eosio::seconds(epochphasetimer * 3);
+   time_point new_epoch_end      = epoch_itr->end + eosio::seconds(epochphasetimer);
+   time_point new_epoch_complete = epoch_itr->end + eosio::seconds(epochphasetimer * 10);
+
+   std::vector<name>    oracles;
+   drops::oracles_table oracles_table(_self, _self.value);
+   auto                 oracle_itr = oracles_table.begin();
+   check(oracle_itr != oracles_table.end(), "No oracles registered, cannot init.");
+   while (oracle_itr != oracles_table.end()) {
+      oracles.push_back(oracle_itr->oracle);
+      oracle_itr++;
+   }
 
    // Save the next epoch
    epochs.emplace(_self, [&](auto& row) {
-      row.epoch    = new_epoch;
-      row.start    = new_epoch_start;
-      row.end      = new_epoch_end;
-      row.reveal   = new_epoch_reveal;
-      row.complete = new_epoch_complete;
+      row.epoch     = new_epoch;
+      row.start     = new_epoch_start;
+      row.end       = new_epoch_end;
+      row.oracles   = oracles;
+      row.completed = 0;
    });
 
    // Return the next epoch
    return {
-      new_epoch, new_epoch_start, new_epoch_end, new_epoch_reveal, new_epoch_complete,
+      new_epoch,       // epoch
+      new_epoch_start, // start
+      new_epoch_end,   // end
+      oracles,         // oracles
+      0                // completed
    };
 }
 
@@ -512,8 +524,9 @@ drops::generate(name from, name to, asset quantity, std::string memo)
 
    drops::epochs_table epochs(_self, _self.value);
    auto                epoch_itr = epochs.find(epoch);
-
    check(epoch_itr != epochs.end(), "Epoch does not exist");
+   check(std::find(epoch_itr->oracles.begin(), epoch_itr->oracles.end(), oracle) != epoch_itr->oracles.end(),
+         "Oracle is not in the list of oracles for this epoch");
 
    auto current_time = current_time_point();
    check(current_time > epoch_itr->start, "Epoch not started");
@@ -547,12 +560,11 @@ drops::generate(name from, name to, asset quantity, std::string memo)
 
    drops::epochs_table epochs(_self, _self.value);
    auto                epoch_itr = epochs.find(epoch);
-
    check(epoch_itr != epochs.end(), "Epoch does not exist");
+   check(epoch_itr->completed == 0, "Epoch has already completed");
 
    auto current_time = current_time_point();
    check(current_time > epoch_itr->end, "Epoch has not concluded");
-   check(current_time < epoch_itr->reveal, "Reveal phase has completed");
 
    drops::reveals_table reveals(_self, _self.value);
    auto                 reveal_idx = reveals.get_index<"epochoracle"_n>();
@@ -627,12 +639,26 @@ drops::generate(name from, name to, asset quantity, std::string memo)
       row.seeds   = 1;
    });
 
+   // Load oracles to initialize the first epoch
+   std::vector<name>    oracles;
+   drops::oracles_table oracles_table(_self, _self.value);
+   auto                 oracle_itr = oracles_table.begin();
+   check(oracle_itr != oracles_table.end(), "No oracles registered, cannot init.");
+   while (oracle_itr != oracles_table.end()) {
+      oracles.push_back(oracle_itr->oracle);
+      oracle_itr++;
+   }
+
+   // Round epoch timer down to nearest interval to start with
+   const time_point_sec epoch =
+      time_point_sec((current_time_point().sec_since_epoch() / epochphasetimer) * epochphasetimer);
+
    epochs.emplace(_self, [&](auto& row) {
-      row.epoch    = 1;
-      row.start    = current_time_point();
-      row.end      = current_time_point() + eosio::seconds(epochphasetimer * 1);
-      row.reveal   = current_time_point() + eosio::seconds(epochphasetimer * 2);
-      row.complete = current_time_point() + eosio::seconds(epochphasetimer * 3);
+      row.epoch     = 1;
+      row.start     = epoch;
+      row.end       = epoch + eosio::seconds(epochphasetimer);
+      row.oracles   = oracles;
+      row.completed = 0;
    });
 
    seeds.emplace(_self, [&](auto& row) {

@@ -26,10 +26,13 @@ static constexpr uint64_t stats_row       = 412;                           // si
 static constexpr uint64_t record_size     = primary_row + secondary_index; // total record size
 static constexpr uint64_t purchase_buffer = 1; // Additional RAM bytes to purchase (buyrambytes bug)
 
-uint64_t epochphasetimer = 86400; // 1-day
-// uint64_t epochphasetimer = 43200; // 12-hour
-// uint64_t epochphasetimer = 14400 // 4-hour
-// uint64_t epochphasetimer = 60; // 1-minute
+// static constexpr uint64_t epochphasetimer = 2419200; // 4-week
+// static constexpr uint64_t epochphasetimer = 604800; // 1-week
+// static constexpr uint64_t epochphasetimer = 86400; // 1-day
+// static constexpr uint64_t epochphasetimer = 43200; // 12-hour
+static constexpr uint64_t epochphasetimer = 14400; // 4-hour
+// static constexpr uint64_t epochphasetimer = 3600; // 1-hour
+// static constexpr uint64_t epochphasetimer = 60; // 1-minute
 
 static constexpr symbol EOS = symbol{"EOS", 4};
 
@@ -51,15 +54,20 @@ public:
 
    struct [[eosio::table("epoch")]] epoch_row
    {
-      uint64_t   epoch;
-      time_point start;
-      time_point end;
-      time_point reveal;
-      time_point complete;
-      uint64_t   primary_key() const { return epoch; }
+      uint64_t          epoch;
+      time_point        start;
+      time_point        end;
+      std::vector<name> oracles;
+      uint64_t          completed;
+      uint64_t          primary_key() const { return epoch; }
+      uint64_t          by_completed() const { return completed; }
    };
 
-   typedef eosio::multi_index<"epochs"_n, epoch_row> epochs_table;
+   typedef eosio::multi_index<
+      "epochs"_n,
+      epoch_row,
+      eosio::indexed_by<"completed"_n, eosio::const_mem_fun<epoch_row, uint64_t, &epoch_row::by_completed>>>
+      epochs_table;
 
    struct [[eosio::table("commit")]] commit_row
    {
