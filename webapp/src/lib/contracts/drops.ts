@@ -14,7 +14,7 @@ import {
 import type {ActionOptions, ContractArgs, PartialBy, Table} from '@wharfkit/contract'
 import {Contract as BaseContract} from '@wharfkit/contract'
 export const abiBlob = Blob.from(
-    'DmVvc2lvOjphYmkvMS4yABsMYXBpX3Jlc3BvbnNlAAEDZm9vBnVpbnQ2NAdjYWxsYXBpAAALYWNjb3VudF9yb3cAAgdhY2NvdW50BG5hbWUFc2VlZHMGdWludDMyCWFkZG9yYWNsZQABBm9yYWNsZQRuYW1lB2FkdmFuY2UAAAZjb21taXQAAwZvcmFjbGUEbmFtZQVlcG9jaAZ1aW50NjQGY29tbWl0C2NoZWNrc3VtMjU2CmNvbW1pdF9yb3cABAJpZAZ1aW50NjQFZXBvY2gGdWludDY0Bm9yYWNsZQRuYW1lBmNvbW1pdAtjaGVja3N1bTI1Ngdjb21wdXRlAAIFZXBvY2gGdWludDY0BHNlZWQGdWludDY0B2Rlc3Ryb3kAAwVvd25lcgRuYW1lCHNlZWRfaWRzCHVpbnQ2NFtdBG1lbW8Gc3RyaW5nFGRlc3Ryb3lfcmV0dXJuX3ZhbHVlAAIIcmFtX3NvbGQGdWludDY0CHJlZGVlbWVkBWFzc2V0CmRlc3Ryb3lhbGwAAAZlbmFibGUAAQdlbmFibGVkBGJvb2wGZW5yb2xsAAIHYWNjb3VudARuYW1lBWVwb2NoBnVpbnQ2NAllcG9jaF9yb3cABQVlcG9jaAZ1aW50NjQFc3RhcnQKdGltZV9wb2ludANlbmQKdGltZV9wb2ludAZyZXZlYWwKdGltZV9wb2ludAhjb21wbGV0ZQp0aW1lX3BvaW50FWdlbmVyYXRlX3JldHVybl92YWx1ZQAGBXNlZWRzBnVpbnQzMgVlcG9jaAZ1aW50NjQEY29zdAVhc3NldAZyZWZ1bmQFYXNzZXQLdG90YWxfc2VlZHMGdWludDY0C2Vwb2NoX3NlZWRzBnVpbnQ2NAxnZW5lcmF0ZXJ0cm4AAARpbml0AAAKb3JhY2xlX3JvdwABBm9yYWNsZQRuYW1lDHJlbW92ZW9yYWNsZQABBm9yYWNsZQRuYW1lBnJldmVhbAADBm9yYWNsZQRuYW1lBWVwb2NoBnVpbnQ2NAZyZXZlYWwGc3RyaW5nCnJldmVhbF9yb3cABAJpZAZ1aW50NjQFZXBvY2gGdWludDY0Bm9yYWNsZQRuYW1lBnJldmVhbAZzdHJpbmcIc2VlZF9yb3cAAwRzZWVkBnVpbnQ2NAVvd25lcgRuYW1lBWVwb2NoBnVpbnQ2NAhzdGF0X3JvdwAEAmlkBnVpbnQ2NAdhY2NvdW50BG5hbWUFZXBvY2gGdWludDY0BXNlZWRzBnVpbnQzMglzdGF0ZV9yb3cAAwJpZAZ1aW50MTYFZXBvY2gGdWludDY0B2VuYWJsZWQEYm9vbAh0cmFuc2ZlcgAEBGZyb20EbmFtZQJ0bwRuYW1lCHNlZWRfaWRzCHVpbnQ2NFtdBG1lbW8Gc3RyaW5nBHdpcGUAAAh3aXBlc29tZQAAEAAAAMBVE6NBB2NhbGxhcGkAAABQEZlLUzIJYWRkb3JhY2xlAAAAAEChaXYyB2FkdmFuY2UAAAAAAGQnJUUGY29tbWl0AAAAAEBlXSVFB2NvbXB1dGUAAAAAwNObsUoHZGVzdHJveQAAQIzG05uxSgpkZXN0cm95YWxsAAAAAACoeMxUBmVuYWJsZQAAAAAAxEjvVAZlbnJvbGwAMG++KpurpmIMZ2VuZXJhdGVydHJuAAAAAAAAkN10BGluaXQAoCIyl6pNpboMcmVtb3Zlb3JhY2xlAAAAAABEo7a6BnJldmVhbAAAAABXLTzNzQh0cmFuc2ZlcgAAAAAAAKCq4wR3aXBlAAAAAEpSrKrjCHdpcGVzb21lAAgAAAA4T00RMgNpNjQAAAthY2NvdW50X3JvdwAAAABnJyVFA2k2NAAACmNvbW1pdF9yb3cAAAAA4IZoVQNpNjQAAAllcG9jaF9yb3cAAAAAq4jMpQNpNjQAAApvcmFjbGVfcm93AAAAAEejtroDaTY0AAAKcmV2ZWFsX3JvdwAAAAAAnJTCA2k2NAAACHNlZWRfcm93AAAAAACVTcYDaTY0AAAJc3RhdGVfcm93AAAAAACcTcYDaTY0AAAIc3RhdF9yb3cAAAAABQAAAMBVE6NBDGFwaV9yZXNwb25zZQAAAEChaXYyCWVwb2NoX3JvdwAAAEBlXSVFC2NoZWNrc3VtMjU2AAAAwNObsUoUZGVzdHJveV9yZXR1cm5fdmFsdWUwb74qm6umYhVnZW5lcmF0ZV9yZXR1cm5fdmFsdWU='
+    'DmVvc2lvOjphYmkvMS4yAB4MYXBpX3Jlc3BvbnNlAAEDZm9vBnVpbnQ2NAdjYWxsYXBpAAALYWNjb3VudF9yb3cAAgdhY2NvdW50BG5hbWUFc2VlZHMGdWludDMyCWFkZG9yYWNsZQABBm9yYWNsZQRuYW1lB2FkdmFuY2UAAAZjb21taXQAAwZvcmFjbGUEbmFtZQVlcG9jaAZ1aW50NjQGY29tbWl0C2NoZWNrc3VtMjU2CmNvbW1pdF9yb3cABAJpZAZ1aW50NjQFZXBvY2gGdWludDY0Bm9yYWNsZQRuYW1lBmNvbW1pdAtjaGVja3N1bTI1Ngxjb21wdXRlZXBvY2gAAQVlcG9jaAZ1aW50NjQLY29tcHV0ZXNlZWQAAgVlcG9jaAZ1aW50NjQEc2VlZAZ1aW50NjQHZGVzdHJveQADBW93bmVyBG5hbWUIc2VlZF9pZHMIdWludDY0W10EbWVtbwZzdHJpbmcUZGVzdHJveV9yZXR1cm5fdmFsdWUAAghyYW1fc29sZAZ1aW50NjQIcmVkZWVtZWQFYXNzZXQKZGVzdHJveWFsbAAABmVuYWJsZQABB2VuYWJsZWQEYm9vbAZlbnJvbGwAAgdhY2NvdW50BG5hbWUFZXBvY2gGdWludDY0CWVwb2NoX3JvdwAFBWVwb2NoBnVpbnQ2NAVzdGFydAp0aW1lX3BvaW50A2VuZAp0aW1lX3BvaW50B29yYWNsZXMGbmFtZVtdCWNvbXBsZXRlZAZ1aW50NjQNZXBvY2hzZWVkX3JvdwACBWVwb2NoBnVpbnQ2NARzZWVkC2NoZWNrc3VtMjU2DGZpbmlzaHJldmVhbAABBWVwb2NoBnVpbnQ2NBVnZW5lcmF0ZV9yZXR1cm5fdmFsdWUABgVzZWVkcwZ1aW50MzIFZXBvY2gGdWludDY0BGNvc3QFYXNzZXQGcmVmdW5kBWFzc2V0C3RvdGFsX3NlZWRzBnVpbnQ2NAtlcG9jaF9zZWVkcwZ1aW50NjQMZ2VuZXJhdGVydHJuAAAEaW5pdAAACm9yYWNsZV9yb3cAAQZvcmFjbGUEbmFtZQxyZW1vdmVvcmFjbGUAAQZvcmFjbGUEbmFtZQZyZXZlYWwAAwZvcmFjbGUEbmFtZQVlcG9jaAZ1aW50NjQGcmV2ZWFsBnN0cmluZwpyZXZlYWxfcm93AAQCaWQGdWludDY0BWVwb2NoBnVpbnQ2NAZvcmFjbGUEbmFtZQZyZXZlYWwGc3RyaW5nCHNlZWRfcm93AAMEc2VlZAZ1aW50NjQFb3duZXIEbmFtZQVlcG9jaAZ1aW50NjQIc3RhdF9yb3cABAJpZAZ1aW50NjQHYWNjb3VudARuYW1lBWVwb2NoBnVpbnQ2NAVzZWVkcwZ1aW50MzIJc3RhdGVfcm93AAMCaWQGdWludDE2BWVwb2NoBnVpbnQ2NAdlbmFibGVkBGJvb2wIdHJhbnNmZXIABARmcm9tBG5hbWUCdG8EbmFtZQhzZWVkX2lkcwh1aW50NjRbXQRtZW1vBnN0cmluZwR3aXBlAAAId2lwZXNvbWUAABIAAADAVROjQQdjYWxsYXBpAAAAUBGZS1MyCWFkZG9yYWNsZQAAAABAoWl2MgdhZHZhbmNlAAAAAABkJyVFBmNvbW1pdADQEK1KZV0lRQxjb21wdXRlZXBvY2gAAJJSWGVdJUULY29tcHV0ZXNlZWQAAAAAwNObsUoHZGVzdHJveQAAQIzG05uxSgpkZXN0cm95YWxsAAAAAACoeMxUBmVuYWJsZQAAAAAAxEjvVAZlbnJvbGwAEI3a6jbsplsMZmluaXNocmV2ZWFsADBvviqbq6ZiDGdlbmVyYXRlcnRybgAAAAAAAJDddARpbml0AKAiMpeqTaW6DHJlbW92ZW9yYWNsZQAAAAAARKO2ugZyZXZlYWwAAAAAVy08zc0IdHJhbnNmZXIAAAAAAACgquMEd2lwZQAAAABKUqyq4wh3aXBlc29tZQAJAAAAOE9NETIDaTY0AAALYWNjb3VudF9yb3cAAAAAZyclRQNpNjQAAApjb21taXRfcm93AAAAAOCGaFUDaTY0AAAJZXBvY2hfcm93AABISuGGaFUDaTY0AAANZXBvY2hzZWVkX3JvdwAAAACriMylA2k2NAAACm9yYWNsZV9yb3cAAAAAR6O2ugNpNjQAAApyZXZlYWxfcm93AAAAAACclMIDaTY0AAAIc2VlZF9yb3cAAAAAAJVNxgNpNjQAAAlzdGF0ZV9yb3cAAAAAAJxNxgNpNjQAAAhzdGF0X3JvdwAAAAAGAAAAwFUTo0EMYXBpX3Jlc3BvbnNlAAAAQKFpdjIJZXBvY2hfcm930BCtSmVdJUULY2hlY2tzdW0yNTYAklJYZV0lRQtjaGVja3N1bTI1NgAAAMDTm7FKFGRlc3Ryb3lfcmV0dXJuX3ZhbHVlMG++KpurpmIVZ2VuZXJhdGVfcmV0dXJuX3ZhbHVl'
 )
 export const abi = ABI.from(abiBlob)
 export class Contract extends BaseContract {
@@ -47,11 +47,13 @@ export interface ActionNameParams {
     addoracle: ActionParams.addoracle
     advance: ActionParams.advance
     commit: ActionParams.commit
-    compute: ActionParams.compute
+    computeepoch: ActionParams.computeepoch
+    computeseed: ActionParams.computeseed
     destroy: ActionParams.destroy
     destroyall: ActionParams.destroyall
     enable: ActionParams.enable
     enroll: ActionParams.enroll
+    finishreveal: ActionParams.finishreveal
     generatertrn: ActionParams.generatertrn
     init: ActionParams.init
     removeoracle: ActionParams.removeoracle
@@ -72,7 +74,10 @@ export namespace ActionParams {
         epoch: UInt64Type
         commit: Checksum256Type
     }
-    export interface compute {
+    export interface computeepoch {
+        epoch: UInt64Type
+    }
+    export interface computeseed {
         epoch: UInt64Type
         seed: UInt64Type
     }
@@ -87,6 +92,9 @@ export namespace ActionParams {
     }
     export interface enroll {
         account: NameType
+        epoch: UInt64Type
+    }
+    export interface finishreveal {
         epoch: UInt64Type
     }
     export interface generatertrn {}
@@ -150,8 +158,13 @@ export namespace Types {
         @Struct.field(Checksum256)
         commit!: Checksum256
     }
-    @Struct.type('compute')
-    export class compute extends Struct {
+    @Struct.type('computeepoch')
+    export class computeepoch extends Struct {
+        @Struct.field(UInt64)
+        epoch!: UInt64
+    }
+    @Struct.type('computeseed')
+    export class computeseed extends Struct {
         @Struct.field(UInt64)
         epoch!: UInt64
         @Struct.field(UInt64)
@@ -195,10 +208,22 @@ export namespace Types {
         start!: TimePoint
         @Struct.field(TimePoint)
         end!: TimePoint
-        @Struct.field(TimePoint)
-        reveal!: TimePoint
-        @Struct.field(TimePoint)
-        complete!: TimePoint
+        @Struct.field(Name, {array: true})
+        oracles!: Name[]
+        @Struct.field(UInt64)
+        completed!: UInt64
+    }
+    @Struct.type('epochseed_row')
+    export class epochseed_row extends Struct {
+        @Struct.field(UInt64)
+        epoch!: UInt64
+        @Struct.field(Checksum256)
+        seed!: Checksum256
+    }
+    @Struct.type('finishreveal')
+    export class finishreveal extends Struct {
+        @Struct.field(UInt64)
+        epoch!: UInt64
     }
     @Struct.type('generate_return_value')
     export class generate_return_value extends Struct {
@@ -298,6 +323,7 @@ export const TableMap = {
     accounts: Types.account_row,
     commits: Types.commit_row,
     epochs: Types.epoch_row,
+    epochseed: Types.epochseed_row,
     oracles: Types.oracle_row,
     reveals: Types.reveal_row,
     seeds: Types.seed_row,
@@ -308,6 +334,7 @@ export interface TableTypes {
     accounts: Types.account_row
     commits: Types.commit_row
     epochs: Types.epoch_row
+    epochseed: Types.epochseed_row
     oracles: Types.oracle_row
     reveals: Types.reveal_row
     seeds: Types.seed_row
@@ -320,7 +347,8 @@ export type TableNames = keyof TableTypes
 export interface ActionReturnValues {
     callapi: Types.api_response
     advance: Types.epoch_row
-    compute: Checksum256
+    computeepoch: Checksum256
+    computeseed: Checksum256
     destroy: Types.destroy_return_value
     generatertrn: Types.generate_return_value
 }
