@@ -12,8 +12,6 @@
 	const link = 'https://kit.svelte.dev';
 </script>
 
-<!-- YOU CAN DELETE EVERYTHING IN THIS PAGE -->
-
 <div class="container p-4 sm:p-8 lg:p-16 mx-auto flex justify-center items-center">
 	<div class="space-y-4 text-center flex flex-col bg-surface-900 p-8 rounded-lg">
 		<Generate />

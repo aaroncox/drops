@@ -366,8 +366,11 @@
 									colspan="3"
 									class="variant-filled w-full bg-gradient-to-br from-green-500 to-green-700 box-decoration-clone"
 								>
-									<div class="lowercase text-sm text-white">
-										<a href={`https://bloks.io/transaction/${$lastResultId}`}>{$lastResultId}</a>
+									<div class="text-white text-center">Success</div>
+									<div class="lowercase text-xs text-white text-center">
+										<a href={`https://bloks.io/transaction/${$lastResultId}`}
+											><pre>{$lastResultId}</pre></a
+										>
 									</div>
 								</th>
 							</tr>

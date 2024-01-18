@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { Asset, Int64, Name } from '@wharfkit/session';
 	import { onDestroy, onMount } from 'svelte';
-	import { writable, type Writable } from 'svelte/store';
+	import { derived, writable, type Readable, type Writable } from 'svelte/store';
 	import { AlertCircle } from 'svelte-lucide';
 
 	import { t } from '$lib/i18n';
 
 	import Seeds from '../../lib/components/headers/seeds.svelte';
 	import { DropsContract, dropsContract, session, systemContract } from '../../lib/wharf';
+	import { epochNumber } from '$lib/epoch';
 
 	const dropPrice: Writable<number> = writable();
 
@@ -15,6 +16,22 @@
 	let seedCountInterval: ReturnType<typeof setInterval>;
 
 	const epochStats: Writable<DropsContract.Types.stat_row[]> = writable([]);
+	const seedTotal: Readable<number> = derived([epochStats], ([$epochStats]) => {
+		if ($epochStats) {
+			return $epochStats.reduce((acc, cur) => acc + Number(cur.seeds), 0);
+		}
+		return 0;
+	});
+
+	const seedStats: Readable<Asset | undefined> = derived(
+		[epochStats, dropPrice],
+		([$epochStats, $dropPrice]) => {
+			if ($epochStats && $dropPrice) {
+				const seeds = $epochStats.reduce((acc, cur) => acc + Number(cur.seeds), 0);
+				return Asset.fromUnits($dropPrice * seeds, '4,EOS');
+			}
+		}
+	);
 
 	onMount(async () => {
 		loadRamPrice();
@@ -66,22 +83,64 @@
 		<Seeds />
 		<p>{$t('seeds.subheader')}</p>
 		{#if $session}
+			<div class="text-center grid grid-cols-3 gap-4">
+				<div>
+					<div class="h3 font-bold">
+						{#if $seedTotal}
+							{$seedTotal.toLocaleString()}
+						{:else}
+							0
+						{/if}
+					</div>
+					{$t('common.seeds')}
+					<div class="text-slate-400">{$t('common.total')}</div>
+				</div>
+				<div>
+					<div class="h3 font-bold">
+						{#if $seedStats}
+							{$seedStats.value.toLocaleString()}
+						{:else}
+							0
+						{/if}
+					</div>
+					RAM/EOS
+					<div class="text-slate-400">{$t('home.value')}</div>
+				</div>
+				<div>
+					<div class="h3 font-bold">
+						{#if $epochNumber}
+							{$epochNumber}
+						{:else}
+							~
+						{/if}
+					</div>
+					{$t('common.epoch')}
+					<div class="text-slate-400">{$t('common.current')}</div>
+				</div>
+			</div>
+			<a
+				href={`/seeds/list`}
+				type="button"
+				class="btn variant-filled w-full bg-gradient-to-br from-green-500 to-blue-400 box-decoration-clone"
+			>
+				<span>{$t('seeds.manage')}</span>
+			</a>
 			<div class="table-container text-center space-y-10">
 				<table class="table">
 					<thead>
 						<tr>
-							<th class="text-center">{$t('common.seeds')}</th>
 							<th class="text-center">{$t('common.epoch')}</th>
+							<th class="text-center">{$t('common.seeds')}</th>
 						</tr>
 					</thead>
 					<tbody>
 						{#each $epochStats as epoch}
 							<tr>
 								<td>
-									<span class="text-2xl font-extrabold">{epoch.seeds}</span>
+									<span class="text-2xl text-slate-300">{epoch.epoch}</span>
 								</td>
 								<td>
-									<span class="text-2xl">{epoch.epoch}</span>
+									<span class="text-2xl">{epoch.seeds}</span>
 								</td>
 							</tr>
 						{:else}
@@ -91,13 +150,6 @@
 						{/each}
 					</tbody>
 				</table>
-				<a
-					href={`/seeds/list`}
-					type="button"
-					class="btn variant-filled w-full bg-gradient-to-br from-green-500 to-blue-400 box-decoration-clone"
-				>
-					<span>{$t('seeds.manage')}</span>
-				</a>
 			</div>
 		{:else}
 			<aside class="alert variant-filled-error">

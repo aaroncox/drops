@@ -15,7 +15,6 @@
 	const drawerStore = getDrawerStore();
 
 	import Navigation from '$lib/components/navigation/navigation.svelte';
-	import { dropsContract } from '../lib/wharf';
 	import { loadEpoch, epochEnd, epochNumber } from '$lib/epoch';
 
 	const handleChange = ({ currentTarget }) => {
@@ -125,9 +124,7 @@
 			</span>
 			<svelte:fragment slot="trail">
 				{#if $session}
-					<button type="button" class="btn variant-filled" on:click={logout}
-						>{$t('common.signout')}</button
-					>
+					{$session.actor}
 				{:else}
 					<button type="button" class="btn variant-filled" on:click={login}
 						>{$t('common.signin')}</button
