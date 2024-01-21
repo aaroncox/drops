@@ -126,6 +126,14 @@ drops::epoch_row drops::advance_epoch()
       row.completed = 0;
    });
 
+   // Nofify subscribers
+   drops::subscribers_table subscribers(_self, _self.value);
+   auto                     subscriber_itr = subscribers.begin();
+   while (subscriber_itr != subscribers.end()) {
+      require_recipient(subscriber_itr->subscriber);
+      subscriber_itr++;
+   }
+
    // Return the next epoch
    return {
       new_epoch,       // epoch
@@ -667,6 +675,28 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    oracles.erase(oracle_itr);
 }
 
+[[eosio::action]] void drops::subscribe(name subscriber)
+{
+   // TODO: Maybe this needs to require the oracles or _self?
+   // The person advancing I think needs to pay for the CPU to notify the other contracts
+   require_auth(subscriber);
+
+   drops::subscribers_table subscribers(_self, _self.value);
+   auto                     subscriber_itr = subscribers.find(subscriber.value);
+   check(subscriber_itr == subscribers.end(), "Already subscribed to notifictions.");
+   subscribers.emplace(subscriber, [&](auto& row) { row.subscriber = subscriber; });
+}
+
+[[eosio::action]] void drops::unsubscribe(name subscriber)
+{
+   require_auth(subscriber);
+
+   drops::subscribers_table subscribers(_self, _self.value);
+   auto                     subscriber_itr = subscribers.find(subscriber.value);
+   check(subscriber_itr != subscribers.end(), "Not currently subscribed.");
+   subscribers.erase(subscriber_itr);
+}
+
 [[eosio::action]] void drops::enable(bool enabled)
 {
    require_auth(_self);
@@ -789,6 +819,12 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    auto               stats_itr = stats.begin();
    while (stats_itr != stats.end()) {
       stats_itr = stats.erase(stats_itr);
+   }
+
+   drops::subscribers_table subscribers(_self, _self.value);
+   auto                     subscribers_itr = subscribers.begin();
+   while (subscribers_itr != subscribers.end()) {
+      subscribers_itr = subscribers.erase(subscribers_itr);
    }
 }
 

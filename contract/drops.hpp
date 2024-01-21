@@ -178,6 +178,14 @@ public:
       eosio::indexed_by<"accountepoch"_n, eosio::const_mem_fun<stat_row, uint128_t, &stat_row::by_account_epoch>>>
       stats_table;
 
+   struct [[eosio::table("subscribers")]] subscriber_row
+   {
+      name     subscriber;
+      uint64_t primary_key() const { return subscriber.value; }
+   };
+
+   typedef eosio::multi_index<"subscribers"_n, subscriber_row> subscribers_table;
+
    /*
     User actions
    */
@@ -230,6 +238,12 @@ public:
    [[eosio::action]] void reveal(name oracle, uint64_t epoch, string reveal);
    using reveal_action = eosio::action_wrapper<"reveal"_n, &drops::reveal>;
 
+   [[eosio::action]] void subscribe(name subscriber);
+   using subscribe_action = eosio::action_wrapper<"subscribe"_n, &drops::subscribe>;
+
+   [[eosio::action]] void unsubscribe(name subscriber);
+   using unsubscribe_action = eosio::action_wrapper<"unsubscribe"_n, &drops::unsubscribe>;
+
    /*
     Admin actions
    */
@@ -262,6 +276,9 @@ public:
 
    [[eosio::action]] checksum256 computeseed(uint64_t epoch, uint64_t seed);
    using computeseed_action = eosio::action_wrapper<"computeseed"_n, &drops::computeseed>;
+
+   [[eosio::action]] checksum256 cmplastepoch(uint64_t seed, name contract);
+   using cmplastepoch_action = eosio::action_wrapper<"cmplastepoch"_n, &drops::cmplastepoch>;
 
    checksum256 compute_epoch_value(uint64_t epoch);
    checksum256 compute_epoch_seed_value(uint64_t epoch, uint64_t seed);
