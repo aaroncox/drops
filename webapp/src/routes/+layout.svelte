@@ -77,10 +77,7 @@
 </script>
 
 <Drawer class="shadow-xl">
-	<div class="text-2xl p-8 uppercase font-bold flex items-center">
-		<MemoryStick class="dark:text-orange-400 inline size-6 mr-2" />
-		DROPS
-	</div>
+	<img src="/logo.png" class="w-48 px-6 py-4" />
 	<hr />
 	<Navigation />
 </Drawer>
@@ -134,10 +131,7 @@
 		</AppBar>
 	</svelte:fragment>
 	<svelte:fragment slot="sidebarLeft">
-		<div class="text-2xl p-6 uppercase font-bold flex items-center">
-			<MemoryStick class="dark:text-orange-400 inline size-6 mr-2" />
-			DROPS
-		</div>
+		<img src="/logo.png" class="w-48 px-6 py-4" />
 		<Navigation />
 	</svelte:fragment>
 	<slot />

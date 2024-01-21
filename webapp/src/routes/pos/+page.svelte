@@ -166,7 +166,7 @@
 			<section class="card w-full">
 				<div class="p-4 space-y-4">
 					<div class="text-center h3">
-						Loading {$seedsLoaded} seeds...
+						{$seedsLoaded} seeds loaded...
 					</div>
 					<div class="grid grid-cols-3 gap-8">
 						<div class="placeholder animate-pulse" />
@@ -218,7 +218,11 @@
 				</div>
 			</div>
 		{:else}
-			<p>{$t('seeds.none')}</p>
+			<div class="h4">
+				<div class="p-6 space-y-4 text-center">
+					<p>{$t('seeds.none')}</p>
+				</div>
+			</div>
 		{/if}
 	</div>
 </div>
