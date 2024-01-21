@@ -289,6 +289,7 @@ drops::generate(name from, name to, asset quantity, std::string memo)
 [[eosio::action]] void drops::transfer(name from, name to, std::vector<uint64_t> seed_ids, string memo)
 {
    require_auth(from);
+   check(is_account(to), "Account does not exist.");
    require_recipient(from);
    require_recipient(to);
 
@@ -653,7 +654,7 @@ drops::generate(name from, name to, asset quantity, std::string memo)
 [[eosio::action]] void drops::addoracle(name oracle)
 {
    require_auth(_self);
-
+   check(is_account(oracle), "Account does not exist.");
    drops::oracles_table oracles(_self, _self.value);
    oracles.emplace(_self, [&](auto& row) { row.oracle = oracle; });
 }
