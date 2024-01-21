@@ -124,7 +124,7 @@
 						// 	console.table({ combined, hash, clz });
 						// }
 						// Difficulty is 1
-						if (clz.startsWith('0')) {
+						if (clz.startsWith('00')) {
 							seedsRedeemable.update((s) => s + 1);
 							acc.push(row);
 						}
