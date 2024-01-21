@@ -584,6 +584,18 @@
     pako "^2.1.0"
     tslib "^2.0.3"
 
+"@wharfkit/antelope@^1.0.4":
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/@wharfkit/antelope/-/antelope-1.0.5.tgz#a33893137e9127847128725d185a2e940a2e243a"
+  integrity sha512-/ptouzm4cRVY5seLrvfQR8r5KzzHS+4UOycSiMNmZFmKRZWI/T29dMLJn4IXgakkghPB1iiSD+QcDpguyNGTpA==
+  dependencies:
+    bn.js "^4.11.9"
+    brorand "^1.1.0"
+    elliptic "^6.5.4"
+    hash.js "^1.0.0"
+    pako "^2.1.0"
+    tslib "^2.0.3"
+
 "@wharfkit/common@^1.2.0":
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@wharfkit/common/-/common-1.2.0.tgz#147f783f2ba5cc6fa7dd75863ba98dd05880a9aa"
@@ -601,13 +613,14 @@
     "@wharfkit/signing-request" "^3.1.0"
     tslib "^2.1.0"
 
-"@wharfkit/protocol-esr@^1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@wharfkit/protocol-esr/-/protocol-esr-1.1.0.tgz#a7bd2cce784b9010bf04cdee76c64d7c717916f1"
-  integrity sha512-HON8TOECA3gIj1kulJIyVpNmpmKs9E/tOXU433hPmQaL0o+xXCJfVV56o8NCRYvyH80SwgspJgENchFSJ+BJZA==
+"@wharfkit/protocol-esr@^1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@wharfkit/protocol-esr/-/protocol-esr-1.2.1.tgz#83e537c6ec70295141ca399b2c35857f7a28a873"
+  integrity sha512-gOjV8pbQOQLHCs7DqsnVu+qUrgV9RblNR9xUGLo0ldHwveWyULo5eWaxpqW+eaeeDi4YfNruVp4mUmEEZPhdAQ==
   dependencies:
     "@greymass/buoy" "^1.0.3"
     "@greymass/miniaes" "^1.0.0"
+    "@wharfkit/antelope" "^1.0.4"
     isomorphic-ws "^5.0.0"
     ws "^8.13.0"
 
@@ -629,10 +642,10 @@
     bn.js "^4.11.9"
     tslib "^2.1.0"
 
-"@wharfkit/session@^1.2.3":
-  version "1.2.3"
-  resolved "https://registry.yarnpkg.com/@wharfkit/session/-/session-1.2.3.tgz#358ae67eb0f1a19fcdc0883b9bcc3e1cdab5bf7b"
-  integrity sha512-J3axIrnw007YEtJQ/Vw+NYJGzZ3E5p7dovDAHHXlT2WfOkWs9UXE+dqQwenEWsc+0gHVwyBMTXEQIpGYD7wdQg==
+"@wharfkit/session@^1.2.5":
+  version "1.2.5"
+  resolved "https://registry.yarnpkg.com/@wharfkit/session/-/session-1.2.5.tgz#56a8a99de0424d96d0b00488180db3c9729d3609"
+  integrity sha512-EXKA9EB/8zF1CtLU/0ZXGAzieD8/vZDLd3jzj+zSQjZ4TyI8m22qxU/78y3JOvAS6g1m6Mh5bqDPCZN6oBWtxA==
   dependencies:
     "@wharfkit/abicache" "^1.2.1"
     "@wharfkit/antelope" "^1.0.2"
@@ -666,12 +679,13 @@
   dependencies:
     tslib "^2.1.0"
 
-"@wharfkit/wallet-plugin-anchor@^1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@wharfkit/wallet-plugin-anchor/-/wallet-plugin-anchor-1.1.0.tgz#c1613a1bd315ab754522e7aa80c7028bf891449a"
-  integrity sha512-gFyho2EPVztOmYJbEUG/vtt/VUjfMsy9n0Uz3wT9dXiTvg+J0fOplBBbsM9Dq8TuimDiX8VfxAuMrzW3QURlRw==
+"@wharfkit/wallet-plugin-anchor@^1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@wharfkit/wallet-plugin-anchor/-/wallet-plugin-anchor-1.2.1.tgz#1164d66987e2a80802148814ad9617668d45aa7f"
+  integrity sha512-hXy08LCOzTVdXuBSymggopefTWsFr/byYYAyDEEtvBONvtay9lH5uFfKuyhQfM/ZOlyuCeV2AK4AwF5Uxee41Q==
   dependencies:
-    "@wharfkit/protocol-esr" "^1.1.0"
+    "@wharfkit/antelope" "^1.0.4"
+    "@wharfkit/protocol-esr" "^1.2.1"
     isomorphic-ws "^5.0.0"
     ws "^8.13.0"
 
@@ -706,10 +720,10 @@
     "@wharfkit/protocol-scatter" "^1.1.0"
     tslib "^2.1.0"
 
-"@wharfkit/web-renderer@^1.1.5":
-  version "1.1.5"
-  resolved "https://registry.yarnpkg.com/@wharfkit/web-renderer/-/web-renderer-1.1.5.tgz#92d6fc8a0ee8ebd2bdf31fc74f961aa16d27efb5"
-  integrity sha512-41+2clvHRSzDYULPDCHzlgP42aeX7UBkw7uNSybru3+0szrnxncr3LR3vbVS1iiXJJnaOy9o2J5ji2W5JlnF9w==
+"@wharfkit/web-renderer@^1.2.2":
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/@wharfkit/web-renderer/-/web-renderer-1.2.2.tgz#cae3f5cc901a2011f081a5c59aa23887dc76e76c"
+  integrity sha512-O3DX+sBQOGO9NHSVTYtSutIoE4QbG2LYozVFS9KyFwWqARzySUKBUeDM1c4UaMKjeis0KyzImW1hbFfkQtZghg==
 
 acorn-jsx@^5.3.2:
   version "5.3.2"
