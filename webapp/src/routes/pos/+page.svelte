@@ -189,7 +189,7 @@
 							Seeds valid from before Epoch {$currentEpoch}
 						</div>
 						<div class="h2 text-center">
-							+ {$validSeeds.length.toLocaleString()} FOOS
+							+ {$validSeeds.length.toLocaleString()} DEMO
 						</div>
 					{:else if $seedsClaimed > 0}
 						<div class="h4">You have already claimed all your seeds this epoch.</div>
