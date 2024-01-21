@@ -4,6 +4,7 @@
 
 	import Generate from '../headers/generate.svelte';
 	import Seeds from '../headers/seeds.svelte';
+	import ProofOfSeeds from '../headers/pos.svelte';
 	import Loot from '../headers/loot.svelte';
 	import Destroy from '../headers/destroy.svelte';
 	import { t, locales, locale } from '$lib/i18n';
@@ -44,6 +45,11 @@
 		<li>
 			<a href="/generate" on:click={drawerClose}>
 				<Generate format="h4" size={6} />
+			</a>
+		</li>
+		<li>
+			<a href="/pos" on:click={drawerClose}>
+				<ProofOfSeeds format="h4" size={6} />
 			</a>
 		</li>
 		<!-- <li>
