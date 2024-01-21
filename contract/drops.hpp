@@ -265,6 +265,60 @@ public:
 
    checksum256 compute_epoch_value(uint64_t epoch);
    checksum256 compute_epoch_seed_value(uint64_t epoch, uint64_t seed);
+   checksum256 compute_last_epoch_seed_value(uint64_t seed);
+
+   static constexpr char hexmap[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
+   static std::string hexStr(unsigned char* data, int len)
+   {
+      std::string s(len * 2, ' ');
+      for (int i = 0; i < len; ++i) {
+         s[2 * i]     = hexmap[(data[i] & 0xF0) >> 4];
+         s[2 * i + 1] = hexmap[data[i] & 0x0F];
+      }
+      return s;
+   }
+
+   static uint16_t clz(checksum256 checksum)
+   {
+      auto                 byte_array    = checksum.extract_as_byte_array();
+      const uint8_t*       my_bytes      = (uint8_t*)byte_array.data();
+      size_t               size          = byte_array.size();
+      size_t               lzbits        = 0;
+      static const uint8_t char2lzbits[] = {
+         // 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31
+         8, 7, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2,
+         2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+      size_t i = 0;
+
+      while (true) {
+         uint8_t c = my_bytes[i];
+         lzbits += char2lzbits[c];
+         if (c != 0)
+            break;
+         ++i;
+         if (i >= size)
+            return 0x100;
+      }
+
+      return lzbits;
+   }
+
+   static checksum256 hash(checksum256 epochseed, uint64_t seed)
+   {
+      // Combine the epoch seed and seed into a single string
+      auto   epoch_arr = epochseed.extract_as_byte_array();
+      string result    = hexStr(epoch_arr.data(), epoch_arr.size()) + std::to_string(seed);
+
+      // Generate the sha256 value of the combined string
+      return sha256(result.c_str(), result.length());
+   }
 
 private:
    drops::epoch_row         advance_epoch();

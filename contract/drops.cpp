@@ -2,18 +2,6 @@
 #include "ram.hpp"
 #include <eosio.system/exchange_state.hpp>
 
-constexpr char hexmap[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
-
-std::string hexStr(unsigned char* data, int len)
-{
-   std::string s(len * 2, ' ');
-   for (int i = 0; i < len; ++i) {
-      s[2 * i]     = hexmap[(data[i] & 0xF0) >> 4];
-      s[2 * i + 1] = hexmap[data[i] & 0x0F];
-   }
-   return s;
-}
-
 checksum256 drops::compute_epoch_value(uint64_t epoch)
 {
    // Load the epoch and ensure all secrets have been revealed
@@ -60,15 +48,25 @@ checksum256 drops::compute_epoch_seed_value(uint64_t epoch, uint64_t seed)
    // A seed must be created before or during the provided epoch
    check(seed_itr->epoch <= epoch, "Seed was generated after this epoch and is not valid for computation.");
 
-   // Generate epoch value
-   checksum256 epoch_seed = compute_epoch_value(epoch);
-
-   // Combine the epoch seed and seed into a single string
-   auto   epoch_arr = epoch_seed.extract_as_byte_array();
-   string result    = hexStr(epoch_arr.data(), epoch_arr.size()) + std::to_string(seed);
+   // Load the epoch seed value
+   drops::epochseed_table epochseed(_self, _self.value);
+   auto                   epochseed_itr = epochseed.find(epoch);
+   check(epochseed_itr != epochseed.end(), "Epoch has not yet been resolved.");
 
    // Generate the sha256 value of the combined string
-   return sha256(result.c_str(), result.length());
+   return drops::hash(epochseed_itr->seed, seed);
+}
+
+checksum256 drops::compute_last_epoch_seed_value(uint64_t seed)
+{
+   // Load current state
+   drops::state_table state(_self, _self.value);
+   auto               state_itr = state.find(1);
+   uint64_t           epoch     = state_itr->epoch;
+   // Set to previous epoch
+   uint64_t last_epoch = epoch - 1;
+   // Return value for the last epoch
+   return compute_epoch_seed_value(last_epoch, seed);
 }
 
 [[eosio::action]] checksum256 drops::computeseed(uint64_t epoch, uint64_t seed)
@@ -77,6 +75,12 @@ checksum256 drops::compute_epoch_seed_value(uint64_t epoch, uint64_t seed)
 }
 
 [[eosio::action]] checksum256 drops::computeepoch(uint64_t epoch) { return compute_epoch_value(epoch); }
+
+[[eosio::action]] checksum256 drops::cmplastepoch(uint64_t seed, name contract)
+{
+   require_recipient(contract);
+   return compute_last_epoch_seed_value(seed);
+}
 
 drops::epoch_row drops::advance_epoch()
 {
