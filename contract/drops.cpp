@@ -168,13 +168,6 @@ drops::generate(name from, name to, asset quantity, std::string memo)
 
    time_point epoch_end = epoch_itr->end;
 
-   // If the epoch has ended, advance until we exist in the current epoch
-   while (current_time_point() >= epoch_end) {
-      auto new_epoch = advance_epoch();
-      epoch          = new_epoch.epoch;
-      epoch_end      = new_epoch.end;
-   }
-
    // Process the memo field to determine the number of seeds to generate
    std::vector<std::string> parsed = split(memo, ',');
    check(parsed.size() == 2, "Memo data must contain 2 values, seperated by a comma: amount,seed_data.");
