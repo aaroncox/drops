@@ -556,10 +556,6 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    auto        state_itr = state.find(1);
    check(state_itr->enabled, "Contract is currently disabled.");
 
-   drops::oracles_table oracles(_self, _self.value);
-   auto                 oracle_itr = oracles.find(oracle.value);
-   check(oracle_itr != oracles.end(), "Cannot reveal values, not a registered oracle.");
-
    drops::epochs_table epochs(_self, _self.value);
    auto                epoch_itr = epochs.find(epoch);
    check(epoch_itr != epochs.end(), "Epoch does not exist");
