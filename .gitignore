@@ -1,6 +1,7 @@
 .vscode
 contract/build/*.wasm
 contract/build/*.abi
+contracts/**/build
 webapp/build
 oracle/build
 old/
