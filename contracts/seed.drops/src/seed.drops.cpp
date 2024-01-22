@@ -87,6 +87,7 @@ seed::generate(name from, name to, asset quantity, std::string memo)
          row.owner     = from;
          row.epoch     = epoch;
          row.soulbound = false;
+         row.created   = current_time_point();
       });
    }
 
@@ -188,6 +189,7 @@ seed::generate(name from, name to, asset quantity, std::string memo)
          row.owner     = owner;
          row.epoch     = epoch;
          row.soulbound = true;
+         row.created   = current_time_point();
       });
    }
 
@@ -560,9 +562,11 @@ seed::epoch_row seed::advance_epoch()
    });
 
    seeds.emplace(_self, [&](auto& row) {
-      row.seed  = 0;
-      row.owner = "eosio"_n;
-      row.epoch = 1;
+      row.seed      = 0;
+      row.owner     = "eosio"_n;
+      row.epoch     = 1;
+      row.soulbound = true;
+      row.created   = epoch;
    });
 
    state.emplace(_self, [&](auto& row) {
@@ -601,16 +605,16 @@ seed::epoch_row seed::advance_epoch()
       seed_itr = seeds.erase(seed_itr);
    }
 
-   seed::state_table state(_self, _self.value);
-   auto              state_itr = state.begin();
-   while (state_itr != state.end()) {
-      state_itr = state.erase(state_itr);
-   }
-
    seed::stat_table stats(_self, _self.value);
    auto             stats_itr = stats.begin();
    while (stats_itr != stats.end()) {
       stats_itr = stats.erase(stats_itr);
+   }
+
+   seed::state_table state(_self, _self.value);
+   auto              state_itr = state.begin();
+   while (state_itr != state.end()) {
+      state_itr = state.erase(state_itr);
    }
 }
 

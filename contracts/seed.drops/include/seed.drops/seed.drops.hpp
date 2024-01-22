@@ -14,7 +14,7 @@ namespace drops {
 static constexpr name seed_contract   = "seed.gm"_n;   // location of seed contract
 static constexpr name oracle_contract = "oracle.gm"_n; // location of oracle contract
 
-static constexpr uint64_t primary_row     = 137;                           // size to create a row
+static constexpr uint64_t primary_row     = 145;                           // size to create a row
 static constexpr uint64_t secondary_index = 144;                           // size of secondary index
 static constexpr uint64_t accounts_row    = 124;                           // size of record in account table
 static constexpr uint64_t stats_row       = 412;                           // size of record in stats table
@@ -62,13 +62,15 @@ public:
 
    struct [[eosio::table("seed")]] seed_row
    {
-      uint64_t  seed;
-      uint64_t  epoch;
-      name      owner;
-      bool      soulbound;
-      uint64_t  primary_key() const { return seed; }
-      uint128_t by_owner() const { return ((uint128_t)owner.value << 64) | seed; }
-      uint64_t  by_epoch() const { return epoch; }
+      uint64_t          seed;
+      uint64_t          epoch;
+      name              owner;
+      eosio::time_point created;
+      bool              soulbound;
+      uint64_t          primary_key() const { return seed; }
+      uint128_t         by_owner() const { return ((uint128_t)owner.value << 64) | seed; }
+      uint64_t          by_epoch() const { return epoch; }
+      uint64_t          by_time() const { return created.elapsed.count(); }
    };
 
    struct [[eosio::table("state")]] state_row
