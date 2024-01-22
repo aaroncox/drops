@@ -394,10 +394,12 @@
 									/>
 								</td>
 								<td>
-									{seed.seed}
+									<p class="text-lg">{Name.from(seed.seed)}</p>
+									<p class="text-xs">{seed.seed}</p>
 								</td>
 								<td>
-									{seed.epoch}
+									<p class="text-lg">{seed.epoch}</p>
+									<p class="text-xs">{seed.created}</p>
 								</td>
 								<td class="flex justify-center items-center">
 									{#if seed.soulbound}
