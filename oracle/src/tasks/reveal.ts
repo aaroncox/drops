@@ -1,6 +1,6 @@
 import { Bytes, Checksum256, PrivateKey, Serializer, UInt64 } from '@wharfkit/antelope';
 import { logger } from '../lib/logger';
-import { dropsContract, session } from '../lib/wharf';
+import { seedContract, oracleContract, session } from '../lib/wharf';
 import { db } from '..';
 
 export async function epochReveal() {
@@ -20,8 +20,8 @@ export async function epochReveal() {
 		type: 'uint128'
 	});
 
-	const commits = await dropsContract
-		.table('commits')
+	const commits = await oracleContract
+		.table('commit')
 		.query({
 			from,
 			to,
@@ -35,8 +35,8 @@ export async function epochReveal() {
 		return;
 	}
 
-	const reveals = await dropsContract
-		.table('reveals')
+	const reveals = await oracleContract
+		.table('reveal')
 		.query({
 			from,
 			to,
@@ -49,12 +49,12 @@ export async function epochReveal() {
 		const hasRevealed = !!reveals.find((reveal) => reveal.epoch.equals(commit.epoch));
 		logger.debug('Checking if oracle has revealed', { hasRevealed, epoch: String(commit.epoch) });
 		if (!hasRevealed) {
-			const epoch = await dropsContract.table('epochs').get(commit.epoch);
+			const epoch = await seedContract.table('epoch').get(commit.epoch);
 			const advanceTime = epoch?.end.toDate();
 			if (advanceTime && new Date() > advanceTime) {
 				const value = getRevealValue(commit.epoch);
 				if (value) {
-					const action = dropsContract.action('reveal', {
+					const action = oracleContract.action('reveal', {
 						epoch: commit.epoch,
 						oracle: session.actor,
 						reveal: value
