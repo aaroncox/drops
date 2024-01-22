@@ -1,9 +1,9 @@
-import type {Action, NameType, UInt64Type} from '@wharfkit/antelope'
+import type {Action, NameType, UInt32Type, UInt64Type} from '@wharfkit/antelope'
 import {ABI, Asset, Blob, Name, Struct, TimePoint, UInt16, UInt32, UInt64} from '@wharfkit/antelope'
 import type {ActionOptions, ContractArgs, PartialBy, Table} from '@wharfkit/contract'
 import {Contract as BaseContract} from '@wharfkit/contract'
 export const abiBlob = Blob.from(
-    'DmVvc2lvOjphYmkvMS4yABALYWNjb3VudF9yb3cAAgdhY2NvdW50BG5hbWUFc2VlZHMGdWludDMyB2FkdmFuY2UAAAdkZXN0cm95AAMFb3duZXIEbmFtZQhzZWVkX2lkcwh1aW50NjRbXQRtZW1vBnN0cmluZxRkZXN0cm95X3JldHVybl92YWx1ZQACCHJhbV9zb2xkBnVpbnQ2NAhyZWRlZW1lZAVhc3NldApkZXN0cm95YWxsAAAGZW5hYmxlAAEHZW5hYmxlZARib29sCWVwb2NoX3JvdwADBWVwb2NoBnVpbnQ2NAVzdGFydAp0aW1lX3BvaW50A2VuZAp0aW1lX3BvaW50FWdlbmVyYXRlX3JldHVybl92YWx1ZQAGBXNlZWRzBnVpbnQzMgVlcG9jaAZ1aW50NjQEY29zdAVhc3NldAZyZWZ1bmQFYXNzZXQLdG90YWxfc2VlZHMGdWludDY0C2Vwb2NoX3NlZWRzBnVpbnQ2NAxnZW5lcmF0ZXJ0cm4AAARpbml0AAAIc2VlZF9yb3cAAwRzZWVkBnVpbnQ2NAVlcG9jaAZ1aW50NjQFb3duZXIEbmFtZQhzdGF0X3JvdwAEAmlkBnVpbnQ2NAdhY2NvdW50BG5hbWUFZXBvY2gGdWludDY0BXNlZWRzBnVpbnQzMglzdGF0ZV9yb3cAAwJpZAZ1aW50MTYFZXBvY2gGdWludDY0B2VuYWJsZWQEYm9vbAh0cmFuc2ZlcgAEBGZyb20EbmFtZQJ0bwRuYW1lCHNlZWRfaWRzCHVpbnQ2NFtdBG1lbW8Gc3RyaW5nBHdpcGUAAAh3aXBlc29tZQAACQAAAEChaXYyB2FkdmFuY2UAAAAAwNObsUoHZGVzdHJveQAAQIzG05uxSgpkZXN0cm95YWxsAAAAAACoeMxUBmVuYWJsZQAwb74qm6umYgxnZW5lcmF0ZXJ0cm4AAAAAAACQ3XQEaW5pdAAAAABXLTzNzQh0cmFuc2ZlcgAAAAAAAKCq4wR3aXBlAAAAAEpSrKrjCHdpcGVzb21lAAUAAAAgT00RMgNpNjQAAAthY2NvdW50X3JvdwAAAACAhmhVA2k2NAAACWVwb2NoX3JvdwAAAAAAkJTCA2k2NAAACHNlZWRfcm93AAAAAACQTcYDaTY0AAAIc3RhdF9yb3cAAAAAAJVNxgNpNjQAAAlzdGF0ZV9yb3cAAAAAAwAAAEChaXYyCWVwb2NoX3JvdwAAAMDTm7FKFGRlc3Ryb3lfcmV0dXJuX3ZhbHVlMG++KpurpmIVZ2VuZXJhdGVfcmV0dXJuX3ZhbHVl'
+    'DmVvc2lvOjphYmkvMS4yABELYWNjb3VudF9yb3cAAgdhY2NvdW50BG5hbWUFc2VlZHMGdWludDMyB2FkdmFuY2UAAAdkZXN0cm95AAMFb3duZXIEbmFtZQhzZWVkX2lkcwh1aW50NjRbXQRtZW1vBnN0cmluZxRkZXN0cm95X3JldHVybl92YWx1ZQACCHJhbV9zb2xkBnVpbnQ2NAhyZWRlZW1lZAVhc3NldApkZXN0cm95YWxsAAAGZW5hYmxlAAEHZW5hYmxlZARib29sCWVwb2NoX3JvdwADBWVwb2NoBnVpbnQ2NAVzdGFydAp0aW1lX3BvaW50A2VuZAp0aW1lX3BvaW50FWdlbmVyYXRlX3JldHVybl92YWx1ZQAGBXNlZWRzBnVpbnQzMgVlcG9jaAZ1aW50NjQEY29zdAVhc3NldAZyZWZ1bmQFYXNzZXQLdG90YWxfc2VlZHMGdWludDY0C2Vwb2NoX3NlZWRzBnVpbnQ2NAxnZW5lcmF0ZXJ0cm4AAARpbml0AAAEbWludAADBW93bmVyBG5hbWUGYW1vdW50BnVpbnQzMgRkYXRhBnN0cmluZwhzZWVkX3JvdwAEBHNlZWQGdWludDY0BWVwb2NoBnVpbnQ2NAVvd25lcgRuYW1lCXNvdWxib3VuZARib29sCHN0YXRfcm93AAQCaWQGdWludDY0B2FjY291bnQEbmFtZQVlcG9jaAZ1aW50NjQFc2VlZHMGdWludDMyCXN0YXRlX3JvdwADAmlkBnVpbnQxNgVlcG9jaAZ1aW50NjQHZW5hYmxlZARib29sCHRyYW5zZmVyAAQEZnJvbQRuYW1lAnRvBG5hbWUIc2VlZF9pZHMIdWludDY0W10EbWVtbwZzdHJpbmcEd2lwZQAACHdpcGVzb21lAAAKAAAAQKFpdjIHYWR2YW5jZQAAAADA05uxSgdkZXN0cm95AABAjMbTm7FKCmRlc3Ryb3lhbGwAAAAAAKh4zFQGZW5hYmxlADBvviqbq6ZiDGdlbmVyYXRlcnRybgAAAAAAAJDddARpbml0AAAAAAAAkKeTBG1pbnQAAAAAVy08zc0IdHJhbnNmZXIAAAAAAACgquMEd2lwZQAAAABKUqyq4wh3aXBlc29tZQAFAAAAIE9NETIDaTY0AAALYWNjb3VudF9yb3cAAAAAgIZoVQNpNjQAAAllcG9jaF9yb3cAAAAAAJCUwgNpNjQAAAhzZWVkX3JvdwAAAAAAkE3GA2k2NAAACHN0YXRfcm93AAAAAACVTcYDaTY0AAAJc3RhdGVfcm93AAAAAAQAAABAoWl2MgllcG9jaF9yb3cAAADA05uxShRkZXN0cm95X3JldHVybl92YWx1ZTBvviqbq6ZiFWdlbmVyYXRlX3JldHVybl92YWx1ZQAAAAAAkKeTFWdlbmVyYXRlX3JldHVybl92YWx1ZQ=='
 )
 export const abi = ABI.from(abiBlob)
 export class Contract extends BaseContract {
@@ -38,6 +38,7 @@ export interface ActionNameParams {
     enable: ActionParams.enable
     generatertrn: ActionParams.generatertrn
     init: ActionParams.init
+    mint: ActionParams.mint
     transfer: ActionParams.transfer
     wipe: ActionParams.wipe
     wipesome: ActionParams.wipesome
@@ -56,6 +57,11 @@ export namespace ActionParams {
     }
     export interface generatertrn {}
     export interface init {}
+    export interface mint {
+        owner: NameType
+        amount: UInt32Type
+        data: string
+    }
     export interface transfer {
         from: NameType
         to: NameType
@@ -126,6 +132,15 @@ export namespace Types {
     export class generatertrn extends Struct {}
     @Struct.type('init')
     export class init extends Struct {}
+    @Struct.type('mint')
+    export class mint extends Struct {
+        @Struct.field(Name)
+        owner!: Name
+        @Struct.field(UInt32)
+        amount!: UInt32
+        @Struct.field('string')
+        data!: string
+    }
     @Struct.type('seed_row')
     export class seed_row extends Struct {
         @Struct.field(UInt64)
@@ -134,6 +149,8 @@ export namespace Types {
         epoch!: UInt64
         @Struct.field(Name)
         owner!: Name
+        @Struct.field('bool')
+        soulbound!: boolean
     }
     @Struct.type('stat_row')
     export class stat_row extends Struct {
@@ -192,5 +209,6 @@ export interface ActionReturnValues {
     advance: Types.epoch_row
     destroy: Types.destroy_return_value
     generatertrn: Types.generate_return_value
+    mint: Types.generate_return_value
 }
 export type ActionReturnNames = keyof ActionReturnValues

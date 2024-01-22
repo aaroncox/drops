@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { writable, type Writable } from 'svelte/store';
-	import { AlertCircle, Combine, Package2, PackageX } from 'svelte-lucide';
+	import { AlertCircle, Combine, Lock, Package2, PackageX } from 'svelte-lucide';
 	import { Asset, Serializer, UInt64, type TransactResult, Name } from '@wharfkit/session';
 	import { Paginator, type PaginationSettings, TabGroup, Tab } from '@skeletonlabs/skeleton';
 
@@ -379,6 +379,7 @@
 							</th>
 							<th class="text-center">{$t('common.seed')}</th>
 							<th class="text-center">{$t('common.epoch')}</th>
+							<th class="text-center">{$t('common.soulbound')}</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -397,6 +398,11 @@
 								</td>
 								<td>
 									{seed.epoch}
+								</td>
+								<td class="flex justify-center items-center">
+									{#if seed.soulbound}
+										<Lock />
+									{/if}
 								</td>
 							</tr>
 						{/each}
