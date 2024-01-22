@@ -26,9 +26,9 @@ static constexpr uint64_t purchase_buffer = 1; // Additional RAM bytes to purcha
 // static constexpr uint64_t epochphasetimer = 86400; // 1-day
 // static constexpr uint64_t epochphasetimer = 43200; // 12-hour
 // static constexpr uint64_t epochphasetimer = 14400; // 4-hour
-// static constexpr uint64_t epochphasetimer = 3600; // 1-hour
+static constexpr uint64_t epochphasetimer = 3600; // 1-hour
 // static constexpr uint64_t epochphasetimer = 300; // 5-minute
-static constexpr uint64_t epochphasetimer = 60; // 1-minute
+// static constexpr uint64_t epochphasetimer = 60; // 1-minute
 
 static constexpr symbol EOS = symbol{"EOS", 4};
 
