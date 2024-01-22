@@ -329,7 +329,7 @@
 
 	const selectSeedAmount = (e: Event) => seedAmount.set(Number(e.target.value));
 
-	let tabSet: number = 1;
+	let tabSet: number = 0;
 </script>
 
 <div class="container p-4 sm:p-8 lg:p-16 mx-auto flex justify-center items-center">
