@@ -16,9 +16,15 @@ CONTRACT_SEED_ACCOUNT = seed.gm
 CONTRACT_ORACLE = oracle.drops
 CONTRACT_ORACLE_ACCOUNT = oracle.gm
 
+# Wharf
+
 codegen/oracle:
 	npx @wharfkit/cli generate --json contracts/$(CONTRACT_SEED)/build/$(CONTRACT_SEED).abi --url $(NODE_URL) $(CONTRACT_SEED_ACCOUNT) -f oracle/src/lib/contracts/$(CONTRACT_SEED).ts
 	npx @wharfkit/cli generate --json contracts/$(CONTRACT_ORACLE)/build/$(CONTRACT_ORACLE).abi --url $(NODE_URL) $(CONTRACT_ORACLE_ACCOUNT) -f oracle/src/lib/contracts/$(CONTRACT_ORACLE).ts
+
+codegen/webapp:
+	npx @wharfkit/cli generate --json contracts/$(CONTRACT_SEED)/build/$(CONTRACT_SEED).abi --url $(NODE_URL) $(CONTRACT_SEED_ACCOUNT) -f webapp/src/lib/contracts/$(CONTRACT_SEED).ts
+	npx @wharfkit/cli generate --json contracts/$(CONTRACT_ORACLE)/build/$(CONTRACT_ORACLE).abi --url $(NODE_URL) $(CONTRACT_ORACLE_ACCOUNT) -f webapp/src/lib/contracts/$(CONTRACT_ORACLE).ts
 
 # SEED CONTRACT
 
@@ -78,6 +84,8 @@ contract/oracle/addoracle3:
 contract/oracle/advance:
 	cleos -u $(NODE_URL) push action $(CONTRACT_ORACLE_ACCOUNT) advance '{}' -p "$(CONTRACT_ORACLE_ACCOUNT)@active"
 
+contract/oracle/subscribe:
+	cleos -u $(NODE_URL) push action $(CONTRACT_ORACLE_ACCOUNT) subscribe '{"subscriber": "token.gm"}' -p "$(CONTRACT_ORACLE_ACCOUNT)@active"
 
 
 # OLD ACTIONS
