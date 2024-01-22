@@ -62,7 +62,7 @@ contract/oracle/publish:
 	cleos -u $(NODE_URL) set contract $(CONTRACT_ORACLE_ACCOUNT) \
 		contracts/oracle.drops/build/ ${CONTRACT_ORACLE}.wasm ${CONTRACT_ORACLE}.abi
 
-contract/oracle/reset: contract/oracle/build contract/oracle/wipe contract/oracle/publish contract/oracle/wipe contract/oracle/init contract/oracle/enable
+contract/oracle/reset: contract/oracle/build contract/oracle/wipe contract/oracle/publish contract/oracle/wipe contract/oracle/addoracles contract/oracle/init contract/oracle/subscribe
 
 contract/oracle/init:
 	cleos -u $(NODE_URL) push action $(CONTRACT_ORACLE_ACCOUNT) init "{}" -p "$(CONTRACT_ORACLE_ACCOUNT)@active"
