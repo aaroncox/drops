@@ -83,9 +83,10 @@ seed::generate(name from, name to, asset quantity, std::string memo)
       uint64_t seed;
       memcpy(&seed, &byte_array, sizeof(uint64_t));
       seeds.emplace(_self, [&](auto& row) {
-         row.seed  = seed;
-         row.owner = from;
-         row.epoch = epoch;
+         row.seed      = seed;
+         row.owner     = from;
+         row.epoch     = epoch;
+         row.soulbound = false;
       });
    }
 
@@ -141,6 +142,91 @@ seed::generate(name from, name to, asset quantity, std::string memo)
    };
 }
 
+[[eosio::action]] seed::generate_return_value seed::mint(name owner, uint32_t amount, std::string data)
+{
+   require_auth(owner);
+
+   // Retrieve contract state
+   state_table state(_self, _self.value);
+   auto        state_itr = state.find(1);
+   uint64_t    epoch     = state_itr->epoch;
+   check(state_itr->enabled, "Contract is currently disabled.");
+
+   epoch_table epochs(_self, _self.value);
+   auto        epoch_itr = epochs.find(epoch);
+   check(epoch_itr != epochs.end(), "Epoch does not exist.");
+
+   time_point epoch_end = epoch_itr->end;
+
+   // Ensure amount is a positive value
+   check(amount > 0, "The amount of seeds to generate must be a positive value.");
+
+   // Ensure string length
+   check(data.length() > 32, "Seed data must be at least 32 characters in length.");
+
+   // Determine if this account exists in the accounts table
+   account_table accounts(_self, _self.value);
+   auto          account_itr        = accounts.find(owner.value);
+   bool          account_row_exists = account_itr != accounts.end();
+
+   // Determine if this account exists in the epoch stats table
+   stat_table stats(_self, _self.value);
+   auto       stat_idx        = stats.get_index<"accountepoch"_n>();
+   auto       stat_itr        = stat_idx.find((uint128_t)owner.value << 64 | epoch);
+   bool       stat_row_exists = stat_itr != stat_idx.end();
+
+   // Iterate over all seeds to be created and insert them into the seeds table
+   seed_table seeds(_self, _self.value);
+   for (uint32_t i = 0; i < amount; i++) {
+      string   value      = std::to_string(i) + data;
+      auto     hash       = sha256(value.c_str(), value.length());
+      auto     byte_array = hash.extract_as_byte_array();
+      uint64_t seed;
+      memcpy(&seed, &byte_array, sizeof(uint64_t));
+      seeds.emplace(owner, [&](auto& row) {
+         row.seed      = seed;
+         row.owner     = owner;
+         row.epoch     = epoch;
+         row.soulbound = true;
+      });
+   }
+
+   // Either update the account row or insert a new row
+   uint64_t new_seeds_total = amount;
+   if (account_row_exists) {
+      new_seeds_total += account_itr->seeds;
+      accounts.modify(account_itr, same_payer, [&](auto& row) { row.seeds = new_seeds_total; });
+   } else {
+      accounts.emplace(owner, [&](auto& row) {
+         row.account = owner;
+         row.seeds   = new_seeds_total;
+      });
+   }
+
+   // Either update the stats row or insert a new row
+   uint64_t new_seeds_epoch = amount;
+   if (stat_row_exists) {
+      new_seeds_epoch += stat_itr->seeds;
+      stat_idx.modify(stat_itr, same_payer, [&](auto& row) { row.seeds = new_seeds_epoch; });
+   } else {
+      stats.emplace(owner, [&](auto& row) {
+         row.id      = stats.available_primary_key();
+         row.account = owner;
+         row.seeds   = new_seeds_epoch;
+         row.epoch   = epoch;
+      });
+   }
+
+   return {
+      (uint32_t)amount, // seeds bought
+      epoch,            // epoch
+      asset{0, EOS},    // cost
+      asset{0, EOS},    // refund
+      new_seeds_total,  // total seeds
+      new_seeds_epoch,  // epoch seeds
+   };
+}
+
 [[eosio::action]] seed::generate_return_value seed::generatertrn() {}
 
 [[eosio::action]] void seed::transfer(name from, name to, std::vector<uint64_t> seed_ids, string memo)
@@ -165,6 +251,8 @@ seed::generate(name from, name to, asset quantity, std::string memo)
    for (auto it = begin(seed_ids); it != end(seed_ids); ++it) {
       auto seed_itr = seeds.find(*it);
       check(seed_itr != seeds.end(), "Seed not found");
+      check(seed_itr->soulbound == false,
+            "Seed " + std::to_string(seed_itr->seed) + " is soulbound and cannot be transferred");
       check(seed_itr->owner == from, "Account does not own this seed");
       // Incremenent the values of all epochs we destroyed seeds in
       if (epochs_transferred_in.find(seed_itr->epoch) == epochs_transferred_in.end()) {
@@ -238,6 +326,9 @@ seed::generate(name from, name to, asset quantity, std::string memo)
    // Map to record which epochs seeds were destroyed in
    map<uint64_t, uint64_t> epochs_destroyed_in;
 
+   // The number of soulbound seeds that were destroyed
+   int soulbound_destroyed = 0;
+
    // Loop to destroy specified seeds
    for (auto it = begin(seed_ids); it != end(seed_ids); ++it) {
       auto seed_itr = seeds.find(*it);
@@ -251,6 +342,11 @@ seed::generate(name from, name to, asset quantity, std::string memo)
       }
       // Destroy the seed
       seeds.erase(seed_itr);
+      // Count the number of soulbound seeds destroyed
+      // This will be subtracted from the amount paid out
+      if (seed_itr->soulbound) {
+         soulbound_destroyed++;
+      }
    }
 
    // Iterate over map that recorded which epochs were destroyed in, decrement
@@ -268,15 +364,16 @@ seed::generate(name from, name to, asset quantity, std::string memo)
    accounts.modify(account_itr, _self, [&](auto& row) { row.seeds = row.seeds - seed_ids.size(); });
 
    // Calculate RAM sell amount and proceeds
-   uint64_t ram_sell_amount   = seed_ids.size() * record_size;
+   uint64_t ram_sell_amount   = (seed_ids.size() - soulbound_destroyed) * record_size;
    asset    ram_sell_proceeds = eosiosystem::ramproceedstminusfee(ram_sell_amount, EOS);
+   if (ram_sell_amount > 0) {
+      action(permission_level{_self, "active"_n}, "eosio"_n, "sellram"_n, std::make_tuple(_self, ram_sell_amount))
+         .send();
 
-   action(permission_level{_self, "active"_n}, "eosio"_n, "sellram"_n, std::make_tuple(_self, ram_sell_amount)).send();
-
-   token::transfer_action transfer_act{"eosio.token"_n, {{_self, "active"_n}}};
-   //    check(false, "ram_sell_proceeds: " + ram_sell_proceeds.to_string());
-   transfer_act.send(_self, owner, ram_sell_proceeds,
-                     "Reclaimed RAM value of " + std::to_string(seed_ids.size()) + " seed(s)");
+      token::transfer_action transfer_act{"eosio.token"_n, {{_self, "active"_n}}};
+      transfer_act.send(_self, owner, ram_sell_proceeds,
+                        "Reclaimed RAM value of " + std::to_string(seed_ids.size()) + " seed(s)");
+   }
 
    return {
       ram_sell_amount,  // ram sold

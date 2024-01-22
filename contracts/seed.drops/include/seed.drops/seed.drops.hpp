@@ -14,7 +14,7 @@ namespace drops {
 static constexpr name seed_contract   = "seed.gm"_n;   // location of seed contract
 static constexpr name oracle_contract = "oracle.gm"_n; // location of oracle contract
 
-static constexpr uint64_t primary_row     = 136;                           // size to create a row
+static constexpr uint64_t primary_row     = 137;                           // size to create a row
 static constexpr uint64_t secondary_index = 144;                           // size of secondary index
 static constexpr uint64_t accounts_row    = 124;                           // size of record in account table
 static constexpr uint64_t stats_row       = 412;                           // size of record in stats table
@@ -65,6 +65,7 @@ public:
       uint64_t  seed;
       uint64_t  epoch;
       name      owner;
+      bool      soulbound;
       uint64_t  primary_key() const { return seed; }
       uint128_t by_owner() const { return ((uint128_t)owner.value << 64) | seed; }
       uint64_t  by_epoch() const { return epoch; }
@@ -141,11 +142,14 @@ public:
    [[eosio::on_notify("eosio.token::transfer")]] generate_return_value
    generate(name from, name to, asset quantity, std::string memo);
 
+   [[eosio::action]] generate_return_value mint(name owner, uint32_t amount, std::string data);
+
    [[eosio::action]] void transfer(name from, name to, std::vector<uint64_t> seed_ids, string memo);
 
    [[eosio::action]] destroy_return_value destroy(name owner, std::vector<uint64_t> seed_ids, string memo);
 
    using generate_action = eosio::action_wrapper<"generate"_n, &seed::generate>;
+   using mint_action     = eosio::action_wrapper<"mint"_n, &seed::mint>;
    using transfer_action = eosio::action_wrapper<"transfer"_n, &seed::transfer>;
    using destroy_action  = eosio::action_wrapper<"destroy"_n, &seed::destroy>;
 
