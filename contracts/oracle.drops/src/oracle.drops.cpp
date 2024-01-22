@@ -230,12 +230,12 @@ checksum256 oracle::compute_last_epoch_seed_value(uint64_t seed)
 {
    // TODO: Maybe this needs to require the oracles or _self?
    // The person advancing I think needs to pay for the CPU to notify the other contracts
-   require_auth(subscriber);
+   require_auth(_self);
 
    oracle::subscriber_table subscribers(_self, _self.value);
    auto                     subscriber_itr = subscribers.find(subscriber.value);
    check(subscriber_itr == subscribers.end(), "Already subscribed to notifictions.");
-   subscribers.emplace(subscriber, [&](auto& row) { row.subscriber = subscriber; });
+   subscribers.emplace(_self, [&](auto& row) { row.subscriber = subscriber; });
 }
 
 [[eosio::action]] void oracle::unsubscribe(name subscriber)
@@ -352,6 +352,14 @@ oracle::epoch_row oracle::advance_epoch()
       row.oracles   = oracles;
       row.completed = 0;
    });
+
+   // Nofify subscribers
+   oracle::subscriber_table subscribers(_self, _self.value);
+   auto                     subscriber_itr = subscribers.begin();
+   while (subscriber_itr != subscribers.end()) {
+      require_recipient(subscriber_itr->subscriber);
+      subscriber_itr++;
+   }
 
    // Return the next epoch
    return {
