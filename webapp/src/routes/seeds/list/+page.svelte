@@ -1,26 +1,16 @@
 <script lang="ts">
-	import { derived, writable, type Readable, type Writable } from 'svelte/store';
-	import {
-		Asset,
-		Checksum256,
-		Serializer,
-		UInt64,
-		type TransactResult,
-		Name
-	} from '@wharfkit/session';
+	import { writable, type Writable } from 'svelte/store';
+	import { AlertCircle, Combine, Package2, PackageX } from 'svelte-lucide';
+	import { Asset, Serializer, UInt64, type TransactResult, Name } from '@wharfkit/session';
+	import { Paginator, type PaginationSettings, TabGroup, Tab } from '@skeletonlabs/skeleton';
 
 	import { t } from '$lib/i18n';
-
 	import Seeds from '$lib/components/headers/seeds.svelte';
-	import { session, dropsContract } from '$lib/wharf';
-	import * as DropsContract from '$lib/contracts/drops';
-	import { Paginator, type PaginationSettings, TabGroup, Tab } from '@skeletonlabs/skeleton';
-	import { AlertCircle, Combine, Package2, PackageX } from 'svelte-lucide';
-	import { onMount } from 'svelte';
+	import { SeedContract, session, seedContract } from '$lib/wharf';
 
 	const loaded = writable(false);
 
-	const seeds: Writable<DropsContract.Types.seed_row[]> = writable([]);
+	const seeds: Writable<SeedContract.Types.seed_row[]> = writable([]);
 
 	session.subscribe(() => {
 		loadSeeds();
@@ -42,8 +32,8 @@
 				type: 'uint128'
 			});
 
-			const rows = await dropsContract
-				.table('seeds')
+			const rows = await seedContract
+				.table('seed')
 				.query({
 					key_type: 'i128',
 					index_position: 'secondary',
@@ -117,7 +107,7 @@
 			lastTransferError.set(undefined);
 			const to = Name.from($transferTo);
 
-			const action = dropsContract.action('transfer', {
+			const action = seedContract.action('transfer', {
 				from: $session?.actor,
 				to,
 				seed_ids: $selected,
@@ -161,7 +151,7 @@
 	async function destroySelected() {
 		console.log('destroy', $selected);
 		if ($session) {
-			const action = dropsContract.action('destroy', {
+			const action = seedContract.action('destroy', {
 				owner: $session?.actor,
 				seed_ids: $selected,
 				memo: ''
@@ -179,7 +169,7 @@
 				try {
 					const data = Serializer.decode({
 						data: returnValue.hex,
-						type: DropsContract.Types.destroy_return_value
+						type: SeedContract.Types.destroy_return_value
 					});
 
 					if (Number(data.ram_sold.value) > 0) {

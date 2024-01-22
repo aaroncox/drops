@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from '$lib/i18n';
 	import { sizeSeedRow } from '$lib/constants';
-	import { DropsContract, dropsContract, session } from '$lib/wharf';
+	import { seedContract } from '$lib/wharf';
 	import type { Readable } from 'svelte/motion';
 	import { derived, writable } from 'svelte/store';
 	import { onMount } from 'svelte';
@@ -47,8 +47,8 @@
 	}
 
 	const accounts: Readable<AccountStats[]> = derived([ramPrice], ([$ramPrice], set) => {
-		dropsContract
-			.table('accounts')
+		seedContract
+			.table('account')
 			.all()
 			.then((results) => {
 				const sorted = results

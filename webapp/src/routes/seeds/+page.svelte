@@ -7,7 +7,7 @@
 	import { t } from '$lib/i18n';
 
 	import Seeds from '../../lib/components/headers/seeds.svelte';
-	import { DropsContract, dropsContract, session, systemContract } from '../../lib/wharf';
+	import { SeedContract, seedContract, session, systemContract } from '../../lib/wharf';
 	import { epochNumber } from '$lib/epoch';
 
 	const dropPrice: Writable<number> = writable();
@@ -15,7 +15,7 @@
 	let ramPriceInterval: ReturnType<typeof setInterval>;
 	let seedCountInterval: ReturnType<typeof setInterval>;
 
-	const epochStats: Writable<DropsContract.Types.stat_row[]> = writable([]);
+	const epochStats: Writable<SeedContract.Types.stat_row[]> = writable([]);
 	const seedTotal: Readable<number> = derived([epochStats], ([$epochStats]) => {
 		if ($epochStats) {
 			return $epochStats.reduce((acc, cur) => acc + Number(cur.seeds), 0);
@@ -47,8 +47,8 @@
 
 	async function loadSeedCounts() {
 		if ($session) {
-			const counts = await dropsContract
-				.table('stats')
+			const counts = await seedContract
+				.table('stat')
 				.query({
 					key_type: 'i64',
 					index_position: 'secondary',

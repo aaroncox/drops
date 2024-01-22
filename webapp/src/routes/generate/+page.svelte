@@ -8,17 +8,16 @@
 		Serializer,
 		Struct,
 		Int32,
-		type TransactResult,
-		PrivateKey
+		type TransactResult
 	} from '@wharfkit/session';
 	import { onDestroy, onMount } from 'svelte';
 	import { derived, writable, type Readable, type Writable } from 'svelte/store';
 	import { AlertCircle, Loader2, MemoryStick, PackagePlus } from 'svelte-lucide';
-	import { DropsContract, dropsContract, session, tokenContract } from '$lib/wharf';
+	import { SeedContract, seedContract, session, tokenContract } from '$lib/wharf';
 	import { getRamPrice } from '$lib/bancor';
 	import { sizeSeedRow, sizeAccountRow, sizeStatRow } from '$lib/constants';
 	import { t } from '$lib/i18n';
-	import { epochEnd, epochEnded, epochNumber } from '$lib/epoch';
+	import { epochEnded, epochNumber, epochWaitingAdvance } from '$lib/epoch';
 
 	const useRandomSeed: Writable<boolean> = writable(true);
 	const seedAmount: Writable<number> = writable(1);
@@ -29,14 +28,13 @@
 	const accountPrice: Writable<number> = writable();
 	const statsPrice: Writable<number> = writable();
 
-	const accountStats: Writable<DropsContract.Types.account_row> = writable();
-	const accountEpochStats: Writable<DropsContract.Types.stat_row[]> = writable([]);
-	const accountThisEpochStats: Readable<DropsContract.Types.stat_row> = derived(
+	const accountStats: Writable<SeedContract.Types.account_row> = writable();
+	const accountEpochStats: Writable<SeedContract.Types.stat_row[]> = writable([]);
+	const accountThisEpochStats: Readable<SeedContract.Types.stat_row> = derived(
 		[accountEpochStats, epochNumber],
 		([$accountEpochStats, $epochNumber], set) => {
 			if ($accountEpochStats.length) {
 				const thisEpoch = $accountEpochStats.find((e) => e.epoch.equals($epochNumber));
-				console.log('this epoch', $epochNumber, thisEpoch);
 				if (thisEpoch) {
 					set(thisEpoch);
 				} else {
@@ -47,30 +45,21 @@
 	);
 
 	const totalPrice: Readable<number | undefined> = derived(
-		[
-			seedAmount,
-			seedPrice,
-			accountPrice,
-			statsPrice,
-			accountStats,
-			accountThisEpochStats,
-			epochEnded
-		],
+		[seedAmount, seedPrice, accountPrice, statsPrice, accountStats, accountThisEpochStats],
 		([
 			$seedAmount,
 			$seedPrice,
 			$accountPrice,
 			$statsPrice,
 			$accountStats,
-			$accountThisEpochStats,
-			$epochEnded
+			$accountThisEpochStats
 		]) => {
 			if ($seedAmount && $seedPrice && $accountPrice && $statsPrice) {
 				let cost = $seedAmount * $seedPrice;
 				if (!$accountStats) {
 					cost += $accountPrice;
 				}
-				if (!$accountThisEpochStats || $epochEnded) {
+				if (!$accountThisEpochStats) {
 					cost += $statsPrice;
 				}
 				return cost;
@@ -108,7 +97,7 @@
 
 	async function loadAccountStats() {
 		if ($session) {
-			const results = await dropsContract.table('accounts').get($session.actor);
+			const results = await seedContract.table('account').get($session.actor);
 			if (results) {
 				accountStats.set(results);
 			}
@@ -116,7 +105,7 @@
 	}
 
 	// async function loadState() {
-	// 	const state = await dropsContract.table('state').get();
+	// 	const state = await seedContract.table('state').get();
 	// 	if (state) {
 	// 		dropsState.set(state);
 	// 	}
@@ -124,8 +113,8 @@
 
 	async function loadAccountEpochStats() {
 		if ($session) {
-			const results = await dropsContract
-				.table('stats')
+			const results = await seedContract
+				.table('stat')
 				.query({
 					index_position: 'secondary',
 					from: $session.actor,
@@ -180,8 +169,10 @@
 			const quantity = Asset.fromUnits($totalPrice, '4,EOS');
 			const actionData = {
 				from: $session?.actor,
-				to: 'testing.gm',
+				// to: 'testing.gm',
 				quantity,
+				to: 'seed.gm',
+				// quantity: '1.0000 EOS',
 				memo: [$seedAmount, hash].join(',')
 			};
 
@@ -197,7 +188,7 @@
 					try {
 						const data = Serializer.decode({
 							data: returnValue.hex,
-							type: DropsContract.Types.generate_return_value
+							type: SeedContract.Types.generate_return_value
 						});
 						if (Number(data.epoch_seeds) > 0) {
 							accountEpochStats.update((stats) => {
@@ -207,7 +198,7 @@
 									newStats[index].seeds = data.epoch_seeds;
 								} else {
 									newStats.push(
-										DropsContract.Types.stat_row.from({
+										SeedContract.Types.stat_row.from({
 											account: $session?.actor,
 											epoch: data.epoch,
 											id: 0,
@@ -322,7 +313,7 @@
 			{#if $session}
 				<button
 					class="btn btn-lg variant-filled w-full bg-gradient-to-br from-blue-300 to-cyan-400 box-decoration-clone"
-					disabled={$transacting}
+					disabled={$epochWaitingAdvance || $transacting}
 				>
 					<span>
 						{#if $transacting}

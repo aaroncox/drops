@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from '$lib/i18n';
-	import { DropsContract, dropsContract } from '$lib/wharf';
+	import { OracleContract, oracleContract } from '$lib/wharf';
 	import type { Name, UInt64 } from '@wharfkit/session';
 	import { onDestroy, onMount } from 'svelte';
 	import { type Writable, writable, derived, type Readable } from 'svelte/store';
@@ -19,12 +19,11 @@
 		loadEpochs();
 		loadCommits();
 		loadReveals();
-		loadEpochSeeds();
 	}
 
-	const epochs: Writable<DropsContract.Types.epoch_row[]> = writable();
+	const epochs: Writable<OracleContract.Types.epoch_row[]> = writable();
 	async function loadEpochs() {
-		const rows = await dropsContract.table('epochs').all();
+		const rows = await oracleContract.table('epoch').all();
 		if (rows.length == 0) {
 			epochs.set([]);
 			return;
@@ -32,19 +31,9 @@
 		epochs.set(rows);
 	}
 
-	const epochseeds: Writable<DropsContract.Types.epochseed_row[]> = writable();
-	async function loadEpochSeeds() {
-		const rows = await dropsContract.table('epochseed').all();
-		if (rows.length == 0) {
-			epochseeds.set([]);
-			return;
-		}
-		epochseeds.set(rows);
-	}
-
-	const commits: Writable<DropsContract.Types.commit_row[]> = writable();
+	const commits: Writable<OracleContract.Types.commit_row[]> = writable();
 	async function loadCommits() {
-		const rows = await dropsContract.table('commits').all();
+		const rows = await oracleContract.table('commit').all();
 		if (rows.length == 0) {
 			commits.set([]);
 			return;
@@ -52,9 +41,9 @@
 		commits.set(rows);
 	}
 
-	const reveals: Writable<DropsContract.Types.reveal_row[]> = writable();
+	const reveals: Writable<OracleContract.Types.reveal_row[]> = writable();
 	async function loadReveals() {
-		const rows = await dropsContract.table('reveals').all();
+		const rows = await oracleContract.table('reveal').all();
 		if (rows.length == 0) {
 			reveals.set([]);
 			return;
@@ -77,9 +66,9 @@
 	const allOracles: Writable<Name[]> = writable();
 
 	const revealSchedule: Readable<EpochState[]> = derived(
-		[epochs, commits, reveals, epochseeds],
-		([$epochs, $commits, $reveals, $epochseeds]) => {
-			if ($epochs && $commits && $reveals && $epochseeds) {
+		[epochs, commits, reveals],
+		([$epochs, $commits, $reveals]) => {
+			if ($epochs && $commits && $reveals) {
 				const oraclesFound = new Set<Name>();
 				allOracles.set([]);
 				const schedule = $epochs
@@ -98,18 +87,16 @@
 						// Sort by name
 						oracles.sort((a, b) => String(a.oracle).localeCompare(b.oracle.value));
 						// Find the epochseed for completed epochs
-						const epochseed = $epochseeds.find((s) => s.epoch.equals(e.epoch));
 						return {
 							epoch: e.epoch,
 							oracles,
-							seed: epochseed ? String(epochseed.seed) : ''
+							seed: e.seed ? String(e.seed) : ''
 						};
 					})
 					.sort((a, b) => Number(b.epoch) - Number(a.epoch));
 
 				// Update the array of all oracles participating
 				const oracleNames = Array.from(oraclesFound);
-				console.log(oracleNames);
 				allOracles.set(oracleNames);
 
 				return schedule;

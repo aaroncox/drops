@@ -1,28 +1,32 @@
 <script lang="ts">
-	import { onDestroy, onMount } from 'svelte';
-	import { readable, writable, type Writable } from 'svelte/store';
+	import { onMount } from 'svelte';
 	import { initializeStores, Drawer, getDrawerStore } from '@skeletonlabs/skeleton';
 	import { AppShell, AppBar } from '@skeletonlabs/skeleton';
 
 	import { setLocale, t } from '$lib/i18n';
-	import { login, logout, session, restore } from '$lib/wharf';
+	import { login, session, restore } from '$lib/wharf';
 
 	import '../app.postcss';
-	import { MemoryStick } from 'svelte-lucide';
 
 	initializeStores();
 
 	const drawerStore = getDrawerStore();
 
 	import Navigation from '$lib/components/navigation/navigation.svelte';
-	import { loadEpoch, epochEnd, epochNumber } from '$lib/epoch';
+	import {
+		loadEpoch,
+		epochNumber,
+		epochRemainingHours,
+		epochRemainingMinutes,
+		epochRemainingSeconds,
+		epochWaitingAdvance,
+		formatClockValue
+	} from '$lib/epoch';
 
 	const handleChange = ({ currentTarget }) => {
 		const { value } = currentTarget;
 		document.cookie = `lang=${value} ;`;
 	};
-
-	let epochInterval;
 
 	function getLanguage(name: string) {
 		const value = `; ${document.cookie}`;
@@ -41,38 +45,10 @@
 		setLocale(getLanguage('lang'));
 		restore();
 		loadEpoch();
-		epochInterval = setInterval(loadEpoch, 1000);
 	});
-
-	onDestroy(() => {
-		clearInterval(epochInterval);
-	});
-
-	const remaining = readable(epochEnd, function start(set) {
-		const interval = setInterval(() => {
-			let r = Math.round(($epochEnd - new Date()) / 1000);
-			r = Math.max(r, 0);
-			set(r);
-		}, 1000);
-
-		return function stop() {
-			clearInterval(interval);
-		};
-	});
-
-	$: hh = Math.floor($remaining / 3600);
-	$: mm = Math.floor(($remaining - hh * 3600) / 60);
-	$: ss = $remaining - hh * 3600 - mm * 60;
 
 	function drawerOpen(): void {
 		drawerStore.open({});
-	}
-
-	function f(value) {
-		if (value < 10) {
-			return `0${value}`;
-		}
-		return value.toString();
 	}
 </script>
 
@@ -107,14 +83,14 @@
 				{#if $epochNumber}
 					<p>Epoch: {$epochNumber}</p>
 					<span class="text-sm">
-						{#if hh || mm || ss}
-							Ends: {f(hh)}:{f(mm)}:{f(ss)}
-						{:else if hh == 0 && mm == 0 && ss == 0}
+						{#if $epochWaitingAdvance}
 							<span title="Will advance to next epoch on next action"
 								>{$t('common.readytoadvance')}</span
 							>
 						{:else}
-							--:--:--
+							Ends: {formatClockValue($epochRemainingHours)}:{formatClockValue(
+								$epochRemainingMinutes
+							)}:{formatClockValue($epochRemainingSeconds)}
 						{/if}
 					</span>
 				{/if}

@@ -52,6 +52,12 @@
 				<ProofOfSeeds format="h4" size={6} />
 			</a>
 		</li>
+		<li>
+			<a href="/oracles" on:click={drawerClose}> Oracles </a>
+		</li>
+		<li>
+			<a href="/status" on:click={drawerClose}> Status </a>
+		</li>
 		<!-- <li>
 			<a href="/loot" on:click={drawerClose}>
 				<Loot format="h4" size={6} />

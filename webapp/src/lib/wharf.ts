@@ -18,8 +18,11 @@ export * as SystemContract from './contracts/drops';
 import { Contract as TokenContract } from './contracts/eosio-token';
 export * as TokenContract from './contracts/drops';
 
-import { Contract as DropsContract } from './contracts/drops';
-export * as DropsContract from './contracts/drops';
+import { Contract as SeedContract } from './contracts/seed.drops';
+export * as SeedContract from './contracts/seed.drops';
+
+import { Contract as OracleContract } from './contracts/oracle.drops';
+export * as OracleContract from './contracts/oracle.drops';
 
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
@@ -45,7 +48,8 @@ export const contractKit = new ContractKit({
 
 export const systemContract = new SystemContract({ client });
 export const tokenContract = new TokenContract({ client });
-export const dropsContract: DropsContract = new DropsContract({ client });
+export const seedContract: SeedContract = new SeedContract({ client });
+export const oracleContract: OracleContract = new OracleContract({ client });
 
 export const sessionKit = new SessionKit(
 	{

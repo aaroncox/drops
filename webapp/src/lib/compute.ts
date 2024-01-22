@@ -1,10 +1,8 @@
-import { dropsContract, DropsContract } from './wharf';
-
 // // TODO: Client cache of combined reveals? Will allow for rapid final values
 // async function compute_combined_reveals(epoch: UInt64): string {
 // 	// TODO: Check that Epoch is complete and all secrets revealed
 // 	const reveals = await dropsContract
-// 		.table('reveals')
+// 		.table('reveal')
 // 		.query({
 // 			index_position: 'secondary',
 // 			key_type: 'i64',
