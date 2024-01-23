@@ -82,11 +82,11 @@
 		</thead>
 		<tbody>
 			<tr>
-				<td>{$t('home.seedprice')}</td>
+				<td>{$t('home.itemnameprice', { itemname: $t('common.itemnames') })}</td>
 				<td class="text-right">{Asset.fromUnits($seedPrice, '4,EOS')}</td>
 			</tr>
 			<tr>
-				<td>{$t('home.seedsreserved')}</td>
+				<td>{$t('home.itemnamesreserved', { itemnames: $t('common.itemnames') })}</td>
 				<td class="text-right">{$totalSeeds}</td>
 			</tr>
 			<tr>
