@@ -385,6 +385,17 @@
 				<table class="table">
 					<thead>
 						<tr>
+							<th colspan="4">
+								<Paginator
+									bind:settings={paginationSettings}
+									showFirstLastButtons={false}
+									showPreviousNextButtons={true}
+									showNumerals
+									maxNumerals={1}
+								/>
+							</th>
+						</tr>
+						<tr>
 							<th class="text-center">
 								<input type="checkbox" checked={$selectingAll} on:change={selectAll} />
 							</th>
@@ -422,7 +433,7 @@
 					</tbody>
 					<tfoot class="p-12">
 						<tr>
-							<td colspan="3">
+							<td colspan="4">
 								<Paginator
 									bind:settings={paginationSettings}
 									showFirstLastButtons={false}
