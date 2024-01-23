@@ -350,7 +350,7 @@
 						0
 					{/if}
 				</div>
-				{$t('common.seeds')}
+				{$t('common.itemnames')}
 				<div class="text-slate-400">{$t('common.total')}</div>
 			</div>
 			<div>
@@ -361,7 +361,7 @@
 						0
 					{/if}
 				</div>
-				{$t('common.seeds')}
+				{$t('common.itemnames')}
 				<div class="text-slate-400">{$t('common.epoch')}</div>
 			</div>
 			<div>
@@ -395,15 +395,17 @@
 				<div class="p-6 space-y-8 shadow-xl rounded-lg">
 					<form class="space-y-8" on:submit|preventDefault={tabSet === 0 ? buy : mint}>
 						{#if tabSet === 0}
-							<p>{$t('generate.header')}</p>
+							<p>{$t('generate.header', { itemnames: $t('common.itemnames') })}</p>
 						{:else if tabSet === 1}
-							<p>Use the RAM you currently own to generate seeds.</p>
+							<p>Use the RAM you currently own to generate drops.</p>
 						{/if}
 						<label class="label">
 							<span>{$t('generate.togenerate')}</span>
 							<select class="select" on:change={selectSeedAmount} value={$seedAmount}>
 								{#each [1, 10, 100, 1000, 10000] as amount}
-									<option value={amount}>+ {amount.toLocaleString()} {$t('common.seeds')}</option>
+									<option value={amount}
+										>+ {amount.toLocaleString()} {$t('common.itemnames')}</option
+									>
 								{/each}
 							</select>
 						</label>
@@ -523,7 +525,7 @@
 					<tbody>
 						<tr>
 							<td>
-								<div class="text-lg font-bold">{$t('common.seeds')}</div>
+								<div class="text-lg font-bold">{$t('common.itemnames')}</div>
 								{$t('generate.ramstorage')}
 							</td>
 							<td class="text-center">

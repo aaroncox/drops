@@ -3,8 +3,8 @@
 	import { BadgeInfo, Home, LogOut } from 'svelte-lucide';
 
 	import Generate from '../headers/generate.svelte';
-	import Seeds from '../headers/seeds.svelte';
-	import ProofOfSeeds from '../headers/pos.svelte';
+	import MyItems from '../headers/myitems.svelte';
+	import POS from '../headers/pos.svelte';
 	import Loot from '../headers/loot.svelte';
 	import Destroy from '../headers/destroy.svelte';
 	import { t, locales, locale } from '$lib/i18n';
@@ -38,8 +38,8 @@
 			</a>
 		</li>
 		<li>
-			<a href="/seeds" on:click={drawerClose}>
-				<Seeds format="h4" size={6} />
+			<a href="/drops" on:click={drawerClose}>
+				<MyItems format="h4" size={6} />
 			</a>
 		</li>
 		<li>
@@ -49,7 +49,7 @@
 		</li>
 		<li>
 			<a href="/pos" on:click={drawerClose}>
-				<ProofOfSeeds format="h4" size={6} />
+				<POS format="h4" size={6} />
 			</a>
 		</li>
 		<li>

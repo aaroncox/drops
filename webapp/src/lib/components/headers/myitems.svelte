@@ -10,7 +10,7 @@
 	<Package class={`dark:text-green-400 inline size-${size} mr-4`} />
 	<span
 		class="bg-gradient-to-br from-green-500 to-blue-300 bg-clip-text text-transparent box-decoration-clone"
-		>{$t('common.seeds')}</span
+		>{$t('common.myitemnames')}</span
 	>
 </div>
 

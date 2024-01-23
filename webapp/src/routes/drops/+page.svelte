@@ -6,7 +6,7 @@
 
 	import { t } from '$lib/i18n';
 
-	import Seeds from '../../lib/components/headers/seeds.svelte';
+	import MyItems from '../../lib/components/headers/myitems.svelte';
 	import { SeedContract, seedContract, session, systemContract } from '../../lib/wharf';
 	import { epochNumber } from '$lib/epoch';
 
@@ -80,10 +80,10 @@
 
 <div class="container p-4 sm:p-8 lg:p-16 mx-auto flex justify-center items-center">
 	<div class="space-y-4 flex flex-col bg-surface-900 p-8 rounded-lg shadow-xl">
-		<Seeds />
-		<p>{$t('seeds.subheader')}</p>
+		<MyItems />
+		<p>{$t('inventory.subheader', { itemnames: $t('common.itemnames') })}</p>
 		{#if $session}
-			<div class="text-center grid grid-cols-3 gap-4">
+			<div class="text-center grid grid-cols-2 gap-4">
 				<div>
 					<div class="h3 font-bold">
 						{#if $seedTotal}
@@ -92,19 +92,8 @@
 							0
 						{/if}
 					</div>
-					{$t('common.seeds')}
+					{$t('common.itemnames')}
 					<div class="text-slate-400">{$t('common.total')}</div>
-				</div>
-				<div>
-					<div class="h3 font-bold">
-						{#if $seedStats}
-							{$seedStats.value.toLocaleString()}
-						{:else}
-							0
-						{/if}
-					</div>
-					RAM/EOS
-					<div class="text-slate-400">{$t('home.value')}</div>
 				</div>
 				<div>
 					<div class="h3 font-bold">
@@ -119,18 +108,18 @@
 				</div>
 			</div>
 			<a
-				href={`/seeds/list`}
+				href={`/drops/list`}
 				type="button"
 				class="btn variant-filled w-full bg-gradient-to-br from-green-500 to-blue-400 box-decoration-clone"
 			>
-				<span>{$t('seeds.manage')}</span>
+				<span>{$t('inventory.manage', { itemnames: $t('common.itemnames') })}</span>
 			</a>
 			<div class="table-container text-center space-y-10">
 				<table class="table">
 					<thead>
 						<tr>
 							<th class="text-center">{$t('common.epoch')}</th>
-							<th class="text-center">{$t('common.seeds')}</th>
+							<th class="text-center">{$t('common.itemnames')}</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -140,12 +129,12 @@
 									<span class="text-2xl text-slate-300">{epoch.epoch}</span>
 								</td>
 								<td>
-									<span class="text-2xl">{epoch.seeds}</span>
+									<span class="text-2xl">{Number(epoch.seeds).toLocaleString()}</span>
 								</td>
 							</tr>
 						{:else}
 							<tr>
-								<td class="text-center" colspan="3">{$t('seeds.none')}</td>
+								<td class="text-center" colspan="3">{$t('inventory.none')}</td>
 							</tr>
 						{/each}
 					</tbody>
@@ -156,7 +145,7 @@
 				<div><AlertCircle /></div>
 				<div class="alert-message">
 					<h3 class="h3">{$t('common.signinfirst')}</h3>
-					<p>{$t('seeds.signinfirst')}</p>
+					<p>{$t('inventory.signinfirst')}</p>
 				</div>
 				<div class="alert-actions"></div>
 			</aside>

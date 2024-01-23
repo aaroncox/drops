@@ -5,7 +5,7 @@
 	import { Paginator, type PaginationSettings, TabGroup, Tab } from '@skeletonlabs/skeleton';
 
 	import { t } from '$lib/i18n';
-	import Seeds from '$lib/components/headers/seeds.svelte';
+	import MyItems from '$lib/components/headers/myitems.svelte';
 	import { SeedContract, session, seedContract } from '$lib/wharf';
 
 	const loaded = writable(false);
@@ -202,8 +202,8 @@
 
 <div class="container p-4 sm:p-8 lg:p-16 mx-auto flex justify-center items-center">
 	<div class="space-y-4 flex flex-col bg-surface-900 p-8 rounded-lg shadow-xl">
-		<Seeds />
-		<p>{$t('seeds.owned')}</p>
+		<MyItems />
+		<p>{$t('inventory.owned', { itemnames: $t('common.itemnames') })}</p>
 		{#if !$loaded}
 			<section class="card w-full">
 				<div class="p-4 space-y-4">
@@ -225,7 +225,7 @@
 			<div class="table-container text-center space-y-4">
 				<div class="h2 font-bold p-6 text-center">
 					{$seeds.length.toLocaleString()}
-					{$t('seeds.totalseeds')}
+					{$t('inventory.totalitems', { itemnames: $t('common.itemnames') })}
 				</div>
 				<TabGroup justify="justify-center">
 					<Tab bind:group={tabSet} name="tab1" value={0}>
@@ -250,7 +250,7 @@
 						{#if tabSet === 1}
 							<form class="space-y-4 p-8">
 								<label class="label">
-									<span>{$t('seeds.transferaccount')}</span>
+									<span>{$t('inventory.transferaccount')}</span>
 									<input
 										class="input"
 										type="text"
@@ -264,7 +264,7 @@
 									on:click={transferSelected}
 									disabled={!$selected.length || !$transferTo}
 								>
-									{$t('seeds.transferseeds')}
+									{$t('inventory.transferitem', { itemnames: $t('common.itemnames') })}
 									{$selected.length}
 								</button>
 								{#if $lastTransferError}
@@ -296,11 +296,15 @@
 											</thead>
 											<tbody>
 												<tr>
-													<td class="text-right">{$t('seeds.seedstransferred')}</td>
+													<td class="text-right"
+														>{$t('inventory.itemtransferred', {
+															itemnames: $t('common.itemnames')
+														})}</td
+													>
 													<td>{$lastTransferResult.seeds}</td>
 												</tr>
 												<tr>
-													<td class="text-right">{$t('seeds.seedssentto')}</td>
+													<td class="text-right">{$t('inventory.itemsentto')}</td>
 													<td>{$lastTransferResult.to}</td>
 												</tr>
 											</tbody>
@@ -311,7 +315,7 @@
 						{:else if tabSet === 2}
 							<form class="space-y-4 p-8">
 								<p>
-									{$t('seeds.destroyheader')}
+									{$t('inventory.destroyheader', { itemnames: $t('common.itemnames') })}
 								</p>
 								<button
 									type="button"
@@ -319,7 +323,7 @@
 									on:click={destroySelected}
 									disabled={!$selected.length}
 								>
-									{$t('seeds.destroyseeds')}
+									{$t('inventory.destroyitems', { itemnames: $t('common.itemnames') })}
 									{$selected.length}
 								</button>
 								{#if $lastDestroyError}
@@ -351,15 +355,19 @@
 											</thead>
 											<tbody>
 												<tr>
-													<td class="text-right">{$t('seeds.seedsdestroyed')}</td>
+													<td class="text-right"
+														>{$t('inventory.itemsdestroyed', {
+															itemnames: $t('common.itemnames')
+														})}</td
+													>
 													<td>{$lastDestroyResult.destroyed}</td>
 												</tr>
 												<tr>
-													<td class="text-right">{$t('seeds.seedsramreclaimed')}</td>
+													<td class="text-right">{$t('inventory.itemramreclaimed')}</td>
 													<td>{$lastDestroyResult.ram}</td>
 												</tr>
 												<tr>
-													<td class="text-right">{$t('seeds.seedseosredeemed')}</td>
+													<td class="text-right">{$t('inventory.itemeosredeemed')}</td>
 													<td>{$lastDestroyResult.redeemed}</td>
 												</tr>
 											</tbody>
@@ -370,14 +378,17 @@
 						{/if}
 					</svelte:fragment>
 				</TabGroup>
-				<div class="h5">{$t('seeds.seedsselected')} {$selected.length}</div>
+				<div class="h5">
+					{$t('inventory.itemselected', { itemnames: $t('common.itemnames') })}
+					{$selected.length}
+				</div>
 				<table class="table">
 					<thead>
 						<tr>
 							<th class="text-center">
 								<input type="checkbox" checked={$selectingAll} on:change={selectAll} />
 							</th>
-							<th class="text-center">{$t('common.seed')}</th>
+							<th class="text-center">{$t('common.itemname')}</th>
 							<th class="text-center">{$t('common.epoch')}</th>
 							<th class="text-center">{$t('common.soulbound')}</th>
 						</tr>
@@ -425,7 +436,7 @@
 				</table>
 			</div>
 		{:else}
-			<p>{$t('seeds.none')}</p>
+			<p>{$t('inventory.none')}</p>
 		{/if}
 	</div>
 </div>

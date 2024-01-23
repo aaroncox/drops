@@ -1,4 +1,7 @@
 {
+	"itemname": "Drop",
+	"itemnames": "Drops",
+	"myitemnames": "My Drops",
 	"signin": "登錄",
 	"signout": "登出",
 	"home": "家",

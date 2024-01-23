@@ -1,0 +1,18 @@
+{
+	"subheader": "The number of {{itemnames}} your account currently owns, by epoch.",
+	"owned": "The individual {{itemnames}} you currently own.",
+	"none": "No {{itemnames}} found.",
+	"manage": "Manage {{itemnames}}",
+	"signinfirst": "You must be signed in to view your {{itemnames}}.",
+	"totalitems": "Total {{itemnames}}",
+	"itemselected": "{{itemnames}} Selected:",
+	"destroyitems": "Destroy {{itemnames}}:",
+	"transferaccount": "Account to transfer {{itemnames}} to",
+	"transferitem": "Transfer {{itemnames}}:",
+	"itemtransferred": "{{itemnames}} Transfered",
+	"itemsentto": "Sent to",
+	"itemsdestroyed": "{{itemnames}} Destroyed",
+	"itemramreclaimed": "RAM Reclaimed",
+	"itemeosredeemed": "EOS Redeemed",
+	"destroyheader": "This action will destroy the selected {{itemnames}} and redeem the value of the RAM used."
+}

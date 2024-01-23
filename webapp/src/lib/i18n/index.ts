@@ -28,21 +28,15 @@ export const config = {
 		},
 		{
 			locale: 'en',
-			key: 'seeds',
-			routes: ['/seeds', '/seeds/list'],
-			loader: async () => (await import('./en/seeds.json')).default
+			key: 'inventory',
+			routes: ['/drops', '/drops/list'],
+			loader: async () => (await import('./en/inventory.json')).default
 		},
 		{
 			locale: 'en',
 			key: 'generate',
 			routes: ['/generate'],
 			loader: async () => (await import('./en/generate.json')).default
-		},
-		{
-			locale: 'en',
-			key: 'extra',
-			routes: ['/'],
-			loader: async () => (await import('./en/extra.json')).default
 		},
 		// Chinese (Simplified)
 		{
@@ -58,21 +52,15 @@ export const config = {
 		},
 		{
 			locale: 'zh',
-			key: 'seeds',
-			routes: ['/seeds', '/seeds/list'],
-			loader: async () => (await import('./zh/seeds.json')).default
+			key: 'inventory',
+			routes: ['/drops', '/drops/list'],
+			loader: async () => (await import('./zh/inventory.json')).default
 		},
 		{
 			locale: 'zh',
 			key: 'generate',
 			routes: ['/generate'],
 			loader: async () => (await import('./zh/generate.json')).default
-		},
-		{
-			locale: 'zh',
-			key: 'extra',
-			routes: ['/'],
-			loader: async () => (await import('./zh/extra.json')).default
 		}
 	]
 };

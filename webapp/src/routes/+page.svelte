@@ -129,24 +129,6 @@
 			{/each}
 		</tbody>
 	</table>
-	<div class="h2">{$t('extra.header')}</div>
-	<p>{$t('extra.subheader')}</p>
-	<ul class="list p-8">
-		<li>{$t('extra.extra1')}</li>
-		<li>{$t('extra.extra2')}</li>
-		<li>{$t('extra.extra3')}</li>
-		<li>{$t('extra.extra4')}</li>
-		<li>{$t('extra.extra5')}</li>
-		<li>{$t('extra.extra6')}</li>
-		<li>{$t('extra.extra7')}</li>
-		<li>{$t('extra.extra8')}</li>
-		<li>{$t('extra.extra9')}</li>
-		<li>{$t('extra.extra10')}</li>
-		<li>{$t('extra.extra11')}</li>
-		<li>{$t('extra.extra12')}</li>
-		<li>{$t('extra.extra13')}</li>
-		<li>{$t('extra.extra14')}</li>
-	</ul>
 </div>
 
 <style lang="postcss">

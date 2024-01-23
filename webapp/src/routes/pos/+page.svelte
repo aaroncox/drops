@@ -148,7 +148,10 @@
 <div class="container p-4 sm:p-8 lg:p-16 mx-auto flex justify-center items-center">
 	<div class="space-y-4 flex flex-col bg-surface-900 p-8 rounded-lg shadow-xl">
 		<ProofOfSeed />
-		<p>An experimental system to distribute tokens using a "Proof of Seed" algorithm.</p>
+		<p>
+			An experimental system to distribute tokens using a "Proof of {$t('common.itemnames')}"
+			algorithm.
+		</p>
 		{#if !$lastEpochRevealed}
 			<section class="card w-full">
 				<div class="p-4 space-y-4">
@@ -170,7 +173,8 @@
 			<section class="card w-full">
 				<div class="p-4 space-y-4">
 					<div class="text-center h3">
-						{$seedsLoaded} seeds loaded...
+						{$seedsLoaded}
+						{$t('common.itemnames')} loaded...
 					</div>
 					<div class="grid grid-cols-3 gap-8">
 						<div class="placeholder animate-pulse" />
@@ -190,15 +194,17 @@
 				<div class="p-6 space-y-4">
 					{#if $seedsRedeemable > 0}
 						<div class="h6">
-							Seeds valid from before Epoch {$epochNumber}
+							{$t('common.itemnames')} valid for Epoch {$epochNumber}
 						</div>
 						<div class="h2 text-center">
 							+ {$validSeeds.length.toLocaleString()} DEMO
 						</div>
 					{:else if $seedsClaimed > 0}
-						<div class="h4">You have already claimed all your seeds this epoch.</div>
+						<div class="h4">
+							You have already claimed all your {$t('common.itemnames')} this epoch.
+						</div>
 					{:else}
-						<div class="h4">None of your seeds qualified to claim.</div>
+						<div class="h4">None of your {$t('common.itemnames')} qualified to claim.</div>
 					{/if}
 				</div>
 				<button
@@ -214,17 +220,20 @@
 				</button>
 				<p>You currently have {$demoBalance}.</p>
 				<div class="text-sm">
-					Out of your <span class="font-bold">{$seedsFound.toLocaleString()}</span> seeds,
+					Out of your <span class="font-bold">{$seedsFound.toLocaleString()}</span>
+					{$t('common.itemnames')},
 					<span class="font-bold">{$seedsRedeemable.toLocaleString()}</span>
 					are available and successful in meeting the difficulty requirement allowing you to mint tokens
 					for this epoch. You have already redeemed
-					<span class="font-bold">{$seedsClaimed.toLocaleString()}</span> of your valid seeds.
+					<span class="font-bold">{$seedsClaimed.toLocaleString()}</span> of your valid {$t(
+						'common.itemnames'
+					)}.
 				</div>
 			</div>
 		{:else}
 			<div class="h4">
 				<div class="p-6 space-y-4 text-center">
-					<p>{$t('seeds.none')}</p>
+					<p>{$t('inventory.none')}</p>
 				</div>
 			</div>
 		{/if}
