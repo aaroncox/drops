@@ -14,12 +14,20 @@ namespace drops {
 static constexpr name seed_contract   = "seed.gm"_n;   // location of seed contract
 static constexpr name oracle_contract = "oracle.gm"_n; // location of oracle contract
 
-static constexpr uint64_t primary_row     = 145;                           // size to create a row
-static constexpr uint64_t secondary_index = 144;                           // size of secondary index
-static constexpr uint64_t accounts_row    = 124;                           // size of record in account table
-static constexpr uint64_t stats_row       = 412;                           // size of record in stats table
-static constexpr uint64_t record_size     = primary_row + secondary_index; // total record size
-static constexpr uint64_t purchase_buffer = 1; // Additional RAM bytes to purchase (buyrambytes bug)
+// seed table row bytes costs
+static constexpr uint64_t primary_row     = 145;                                            // size to create a row
+static constexpr uint64_t secondary_index = 144;                                            // size of secondary index
+static constexpr uint64_t tertiary_index  = 128;                                            // size of time index
+static constexpr uint64_t record_size     = primary_row + secondary_index + tertiary_index; // total record size
+
+// account table row bytes cost
+static constexpr uint64_t accounts_row = 124;
+
+// stat table row bytes cost
+static constexpr uint64_t stats_row = 412;
+
+// Additional RAM bytes to purchase (buyrambytes bug)
+static constexpr uint64_t purchase_buffer = 1;
 
 // static constexpr uint64_t epochphasetimer = 2419200; // 4-week
 // static constexpr uint64_t epochphasetimer = 604800; // 1-week
@@ -69,8 +77,7 @@ public:
       bool              soulbound;
       uint64_t          primary_key() const { return seed; }
       uint128_t         by_owner() const { return ((uint128_t)owner.value << 64) | seed; }
-      uint64_t          by_epoch() const { return epoch; }
-      uint64_t          by_time() const { return created.elapsed.count(); }
+      uint64_t          by_created() const { return static_cast<uint64_t>(created.sec_since_epoch()); }
    };
 
    struct [[eosio::table("state")]] state_row
@@ -103,7 +110,8 @@ public:
    typedef eosio::multi_index<
       "seed"_n,
       seed_row,
-      eosio::indexed_by<"owner"_n, eosio::const_mem_fun<seed_row, uint128_t, &seed_row::by_owner>>>
+      eosio::indexed_by<"owner"_n, eosio::const_mem_fun<seed_row, uint128_t, &seed_row::by_owner>>,
+      eosio::indexed_by<"created"_n, eosio::const_mem_fun<seed_row, uint64_t, &seed_row::by_created>>>
                                                     seed_table;
    typedef eosio::multi_index<"state"_n, state_row> state_table;
    typedef eosio::multi_index<
