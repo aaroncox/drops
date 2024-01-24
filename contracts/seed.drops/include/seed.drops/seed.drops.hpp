@@ -67,7 +67,7 @@ public:
       uint64_t   primary_key() const { return epoch; }
    };
 
-   struct [[eosio::table("drops")]] drop_row
+   struct [[eosio::table("drop")]] drop_row
    {
       uint64_t          seed;
       uint64_t          epoch;
@@ -106,7 +106,7 @@ public:
    typedef eosio::multi_index<"account"_n, account_row> account_table;
    typedef eosio::multi_index<"epoch"_n, epoch_row>     epoch_table;
    typedef eosio::multi_index<
-      "drops"_n,
+      "drop"_n,
       drop_row,
       eosio::indexed_by<"owner"_n, eosio::const_mem_fun<drop_row, uint128_t, &drop_row::by_owner>>>
                                                     drop_table;

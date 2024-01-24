@@ -37,11 +37,11 @@ drops::generate(name from, name to, asset quantity, std::string memo)
 
    // Ensure string length
    string data = parsed[1];
-   check(data.length() > 32, "Drop data must be at least 32 characters in length.");
+   check(data.length() > 32, "Drop generation seed data must be at least 32 characters in length.");
 
    // Calculate amount of RAM needing to be purchased
-   // TODO: Additional RAM is being purchased to account for the buyrambytes bug
-   // https://github.com/EOSIO/eosio.system/issues/30
+   // NOTE: Additional RAM is being purchased to account for the buyrambytes bug
+   // SEE: https://github.com/EOSIO/eosio.system/issues/30
    uint64_t ram_purchase_amount = amount * (record_size + purchase_buffer);
 
    // Determine if this account exists in the accounts table
@@ -51,7 +51,6 @@ drops::generate(name from, name to, asset quantity, std::string memo)
 
    // First time accounts must purchase the extra ram to persist their stats in
    // memory
-   // TODO: Need to decide if we should persist this data or not
    if (!account_row_exists) {
       ram_purchase_amount += accounts_row;
    }
@@ -64,17 +63,16 @@ drops::generate(name from, name to, asset quantity, std::string memo)
 
    // First time epoch stats must purchase the extra ram to persist their stats
    // in memory
-   // TODO: Need to decide if we should persist this data or not
    if (!stat_row_exists) {
       ram_purchase_amount += stats_row;
    }
 
-   // Purchase the RAM
+   // Purchase the RAM for this transaction using the tokens from the transfer
    action(permission_level{_self, "active"_n}, "eosio"_n, "buyrambytes"_n,
           std::make_tuple(_self, _self, ram_purchase_amount))
       .send();
 
-   // Iterate over all drops to be created and insert them into the drops table
+   // Iterate over all drops to be created and insert them into the drop table
    drop_table drops(_self, _self.value);
    for (int i = 0; i < amount; i++) {
       string   value      = std::to_string(i) + data;
@@ -234,7 +232,10 @@ drops::generate(name from, name to, asset quantity, std::string memo)
 [[eosio::action]] void drops::transfer(name from, name to, std::vector<uint64_t> drops_ids, string memo)
 {
    require_auth(from);
+
    check(is_account(to), "Account does not exist.");
+   check(drops_ids.size() > 0, "No drops were provided to transfer.");
+
    require_recipient(from);
    require_recipient(to);
 
@@ -243,19 +244,17 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    auto        state_itr = state.find(1);
    check(state_itr->enabled, "Contract is currently disabled.");
 
-   check(drops_ids.size() > 0, "No drops were provided to transfer.");
-
-   drops::drop_table drops(_self, _self.value);
-
-   // Map to record which epochs drops were destroyed in
+   // Map to record which epochs drops were destroyed in for stat updates
    map<uint64_t, uint64_t> epochs_transferred_in;
 
+   // Iterate over all drops selected to be transferred
+   drops::drop_table drops(_self, _self.value);
    for (auto it = begin(drops_ids); it != end(drops_ids); ++it) {
       auto drops_itr = drops.find(*it);
-      check(drops_itr != drops.end(), "Drop not found");
+      check(drops_itr != drops.end(), "Drop " + std::to_string(drops_itr->seed) + " not found");
       check(drops_itr->bound == false,
             "Drop " + std::to_string(drops_itr->seed) + " is bound and cannot be transferred");
-      check(drops_itr->owner == from, "Account does not own this drops");
+      check(drops_itr->owner == from, "Account does not own drop" + std::to_string(drops_itr->seed));
       // Incremenent the values of all epochs we destroyed drops in
       if (epochs_transferred_in.find(drops_itr->epoch) == epochs_transferred_in.end()) {
          epochs_transferred_in[drops_itr->epoch] = 1;
@@ -266,11 +265,13 @@ drops::generate(name from, name to, asset quantity, std::string memo)
       drops.modify(drops_itr, _self, [&](auto& row) { row.owner = to; });
    }
 
+   // Decrement the account row for "from"
    account_table accounts(_self, _self.value);
    auto          account_from_itr = accounts.find(from.value);
    check(account_from_itr != accounts.end(), "From account not found");
    accounts.modify(account_from_itr, _self, [&](auto& row) { row.drops = row.drops - drops_ids.size(); });
 
+   // Increment the account row for "to"
    auto account_to_itr = accounts.find(to.value);
    if (account_to_itr != accounts.end()) {
       accounts.modify(account_to_itr, _self, [&](auto& row) { row.drops = row.drops + drops_ids.size(); });
@@ -281,19 +282,15 @@ drops::generate(name from, name to, asset quantity, std::string memo)
       });
    }
 
+   // Iterate over map that recorded which epochs were transferred in
    stat_table stats(_self, _self.value);
-
-   // Iterate over map that recorded which epochs were transferred in for from,
-   // decrement table values
    for (auto& iter : epochs_transferred_in) {
+      // Decrement the stat row for "from"
       auto stat_idx = stats.get_index<"accountepoch"_n>();
       auto stat_itr = stat_idx.find((uint128_t)from.value << 64 | iter.first);
       stat_idx.modify(stat_itr, _self, [&](auto& row) { row.drops = row.drops - iter.second; });
-   }
 
-   // Iterate over map that recorded which epochs were transferred in for to,
-   // increment table values
-   for (auto& iter : epochs_transferred_in) {
+      // Increment the stat row for "to"
       auto stat_idx        = stats.get_index<"accountepoch"_n>();
       auto stat_itr        = stat_idx.find((uint128_t)to.value << 64 | iter.first);
       bool stat_row_exists = stat_itr != stat_idx.end();
@@ -417,15 +414,6 @@ drops::epoch_row drops::advance_epoch()
       row.end   = new_epoch_end;
    });
 
-   // Nofify subscribers
-   // TODO: Subscribers cannot be notified if they aren't in this contract
-   //    drops::subscriber_table subscribers(_self, _self.value);
-   //    auto                     subscriber_itr = subscribers.begin();
-   //    while (subscriber_itr != subscribers.end()) {
-   //       require_recipient(subscriber_itr->subscriber);
-   //       subscriber_itr++;
-   //    }
-
    // Return the next epoch
    return {
       new_epoch,       // epoch
@@ -492,37 +480,6 @@ drops::epoch_row drops::advance_epoch()
                         "Testnet Reset - Reclaimed RAM value of " + std::to_string(iter.second) + " drops(s)");
    }
 }
-
-// [[eosio::action]] void drops::enroll(name account, uint64_t epoch)
-// {
-//    require_auth(account);
-
-//    // Determine if this account exists in the accounts table
-//    account_table accounts(_self, _self.value);
-//    auto           account_itr        = accounts.find(account.value);
-//    bool           account_row_exists = account_itr != accounts.end();
-
-//    // Register the account into the accounts table
-//    if (!account_row_exists) {
-//       accounts.emplace(account, [&](auto& row) {
-//          row.account = account;
-//          row.drops   = 0;
-//       });
-//    }
-
-//    // Determine if this account exists in the epoch stats table for the epoch
-//    stat_table stats(_self, _self.value);
-//    auto        stat_idx = stats.get_index<"accountepoch"_n>();
-//    auto        stat_itr = stat_idx.find((uint128_t)account.value << 64 | epoch);
-//    check(stat_itr != stat_idx.end(), "This account is already registered for this epoch.");
-
-//    stats.emplace(account, [&](auto& row) {
-//       row.id      = stats.available_primary_key();
-//       row.account = account;
-//       row.drops   = 0;
-//       row.epoch   = epoch;
-//    });
-// }
 
 [[eosio::action]] void drops::enable(bool enabled)
 {
