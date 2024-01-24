@@ -543,21 +543,18 @@ seed::epoch_row seed::advance_epoch()
    state_table   state(_self, _self.value);
    stat_table    stats(_self, _self.value);
 
-   accounts.emplace(_self, [&](auto& row) {
-      row.account = "eosio"_n;
-      row.seeds   = 1;
-   });
-
    // Round epoch timer down to nearest interval to start with
    const time_point_sec epoch =
       time_point_sec((current_time_point().sec_since_epoch() / epochphasetimer) * epochphasetimer);
 
+   // Establish the first epoch
    epochs.emplace(_self, [&](auto& row) {
       row.epoch = 1;
       row.start = epoch;
       row.end   = epoch + eosio::seconds(epochphasetimer);
    });
 
+   // Give system contract the 0 seed
    seeds.emplace(_self, [&](auto& row) {
       row.seed      = 0;
       row.owner     = "eosio"_n;
@@ -566,10 +563,9 @@ seed::epoch_row seed::advance_epoch()
       row.created   = epoch;
    });
 
-   state.emplace(_self, [&](auto& row) {
-      row.id      = 1;
-      row.epoch   = 1;
-      row.enabled = false;
+   accounts.emplace(_self, [&](auto& row) {
+      row.account = "eosio"_n;
+      row.seeds   = 1;
    });
 
    stats.emplace(_self, [&](auto& row) {
@@ -577,6 +573,34 @@ seed::epoch_row seed::advance_epoch()
       row.account = "eosio"_n;
       row.epoch   = 1;
       row.seeds   = 1;
+   });
+
+   // Give Greymass the "Greymass" seed
+   seeds.emplace(_self, [&](auto& row) {
+      row.seed      = 7338027470446133248;
+      row.owner     = "teamgreymass"_n;
+      row.epoch     = 1;
+      row.soulbound = true;
+      row.created   = epoch;
+   });
+
+   accounts.emplace(_self, [&](auto& row) {
+      row.account = "teamgreymass"_n;
+      row.seeds   = 1;
+   });
+
+   stats.emplace(_self, [&](auto& row) {
+      row.id      = 2;
+      row.account = "teamgreymass"_n;
+      row.epoch   = 1;
+      row.seeds   = 1;
+   });
+
+   // Set the current state to epoch 1
+   state.emplace(_self, [&](auto& row) {
+      row.id      = 1;
+      row.epoch   = 1;
+      row.enabled = false;
    });
 }
 
