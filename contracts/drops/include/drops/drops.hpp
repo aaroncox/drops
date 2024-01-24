@@ -3,8 +3,8 @@
 #include <eosio.system/eosio.system.hpp>
 #include <eosio.token/eosio.token.hpp>
 
-#include <seed.drops/ram.hpp>
-#include <seed.drops/seed.drops.hpp>
+#include <drops/drops.hpp>
+#include <drops/ram.hpp>
 
 using namespace eosio;
 using namespace std;

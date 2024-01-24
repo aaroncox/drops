@@ -5,7 +5,7 @@ CONTRACT ?= drops
 CONTRACT_ACCOUNT ?= testing.gm
 CONTRACTS_PREFIX = ../reference-contracts/contracts
 LEAP_PREFIX = ../leap
-INCLUDES = -I contracts/seed.drops/include -I contracts/oracle.drops/include
+INCLUDES = -I contracts/drops/include -I contracts/oracle.drops/include
 NODE_URL ?= https://jungle4.greymass.com
 REV := $(shell git rev-parse --short HEAD)
 BRANCH := $(shell echo $${HEAD:-$$(git branch --show-current)})
@@ -31,11 +31,11 @@ codegen/webapp:
 contract/drops: contract/drops/build contract/drops/publish
 
 contract/drops/build:
-	cdt-cpp -abigen -abigen_output=contracts/seed.drops/build/drops.abi -o contracts/seed.drops/build/drops.wasm -O3 contracts/seed.drops/src/seed.drops.cpp contracts/seed.drops/src/ram.cpp $(INCLUDES)
+	cdt-cpp -abigen -abigen_output=contracts/drops/build/drops.abi -o contracts/drops/build/drops.wasm -O3 contracts/drops/src/drops.cpp contracts/drops/src/ram.cpp $(INCLUDES)
 
 contract/drops/publish:
 	cleos -u $(NODE_URL) set contract $(CONTRACT_SEED_ACCOUNT) \
-		contracts/seed.drops/build/ ${CONTRACT_SEED}.wasm ${CONTRACT_SEED}.abi
+		contracts/drops/build/ ${CONTRACT_SEED}.wasm ${CONTRACT_SEED}.abi
 
 contract/drops/reset: contract/drops/build contract/drops/wipe contract/drops/publish contract/drops/wipe contract/drops/init contract/drops/enable
 

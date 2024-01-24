@@ -1,4 +1,4 @@
-#include "seed.drops/seed.drops.hpp"
+#include "drops/drops.hpp"
 
 namespace dropssystem {
 
@@ -286,16 +286,16 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    stat_table stats(_self, _self.value);
    for (auto& iter : epochs_transferred_in) {
       // Decrement the stat row for "from"
-      auto stat_idx = stats.get_index<"accountepoch"_n>();
-      auto stat_itr = stat_idx.find((uint128_t)from.value << 64 | iter.first);
-      stat_idx.modify(stat_itr, _self, [&](auto& row) { row.drops = row.drops - iter.second; });
+      auto stat_from_idx = stats.get_index<"accountepoch"_n>();
+      auto stat_from_itr = stat_from_idx.find((uint128_t)from.value << 64 | iter.first);
+      stat_from_idx.modify(stat_from_itr, _self, [&](auto& row) { row.drops = row.drops - iter.second; });
 
       // Increment the stat row for "to"
-      auto stat_idx        = stats.get_index<"accountepoch"_n>();
-      auto stat_itr        = stat_idx.find((uint128_t)to.value << 64 | iter.first);
-      bool stat_row_exists = stat_itr != stat_idx.end();
+      auto stat_to_idx     = stats.get_index<"accountepoch"_n>();
+      auto stat_to_itr     = stat_to_idx.find((uint128_t)to.value << 64 | iter.first);
+      bool stat_row_exists = stat_to_itr != stat_to_idx.end();
       if (stat_row_exists) {
-         stat_idx.modify(stat_itr, _self, [&](auto& row) { row.drops = row.drops + iter.second; });
+         stat_to_idx.modify(stat_to_itr, _self, [&](auto& row) { row.drops = row.drops + iter.second; });
       } else {
          stats.emplace(from, [&](auto& row) {
             row.id      = stats.available_primary_key();

@@ -1,7 +1,7 @@
 #pragma once
 
+#include <drops/drops.hpp>
 #include <eosio.system/eosio.system.hpp>
-#include <seed.drops/seed.drops.hpp>
 
 using namespace eosio;
 using namespace std;
