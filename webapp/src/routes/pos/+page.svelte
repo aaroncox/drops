@@ -132,7 +132,7 @@
 				authorization: [$session?.permissionLevel],
 				data: {
 					owner: $session.actor,
-					drops_ids: $validdrops.map((s) => s.seed)
+					seed_ids: $validdrops.map((s) => s.seed)
 				}
 			}
 		});
