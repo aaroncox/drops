@@ -439,9 +439,6 @@ seed::epoch_row seed::advance_epoch()
    // Advance the epoch
    auto new_epoch = advance_epoch();
 
-   // Advance the epoch in the oracle contract
-   action(permission_level{_self, "active"_n}, oracle_contract, "advance"_n, std::make_tuple()).send();
-
    // Provide the epoch as a return value
    return new_epoch;
 }
