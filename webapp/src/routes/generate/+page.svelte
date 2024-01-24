@@ -13,25 +13,25 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { derived, writable, type Readable, type Writable } from 'svelte/store';
 	import { AlertCircle, Loader2, MemoryStick, PackagePlus } from 'svelte-lucide';
-	import { SeedContract, seedContract, session, tokenContract } from '$lib/wharf';
+	import { DropContract, dropsContract, session, tokenContract } from '$lib/wharf';
 	import { getRamPrice } from '$lib/bancor';
-	import { sizeSeedRow, sizeAccountRow, sizeStatRow } from '$lib/constants';
+	import { sizeDropRow, sizeAccountRow, sizeStatRow } from '$lib/constants';
 	import { t } from '$lib/i18n';
 	import { epochEnded, epochNumber, epochWaitingAdvance } from '$lib/epoch';
 	import { Tab, TabAnchor, TabGroup } from '@skeletonlabs/skeleton';
 
-	const useRandomSeed: Writable<boolean> = writable(true);
-	const seedAmount: Writable<number> = writable(1);
-	const randomSeed: Writable<Name> = writable(randomName());
+	const useRandomDrop: Writable<boolean> = writable(true);
+	const dropsAmount: Writable<number> = writable(1);
+	const randomDrop: Writable<Name> = writable(randomName());
 
-	// Price of individual seed
-	const seedPrice: Writable<number> = writable();
+	// Price of individual drops
+	const dropsPrice: Writable<number> = writable();
 	const accountPrice: Writable<number> = writable();
 	const statsPrice: Writable<number> = writable();
 
-	const accountStats: Writable<SeedContract.Types.account_row> = writable();
-	const accountEpochStats: Writable<SeedContract.Types.stat_row[]> = writable([]);
-	const accountThisEpochStats: Readable<SeedContract.Types.stat_row> = derived(
+	const accountStats: Writable<DropContract.Types.account_row> = writable();
+	const accountEpochStats: Writable<DropContract.Types.stat_row[]> = writable([]);
+	const accountThisEpochStats: Readable<DropContract.Types.stat_row> = derived(
 		[accountEpochStats, epochNumber],
 		([$accountEpochStats, $epochNumber], set) => {
 			if ($accountEpochStats.length) {
@@ -46,17 +46,17 @@
 	);
 
 	const totalPrice: Readable<number | undefined> = derived(
-		[seedAmount, seedPrice, accountPrice, statsPrice, accountStats, accountThisEpochStats],
+		[dropsAmount, dropsPrice, accountPrice, statsPrice, accountStats, accountThisEpochStats],
 		([
-			$seedAmount,
-			$seedPrice,
+			$dropsAmount,
+			$dropsPrice,
 			$accountPrice,
 			$statsPrice,
 			$accountStats,
 			$accountThisEpochStats
 		]) => {
-			if ($seedAmount && $seedPrice && $accountPrice && $statsPrice) {
-				let cost = $seedAmount * $seedPrice;
+			if ($dropsAmount && $dropsPrice && $accountPrice && $statsPrice) {
+				let cost = $dropsAmount * $dropsPrice;
 				if (!$accountStats) {
 					cost += $accountPrice;
 				}
@@ -69,9 +69,9 @@
 	);
 
 	const totalRam: Readable<number | undefined> = derived(
-		[seedAmount, accountStats, accountThisEpochStats],
-		([$seedAmount, $accountStats, $accountThisEpochStats]) => {
-			let amount = $seedAmount * sizeSeedRow;
+		[dropsAmount, accountStats, accountThisEpochStats],
+		([$dropsAmount, $accountStats, $accountThisEpochStats]) => {
+			let amount = $dropsAmount * sizeDropRow;
 			if (!$accountStats) {
 				amount += sizeAccountRow;
 			}
@@ -112,7 +112,7 @@
 
 	async function loadAccountStats() {
 		if ($session) {
-			const results = await seedContract.table('account').get($session.actor);
+			const results = await dropsContract.table('account').get($session.actor);
 			if (results) {
 				accountStats.set(results);
 			}
@@ -120,7 +120,7 @@
 	}
 
 	// async function loadState() {
-	// 	const state = await seedContract.table('state').get();
+	// 	const state = await dropsContract.table('state').get();
 	// 	if (state) {
 	// 		dropsState.set(state);
 	// 	}
@@ -128,7 +128,7 @@
 
 	async function loadAccountEpochStats() {
 		if ($session) {
-			const results = await seedContract
+			const results = await dropsContract
 				.table('stat')
 				.query({
 					index_position: 'secondary',
@@ -147,7 +147,7 @@
 	async function loadRamPrice() {
 		const cost_plus_fee = await getRamPrice();
 		if (cost_plus_fee) {
-			seedPrice.set(Number(cost_plus_fee) * sizeSeedRow);
+			dropsPrice.set(Number(cost_plus_fee) * sizeDropRow);
 			accountPrice.set(Number(cost_plus_fee) * sizeAccountRow);
 			statsPrice.set(Number(cost_plus_fee) * sizeStatRow);
 		}
@@ -156,16 +156,16 @@
 	function randomName(): Name {
 		const length = 12;
 		const chars = 'abcdefghijklmnopqrstuvwxyz12345';
-		let seed = '';
+		let drops = '';
 		for (var i = 0; i < length; i++) {
-			seed += chars.charAt(Math.floor(Math.random() * chars.length));
+			drops += chars.charAt(Math.floor(Math.random() * chars.length));
 		}
-		return Name.from(seed);
+		return Name.from(drops);
 	}
 
 	@Struct.type('returnvalue')
 	class GenerateReturnValue extends Struct {
-		@Struct.field(Int32) seeds!: Int32;
+		@Struct.field(Int32) drops!: Int32;
 		@Struct.field(Int64) epoch!: Int64;
 		@Struct.field(Asset) cost!: Asset;
 		@Struct.field(Asset) refund!: Asset;
@@ -180,7 +180,7 @@
 		lastResultError.set('');
 		transacting.set(true);
 		if ($session) {
-			const hash = String(Checksum256.hash(Bytes.from(String($randomSeed), 'utf8')));
+			const hash = String(Checksum256.hash(Bytes.from(String($randomDrop), 'utf8')));
 			const quantity = Asset.fromUnits($totalPrice, '4,EOS');
 			const actionData = {
 				from: $session?.actor,
@@ -188,7 +188,7 @@
 				quantity,
 				to: 'seed.gm',
 				// quantity: '1.0000 EOS',
-				memo: [$seedAmount, hash].join(',')
+				memo: [$dropsAmount, hash].join(',')
 			};
 
 			const action = tokenContract.action('transfer', actionData);
@@ -203,44 +203,44 @@
 					try {
 						const data = Serializer.decode({
 							data: returnValue.hex,
-							type: SeedContract.Types.generate_return_value
+							type: DropContract.Types.generate_return_value
 						});
-						if (Number(data.epoch_seeds) > 0) {
+						if (Number(data.epoch_drops) > 0) {
 							accountEpochStats.update((stats) => {
 								const newStats = [...stats];
 								const index = newStats.findIndex((s) => s.epoch.equals(data.epoch));
 								if (index >= 0) {
-									newStats[index].seeds = data.epoch_seeds;
+									newStats[index].drops = data.epoch_drops;
 								} else {
 									newStats.push(
-										SeedContract.Types.stat_row.from({
+										DropContract.Types.stat_row.from({
 											account: $session?.actor,
 											epoch: data.epoch,
 											id: 0,
-											seeds: data.epoch_seeds
+											drops: data.epoch_drops
 										})
 									);
 								}
 								return newStats;
 							});
 						}
-						if (Number(data.total_seeds) > 0) {
+						if (Number(data.total_drops) > 0) {
 							accountStats.update((stats) => {
 								return {
 									...stats,
 									account: $session?.actor,
-									seeds: data.total_seeds
+									drops: data.total_drops
 								};
 							});
 						}
-						if (Number(data.seeds) > 0) {
+						if (Number(data.drops) > 0) {
 							lastResult.set(data);
 						}
 					} catch (e) {
 						console.warn(e);
 					}
 				});
-				randomSeed.set(randomName());
+				randomDrop.set(randomName());
 				loadRamPrice();
 			} catch (e) {
 				lastResult.set(undefined);
@@ -255,16 +255,16 @@
 		lastResultError.set('');
 		transacting.set(true);
 		if ($session) {
-			const hash = String(Checksum256.hash(Bytes.from(String($randomSeed), 'utf8')));
+			const hash = String(Checksum256.hash(Bytes.from(String($randomDrop), 'utf8')));
 			console.log(
 				JSON.stringify({
-					amount: $seedAmount,
+					amount: $dropsAmount,
 					owner: $session.actor,
 					data: hash
 				})
 			);
-			const action = seedContract.action('mint', {
-				amount: $seedAmount,
+			const action = dropsContract.action('mint', {
+				amount: $dropsAmount,
 				owner: $session.actor,
 				data: hash
 			});
@@ -279,44 +279,44 @@
 					try {
 						const data = Serializer.decode({
 							data: returnValue.hex,
-							type: SeedContract.Types.generate_return_value
+							type: DropContract.Types.generate_return_value
 						});
-						if (Number(data.epoch_seeds) > 0) {
+						if (Number(data.epoch_drops) > 0) {
 							accountEpochStats.update((stats) => {
 								const newStats = [...stats];
 								const index = newStats.findIndex((s) => s.epoch.equals(data.epoch));
 								if (index >= 0) {
-									newStats[index].seeds = data.epoch_seeds;
+									newStats[index].drops = data.epoch_drops;
 								} else {
 									newStats.push(
-										SeedContract.Types.stat_row.from({
+										DropContract.Types.stat_row.from({
 											account: $session?.actor,
 											epoch: data.epoch,
 											id: 0,
-											seeds: data.epoch_seeds
+											drops: data.epoch_drops
 										})
 									);
 								}
 								return newStats;
 							});
 						}
-						if (Number(data.total_seeds) > 0) {
+						if (Number(data.total_drops) > 0) {
 							accountStats.update((stats) => {
 								return {
 									...stats,
 									account: $session?.actor,
-									seeds: data.total_seeds
+									drops: data.total_drops
 								};
 							});
 						}
-						if (Number(data.seeds) > 0) {
+						if (Number(data.drops) > 0) {
 							lastResult.set(data);
 						}
 					} catch (e) {
 						console.warn(e);
 					}
 				});
-				randomSeed.set(randomName());
+				randomDrop.set(randomName());
 				loadRamPrice();
 			} catch (e) {
 				lastResult.set(undefined);
@@ -327,7 +327,7 @@
 		}
 	}
 
-	const selectSeedAmount = (e: Event) => seedAmount.set(Number(e.target.value));
+	const selectDropAmount = (e: Event) => dropsAmount.set(Number(e.target.value));
 
 	let tabSet: number = 0;
 </script>
@@ -345,7 +345,7 @@
 			<div>
 				<div class="h2 font-bold">
 					{#if $accountStats}
-						{$accountStats.seeds}
+						{$accountStats.drops}
 					{:else}
 						0
 					{/if}
@@ -356,7 +356,7 @@
 			<div>
 				<div class="h2 font-bold">
 					{#if $accountThisEpochStats}
-						{$accountThisEpochStats.seeds}
+						{$accountThisEpochStats.drops}
 					{:else}
 						0
 					{/if}
@@ -401,7 +401,7 @@
 						{/if}
 						<label class="label">
 							<span>{$t('generate.togenerate')}</span>
-							<select class="select" on:change={selectSeedAmount} value={$seedAmount}>
+							<select class="select" on:change={selectDropAmount} value={$dropsAmount}>
 								{#each [1, 10, 100, 1000, 10000] as amount}
 									<option value={amount}
 										>+ {amount.toLocaleString()} {$t('common.itemnames')}</option
@@ -414,16 +414,16 @@
                                 <input
                                     class="checkbox"
                                     type="checkbox"
-                                    checked={$useRandomSeed}
-                                    on:change={(e) => useRandomSeed.set(e.target?.checked)}
+                                    checked={$useRandomDrop}
+                                    on:change={(e) => useRandomDrop.set(e.target?.checked)}
                                 />
-                                <p>Randomly generate seed value</p>
+                                <p>Randomly generate drops value</p>
                             </label>
                         </label> -->
-						{#if !$useRandomSeed}
+						{#if !$useRandomDrop}
 							<label class="label space-y-4">
-								<span class="h4 font-bold">Unique Seed Value</span>
-								<input class="input" type="text" placeholder="Random Seed" value={$randomSeed} />
+								<span class="h4 font-bold">Unique Drop Value</span>
+								<input class="input" type="text" placeholder="Random Drop" value={$randomDrop} />
 							</label>
 						{/if}
 						{#if $lastResultError}
@@ -494,8 +494,8 @@
 					</thead>
 					<tbody>
 						<tr>
-							<td class="text-right">{$lastResult.seeds}</td>
-							<td>{$t('generate.generateseedsepoch')} {$lastResult.epoch}</td>
+							<td class="text-right">{$lastResult.drops}</td>
+							<td>{$t('generate.generatedropsepoch')} {$lastResult.epoch}</td>
 						</tr>
 						<tr>
 							<td class="text-right">{$lastResult.cost}</td>
@@ -509,7 +509,7 @@
 				</table>
 			</div>
 		{/if}
-		{#if $seedAmount && $seedPrice}
+		{#if $dropsAmount && $dropsPrice}
 			<div class="table-container">
 				<table class="table table-hover">
 					<thead>
@@ -530,14 +530,14 @@
 							</td>
 							<td class="text-center">
 								<div class="text-lg font-bold">
-									{$seedAmount}
+									{$dropsAmount}
 								</div>
 							</td>
 							<td class="text-right">
 								<div class="text-lg font-bold">
-									{Asset.fromUnits($seedAmount * $seedPrice, '4,EOS')}
+									{Asset.fromUnits($dropsAmount * $dropsPrice, '4,EOS')}
 								</div>
-								<div>{$seedAmount * sizeSeedRow} bytes</div>
+								<div>{$dropsAmount * sizeDropRow} bytes</div>
 							</td>
 						</tr>
 						{#if !$accountStats}

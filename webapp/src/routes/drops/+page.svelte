@@ -7,47 +7,47 @@
 	import { t } from '$lib/i18n';
 
 	import MyItems from '../../lib/components/headers/myitems.svelte';
-	import { SeedContract, seedContract, session, systemContract } from '../../lib/wharf';
+	import { DropContract, dropsContract, session, systemContract } from '../../lib/wharf';
 	import { epochNumber } from '$lib/epoch';
 
 	const dropPrice: Writable<number> = writable();
 
 	let ramPriceInterval: ReturnType<typeof setInterval>;
-	let seedCountInterval: ReturnType<typeof setInterval>;
+	let dropsCountInterval: ReturnType<typeof setInterval>;
 
-	const epochStats: Writable<SeedContract.Types.stat_row[]> = writable([]);
-	const seedTotal: Readable<number> = derived([epochStats], ([$epochStats]) => {
+	const epochStats: Writable<DropContract.Types.stat_row[]> = writable([]);
+	const dropsTotal: Readable<number> = derived([epochStats], ([$epochStats]) => {
 		if ($epochStats) {
-			return $epochStats.reduce((acc, cur) => acc + Number(cur.seeds), 0);
+			return $epochStats.reduce((acc, cur) => acc + Number(cur.drops), 0);
 		}
 		return 0;
 	});
 
-	const seedStats: Readable<Asset | undefined> = derived(
+	const dropstats: Readable<Asset | undefined> = derived(
 		[epochStats, dropPrice],
 		([$epochStats, $dropPrice]) => {
 			if ($epochStats && $dropPrice) {
-				const seeds = $epochStats.reduce((acc, cur) => acc + Number(cur.seeds), 0);
-				return Asset.fromUnits($dropPrice * seeds, '4,EOS');
+				const drops = $epochStats.reduce((acc, cur) => acc + Number(cur.drops), 0);
+				return Asset.fromUnits($dropPrice * drops, '4,EOS');
 			}
 		}
 	);
 
 	onMount(async () => {
 		loadRamPrice();
-		loadSeedCounts();
+		loadDropCounts();
 		ramPriceInterval = setInterval(loadRamPrice, 2000);
-		seedCountInterval = setInterval(loadSeedCounts, 5000);
+		dropsCountInterval = setInterval(loadDropCounts, 5000);
 	});
 
 	onDestroy(() => {
 		clearInterval(ramPriceInterval);
-		clearInterval(seedCountInterval);
+		clearInterval(dropsCountInterval);
 	});
 
-	async function loadSeedCounts() {
+	async function loadDropCounts() {
 		if ($session) {
-			const counts = await seedContract
+			const counts = await dropsContract
 				.table('stat')
 				.query({
 					key_type: 'i64',
@@ -86,8 +86,8 @@
 			<div class="text-center grid grid-cols-2 gap-4">
 				<div>
 					<div class="h3 font-bold">
-						{#if $seedTotal}
-							{$seedTotal.toLocaleString()}
+						{#if $dropsTotal}
+							{$dropsTotal.toLocaleString()}
 						{:else}
 							0
 						{/if}
@@ -129,7 +129,7 @@
 									<span class="text-2xl text-slate-300">{epoch.epoch}</span>
 								</td>
 								<td>
-									<span class="text-2xl">{Number(epoch.seeds).toLocaleString()}</span>
+									<span class="text-2xl">{Number(epoch.drops).toLocaleString()}</span>
 								</td>
 							</tr>
 						{:else}

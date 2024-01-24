@@ -23,7 +23,7 @@
 			They do share many of the same qualities as inscriptions, such as fairness and inclusion, in
 			that anyone can create them by voluntarily consuming the resources they own to participate.
 			This voluntary resource consumption allows them to be used as the basis of a fair distribution
-			system or as seed data for cryptographic algorithms.
+			system or as drops data for cryptographic algorithms.
 		</p>
 		<h2>What is an Epoch?</h2>
 		<p>
@@ -36,7 +36,7 @@
 		<p>
 			When a Drop is created it starts in an immature state and will remain that way until the next
 			epoch. Once the next epoch begins, the Drop will be considered mature and can be combined with
-			the epoch seed provided by the oracles for use in algorithms.
+			the epoch drops provided by the oracles for use in algorithms.
 		</p>
 		<h2>How do I create a Drop?</h2>
 		<p>

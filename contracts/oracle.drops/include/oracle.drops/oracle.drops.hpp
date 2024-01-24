@@ -6,7 +6,7 @@
 using namespace eosio;
 using namespace std;
 
-namespace drops {
+namespace dropssystem {
 
 class [[eosio::contract("oracle.drops")]] oracle : public contract
 {
@@ -18,7 +18,7 @@ public:
       uint64_t          epoch;
       std::vector<name> oracles;
       uint64_t          completed;
-      checksum256       seed;
+      checksum256       drops;
       uint64_t          primary_key() const { return epoch; }
       uint64_t          by_completed() const { return completed; }
    };
@@ -128,15 +128,15 @@ public:
    [[eosio::action]] checksum256 computeepoch(uint64_t epoch);
    using computeepoch_action = eosio::action_wrapper<"computeepoch"_n, &oracle::computeepoch>;
 
-   [[eosio::action]] checksum256 computeseed(uint64_t epoch, uint64_t seed);
-   using computeseed_action = eosio::action_wrapper<"computeseed"_n, &oracle::computeseed>;
+   [[eosio::action]] checksum256 computedrops(uint64_t epoch, uint64_t drops);
+   using computedrops_action = eosio::action_wrapper<"computedrops"_n, &oracle::computedrops>;
 
-   [[eosio::action]] checksum256 cmplastepoch(uint64_t seed, name contract);
+   [[eosio::action]] checksum256 cmplastepoch(uint64_t drops, name contract);
    using cmplastepoch_action = eosio::action_wrapper<"cmplastepoch"_n, &oracle::cmplastepoch>;
 
    checksum256 compute_epoch_value(uint64_t epoch);
-   checksum256 compute_epoch_seed_value(uint64_t epoch, uint64_t seed);
-   checksum256 compute_last_epoch_seed_value(uint64_t seed);
+   checksum256 compute_epoch_drops_value(uint64_t epoch, uint64_t drops);
+   checksum256 compute_last_epoch_drops_value(uint64_t drops);
 
    static constexpr char hexmap[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
@@ -182,11 +182,11 @@ public:
       return lzbits;
    }
 
-   static checksum256 hash(checksum256 epochseed, uint64_t seed)
+   static checksum256 hash(checksum256 epochdrops, uint64_t drops)
    {
-      // Combine the epoch seed and seed into a single string
-      auto   epoch_arr = epochseed.extract_as_byte_array();
-      string result    = hexStr(epoch_arr.data(), epoch_arr.size()) + std::to_string(seed);
+      // Combine the epoch drops and drops into a single string
+      auto   epoch_arr = epochdrops.extract_as_byte_array();
+      string result    = hexStr(epoch_arr.data(), epoch_arr.size()) + std::to_string(drops);
 
       // Generate the sha256 value of the combined string
       return sha256(result.c_str(), result.length());
@@ -194,7 +194,7 @@ public:
 
 private:
    oracle::epoch_row advance_epoch();
-   void              ensure_epoch_advance(seed::state_row state);
+   void              ensure_epoch_advance(drops::state_row state);
 };
 
-} // namespace drops
+} // namespace dropssystem

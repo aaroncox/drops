@@ -1,12 +1,12 @@
 #include "oracle.drops/oracle.drops.hpp"
 
-namespace drops {
+namespace dropssystem {
 
 checksum256 oracle::compute_epoch_value(uint64_t epoch)
 {
    // Load the epoch and ensure all secrets have been revealed
-   seed::epoch_table epochs(seed_contract, seed_contract.value);
-   auto              epoch_itr = epochs.find(epoch);
+   drops::epoch_table epochs(drops_contract, drops_contract.value);
+   auto               epoch_itr = epochs.find(epoch);
    check(epoch_itr != epochs.end(), "Epoch does not exist");
    // TODO: Check a value to ensure the epoch has been completely revealed
 
@@ -28,7 +28,7 @@ checksum256 oracle::compute_epoch_value(uint64_t epoch)
    // Sort the reveal values alphebetically for consistency
    sort(reveals.begin(), reveals.end());
 
-   // Combine the epoch, seed, and reveals into a single string
+   // Combine the epoch, drops, and reveals into a single string
    string result = std::to_string(epoch);
    for (const auto& reveal : reveals)
       result += reveal;
@@ -37,58 +37,58 @@ checksum256 oracle::compute_epoch_value(uint64_t epoch)
    return sha256(result.c_str(), result.length());
 }
 
-checksum256 oracle::compute_epoch_seed_value(uint64_t epoch, uint64_t seed)
+checksum256 oracle::compute_epoch_drops_value(uint64_t epoch, uint64_t seed)
 {
-   // Load the seed
-   seed::seed_table seeds(seed_contract, seed_contract.value);
-   auto             seed_itr = seeds.find(seed);
-   check(seed_itr != seeds.end(), "Seed not found");
+   // Load the drops
+   drops::drop_table drops(drops_contract, drops_contract.value);
+   auto              drops_itr = drops.find(seed);
+   check(drops_itr != drops.end(), "Drop not found");
 
-   // Ensure this seed was valid for the given epoch
-   // A seed must be created before or during the provided epoch
-   check(seed_itr->epoch <= epoch, "Seed was generated after this epoch and is not valid for computation.");
+   // Ensure this drops was valid for the given epoch
+   // A drops must be created before or during the provided epoch
+   check(drops_itr->epoch <= epoch, "Drop was generated after this epoch and is not valid for computation.");
 
-   // Load the epoch seed value
+   // Load the epoch drops value
    oracle::epoch_table oracle_epoch(_self, _self.value);
    auto                epoch_itr = oracle_epoch.find(epoch);
    check(epoch_itr != oracle_epoch.end(), "Epoch has not yet been resolved.");
 
    // Generate the sha256 value of the combined string
-   return oracle::hash(epoch_itr->seed, seed);
+   return oracle::hash(epoch_itr->drops, seed);
 }
 
-checksum256 oracle::compute_last_epoch_seed_value(uint64_t seed)
+checksum256 oracle::compute_last_epoch_drops_value(uint64_t drops)
 {
    // Load current state
-   seed::state_table state(seed_contract, seed_contract.value);
-   auto              state_itr = state.find(1);
-   uint64_t          epoch     = state_itr->epoch;
+   drops::state_table state(drops_contract, drops_contract.value);
+   auto               state_itr = state.find(1);
+   uint64_t           epoch     = state_itr->epoch;
    // Set to previous epoch
    uint64_t last_epoch = epoch - 1;
    // Return value for the last epoch
-   return compute_epoch_seed_value(last_epoch, seed);
+   return compute_epoch_drops_value(last_epoch, drops);
 }
 
-[[eosio::action]] checksum256 oracle::computeseed(uint64_t epoch, uint64_t seed)
+[[eosio::action]] checksum256 oracle::computedrops(uint64_t epoch, uint64_t drops)
 {
-   return compute_epoch_seed_value(epoch, seed);
+   return compute_epoch_drops_value(epoch, drops);
 }
 
 [[eosio::action]] checksum256 oracle::computeepoch(uint64_t epoch) { return compute_epoch_value(epoch); }
 
-[[eosio::action]] checksum256 oracle::cmplastepoch(uint64_t seed, name contract)
+[[eosio::action]] checksum256 oracle::cmplastepoch(uint64_t drops, name contract)
 {
    require_recipient(contract);
-   return compute_last_epoch_seed_value(seed);
+   return compute_last_epoch_drops_value(drops);
 }
 
 [[eosio::action]] void oracle::commit(name oracle, uint64_t epoch, checksum256 commit)
 {
    require_auth(oracle);
 
-   // Retrieve seed contract state
-   seed::state_table state(seed_contract, seed_contract.value);
-   auto              state_itr = state.find(1);
+   // Retrieve drops contract state
+   drops::state_table state(drops_contract, drops_contract.value);
+   auto               state_itr = state.find(1);
    check(state_itr->enabled, "Contract is currently disabled.");
 
    // Automatically advance if needed
@@ -115,7 +115,7 @@ checksum256 oracle::compute_last_epoch_seed_value(uint64_t seed)
    });
 }
 
-void oracle::ensure_epoch_advance(seed::state_row state)
+void oracle::ensure_epoch_advance(drops::state_row state)
 {
    // Attempt to find current epoch from state in oracle contract
    oracle::epoch_table epochs(_self, _self.value);
@@ -131,17 +131,17 @@ void oracle::ensure_epoch_advance(seed::state_row state)
 {
    require_auth(oracle);
 
-   // Retrieve contract state from seed contract
-   seed::state_table state(seed_contract, seed_contract.value);
-   auto              state_itr = state.find(1);
+   // Retrieve contract state from drops contract
+   drops::state_table state(drops_contract, drops_contract.value);
+   auto               state_itr = state.find(1);
    check(state_itr->enabled, "Contract is currently disabled.");
 
    // Automatically advance if needed
    ensure_epoch_advance(*state_itr);
 
-   // Retrieve epoch from seed contract
-   seed::epoch_table epochs(seed_contract, seed_contract.value);
-   auto              epoch_itr = epochs.find(epoch);
+   // Retrieve epoch from drops contract
+   drops::epoch_table epochs(drops_contract, drops_contract.value);
+   auto               epoch_itr = epochs.find(epoch);
    check(epoch_itr != epochs.end(), "Epoch does not exist");
    auto current_time = current_time_point();
    check(current_time > epoch_itr->end, "Epoch has not concluded");
@@ -191,7 +191,7 @@ void oracle::ensure_epoch_advance(seed::state_row state)
       // Complete the epoch
       epochoracles.modify(epochoracles_itr, _self, [&](auto& row) {
          row.completed = 1;
-         row.seed      = compute_epoch_value(epoch);
+         row.drops     = compute_epoch_value(epoch);
       });
    }
 
@@ -200,8 +200,8 @@ void oracle::ensure_epoch_advance(seed::state_row state)
 
 [[eosio::action]] void oracle::finishreveal(uint64_t epoch)
 {
-   seed::epoch_table epochs(seed_contract, seed_contract.value);
-   auto              epoch_itr = epochs.find(epoch);
+   drops::epoch_table epochs(drops_contract, drops_contract.value);
+   auto               epoch_itr = epochs.find(epoch);
    check(epoch_itr != epochs.end(), "Epoch does not exist");
 
    oracle::epoch_table epochoracles(_self, _self.value);
@@ -222,7 +222,7 @@ void oracle::ensure_epoch_advance(seed::state_row state)
       // Complete the epoch
       epochoracles.modify(epochoracles_itr, _self, [&](auto& row) {
          row.completed = 1;
-         row.seed      = compute_epoch_value(epoch);
+         row.drops     = compute_epoch_value(epoch);
       });
    }
 }
@@ -271,13 +271,13 @@ void oracle::ensure_epoch_advance(seed::state_row state)
 {
    require_auth(_self);
 
-   seed::epoch_table    seed_epochs(seed_contract, seed_contract.value);
+   drops::epoch_table   drops_epochs(drops_contract, drops_contract.value);
    oracle::epoch_table  oracle_epochs(_self, _self.value);
    oracle::oracle_table oracle_table(_self, _self.value);
 
-   // Load the epoch from the seed contract
-   auto seed_epoch_itr = seed_epochs.find(1);
-   check(seed_epoch_itr != seed_epochs.end(), "Epoch 1 in seed contract does not exist.");
+   // Load the epoch from the drops contract
+   auto drops_epoch_itr = drops_epochs.find(1);
+   check(drops_epoch_itr != drops_epochs.end(), "Epoch 1 in drops contract does not exist.");
 
    // Load the epoch from the oracle contract
    auto oracle_epoch_itr = oracle_epochs.find(1);
@@ -337,17 +337,17 @@ void oracle::ensure_epoch_advance(seed::state_row state)
 
 oracle::epoch_row oracle::advance_epoch()
 {
-   // Retrieve seed contract state
-   seed::state_table state(seed_contract, seed_contract.value);
-   auto              state_itr = state.find(1);
-   uint64_t          epoch     = state_itr->epoch;
+   // Retrieve drops contract state
+   drops::state_table state(drops_contract, drops_contract.value);
+   auto               state_itr = state.find(1);
+   uint64_t           epoch     = state_itr->epoch;
    check(state_itr->enabled, "Contract is currently disabled.");
 
-   // Retrieve current epoch from seed contract
-   seed::epoch_table seed_epochs(seed_contract, seed_contract.value);
-   auto              seed_epochs_itr = seed_epochs.find(epoch);
-   check(seed_epochs_itr != seed_epochs.end(),
-         "Epoch " + std::to_string(epoch) + " from seed contract state does not exist.");
+   // Retrieve current epoch from drops contract
+   drops::epoch_table drops_epochs(drops_contract, drops_contract.value);
+   auto               drops_epochs_itr = drops_epochs.find(epoch);
+   check(drops_epochs_itr != drops_epochs.end(),
+         "Epoch " + std::to_string(epoch) + " from drops contract state does not exist.");
 
    // Retrieve current epoch from oracle contract
    oracle::epoch_table oracle_epochs(_self, _self.value);
@@ -390,7 +390,7 @@ oracle::epoch_row oracle::advance_epoch()
 
 [[eosio::action]] oracle::epoch_row oracle::advance()
 {
-   // Only the seed contract can advance the oracle contract
+   // Only the drops contract can advance the oracle contract
    require_auth(_self);
 
    // Advance the epoch
@@ -400,4 +400,4 @@ oracle::epoch_row oracle::advance_epoch()
    return new_epoch;
 }
 
-} // namespace drops
+} // namespace dropssystem

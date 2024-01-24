@@ -9,12 +9,12 @@
 using namespace eosio;
 using namespace std;
 
-namespace drops {
+namespace dropssystem {
 
-static constexpr name seed_contract   = "seed.gm"_n;   // location of seed contract
+static constexpr name drops_contract  = "seed.gm"_n;   // location of drops contract
 static constexpr name oracle_contract = "oracle.gm"_n; // location of oracle contract
 
-// seed table row bytes costs
+// drops table row bytes costs
 static constexpr uint64_t primary_row     = 145;                                            // size to create a row
 static constexpr uint64_t secondary_index = 144;                                            // size of secondary index
 static constexpr uint64_t tertiary_index  = 128;                                            // size of time index
@@ -42,7 +42,7 @@ static constexpr symbol EOS = symbol{"EOS", 4};
 
 uint128_t combine_ids(const uint64_t& v1, const uint64_t& v2) { return (uint128_t{v1} << 64) | v2; }
 
-class [[eosio::contract("seed.drops")]] seed : public contract
+class [[eosio::contract("drops")]] drops : public contract
 {
 public:
    using contract::contract;
@@ -56,7 +56,7 @@ public:
    struct [[eosio::table("account")]] account_row
    {
       name     account;
-      uint32_t seeds;
+      uint32_t drops;
       uint64_t primary_key() const { return account.value; }
    };
 
@@ -68,13 +68,13 @@ public:
       uint64_t   primary_key() const { return epoch; }
    };
 
-   struct [[eosio::table("seed")]] seed_row
+   struct [[eosio::table("drops")]] drop_row
    {
       uint64_t          seed;
       uint64_t          epoch;
       name              owner;
       eosio::time_point created;
-      bool              soulbound;
+      bool              bound;
       uint64_t          primary_key() const { return seed; }
       uint128_t         by_owner() const { return ((uint128_t)owner.value << 64) | seed; }
       uint64_t          by_created() const { return static_cast<uint64_t>(created.sec_since_epoch()); }
@@ -93,7 +93,7 @@ public:
       uint64_t  id;
       name      account;
       uint64_t  epoch;
-      uint32_t  seeds;
+      uint32_t  drops;
       uint64_t  primary_key() const { return id; }
       uint64_t  by_account() const { return account.value; }
       uint128_t by_account_epoch() const { return (uint128_t)account.value << 64 | epoch; }
@@ -108,11 +108,11 @@ public:
    typedef eosio::multi_index<"account"_n, account_row> account_table;
    typedef eosio::multi_index<"epoch"_n, epoch_row>     epoch_table;
    typedef eosio::multi_index<
-      "seed"_n,
-      seed_row,
-      eosio::indexed_by<"owner"_n, eosio::const_mem_fun<seed_row, uint128_t, &seed_row::by_owner>>,
-      eosio::indexed_by<"created"_n, eosio::const_mem_fun<seed_row, uint64_t, &seed_row::by_created>>>
-                                                    seed_table;
+      "drops"_n,
+      drop_row,
+      eosio::indexed_by<"owner"_n, eosio::const_mem_fun<drop_row, uint128_t, &drop_row::by_owner>>,
+      eosio::indexed_by<"created"_n, eosio::const_mem_fun<drop_row, uint64_t, &drop_row::by_created>>>
+                                                    drop_table;
    typedef eosio::multi_index<"state"_n, state_row> state_table;
    typedef eosio::multi_index<
       "stat"_n,
@@ -129,12 +129,12 @@ public:
 
    struct generate_return_value
    {
-      uint32_t seeds;
+      uint32_t drops;
       uint64_t epoch;
       asset    cost;
       asset    refund;
-      uint64_t total_seeds;
-      uint64_t epoch_seeds;
+      uint64_t total_drops;
+      uint64_t epoch_drops;
    };
 
    struct destroy_return_value
@@ -154,14 +154,14 @@ public:
 
    [[eosio::action]] generate_return_value mint(name owner, uint32_t amount, std::string data);
 
-   [[eosio::action]] void transfer(name from, name to, std::vector<uint64_t> seed_ids, string memo);
+   [[eosio::action]] void transfer(name from, name to, std::vector<uint64_t> drops_ids, string memo);
 
-   [[eosio::action]] destroy_return_value destroy(name owner, std::vector<uint64_t> seed_ids, string memo);
+   [[eosio::action]] destroy_return_value destroy(name owner, std::vector<uint64_t> drops_ids, string memo);
 
-   using generate_action = eosio::action_wrapper<"generate"_n, &seed::generate>;
-   using mint_action     = eosio::action_wrapper<"mint"_n, &seed::mint>;
-   using transfer_action = eosio::action_wrapper<"transfer"_n, &seed::transfer>;
-   using destroy_action  = eosio::action_wrapper<"destroy"_n, &seed::destroy>;
+   using generate_action = eosio::action_wrapper<"generate"_n, &drops::generate>;
+   using mint_action     = eosio::action_wrapper<"mint"_n, &drops::mint>;
+   using transfer_action = eosio::action_wrapper<"transfer"_n, &drops::transfer>;
+   using destroy_action  = eosio::action_wrapper<"destroy"_n, &drops::destroy>;
 
    /*
 
@@ -169,8 +169,8 @@ public:
 
     */
 
-   [[eosio::action]] seed::epoch_row advance();
-   using advance_action = eosio::action_wrapper<"advance"_n, &seed::advance>;
+   [[eosio::action]] drops::epoch_row advance();
+   using advance_action = eosio::action_wrapper<"advance"_n, &drops::advance>;
 
    /*
 
@@ -179,14 +179,14 @@ public:
     */
 
    [[eosio::action]] void enable(bool enabled);
-   using enable_action = eosio::action_wrapper<"enable"_n, &seed::enable>;
+   using enable_action = eosio::action_wrapper<"enable"_n, &drops::enable>;
 
    [[eosio::action]] void init();
-   using init_action = eosio::action_wrapper<"init"_n, &seed::init>;
+   using init_action = eosio::action_wrapper<"init"_n, &drops::init>;
 
    // Dummy action that'll help the ABI export the generate_return_value struct
    [[eosio::action]] generate_return_value generatertrn();
-   using generatertrn_action = eosio::action_wrapper<"generatertrn"_n, &seed::generatertrn>;
+   using generatertrn_action = eosio::action_wrapper<"generatertrn"_n, &drops::generatertrn>;
 
    /*
 
@@ -195,17 +195,17 @@ public:
     */
 
    [[eosio::action]] void wipe();
-   using wipe_action = eosio::action_wrapper<"wipe"_n, &seed::wipe>;
+   using wipe_action = eosio::action_wrapper<"wipe"_n, &drops::wipe>;
 
    [[eosio::action]] void wipesome();
-   using wipesome_action = eosio::action_wrapper<"wipesome"_n, &seed::wipesome>;
+   using wipesome_action = eosio::action_wrapper<"wipesome"_n, &drops::wipesome>;
 
    [[eosio::action]] void destroyall();
-   using destroyall_action = eosio::action_wrapper<"destroyall"_n, &seed::destroyall>;
+   using destroyall_action = eosio::action_wrapper<"destroyall"_n, &drops::destroyall>;
 
 private:
-   seed::epoch_row          advance_epoch();
+   drops::epoch_row         advance_epoch();
    std::vector<std::string> split(const std::string& str, char delim);
 };
 
-} // namespace drops
+} // namespace dropssystem

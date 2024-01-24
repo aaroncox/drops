@@ -28,7 +28,7 @@ checksum256 drops::compute_epoch_value(uint64_t epoch)
    // Sort the reveal values alphebetically for consistency
    sort(reveals.begin(), reveals.end());
 
-   // Combine the epoch, seed, and reveals into a single string
+   // Combine the epoch, drops, and reveals into a single string
    string result = std::to_string(epoch);
    for (const auto& reveal : reveals)
       result += reveal;
@@ -37,27 +37,27 @@ checksum256 drops::compute_epoch_value(uint64_t epoch)
    return sha256(result.c_str(), result.length());
 }
 
-checksum256 drops::compute_epoch_seed_value(uint64_t epoch, uint64_t seed)
+checksum256 drops::compute_epoch_drops_value(uint64_t epoch, uint64_t drops)
 {
-   // Load the seed
-   drops::seeds_table seeds(_self, _self.value);
-   auto               seed_itr = seeds.find(seed);
-   check(seed_itr != seeds.end(), "Seed not found");
+   // Load the drops
+   drops::drop_table drops(_self, _self.value);
+   auto              drops_itr = drops.find(drops);
+   check(drops_itr != drops.end(), "Drop not found");
 
-   // Ensure this seed was valid for the given epoch
-   // A seed must be created before or during the provided epoch
-   check(seed_itr->epoch <= epoch, "Seed was generated after this epoch and is not valid for computation.");
+   // Ensure this drops was valid for the given epoch
+   // A drops must be created before or during the provided epoch
+   check(drops_itr->epoch <= epoch, "Drop was generated after this epoch and is not valid for computation.");
 
-   // Load the epoch seed value
-   drops::epochseed_table epochseed(_self, _self.value);
-   auto                   epochseed_itr = epochseed.find(epoch);
-   check(epochseed_itr != epochseed.end(), "Epoch has not yet been resolved.");
+   // Load the epoch drops value
+   drops::epochdrop_table epochdrops(_self, _self.value);
+   auto                   epochdrops_itr = epochdrops.find(epoch);
+   check(epochdrops_itr != epochdrops.end(), "Epoch has not yet been resolved.");
 
    // Generate the sha256 value of the combined string
-   return drops::hash(epochseed_itr->seed, seed);
+   return drops::hash(epochdrops_itr->drops, drops);
 }
 
-checksum256 drops::compute_last_epoch_seed_value(uint64_t seed)
+checksum256 drops::compute_last_epoch_drops_value(uint64_t drops)
 {
    // Load current state
    drops::state_table state(_self, _self.value);
@@ -66,20 +66,20 @@ checksum256 drops::compute_last_epoch_seed_value(uint64_t seed)
    // Set to previous epoch
    uint64_t last_epoch = epoch - 1;
    // Return value for the last epoch
-   return compute_epoch_seed_value(last_epoch, seed);
+   return compute_epoch_drops_value(last_epoch, drops);
 }
 
-[[eosio::action]] checksum256 drops::computeseed(uint64_t epoch, uint64_t seed)
+[[eosio::action]] checksum256 drops::computedrops(uint64_t epoch, uint64_t drops)
 {
-   return compute_epoch_seed_value(epoch, seed);
+   return compute_epoch_drops_value(epoch, drops);
 }
 
 [[eosio::action]] checksum256 drops::computeepoch(uint64_t epoch) { return compute_epoch_value(epoch); }
 
-[[eosio::action]] checksum256 drops::cmplastepoch(uint64_t seed, name contract)
+[[eosio::action]] checksum256 drops::cmplastepoch(uint64_t drops, name contract)
 {
    require_recipient(contract);
-   return compute_last_epoch_seed_value(seed);
+   return compute_last_epoch_drops_value(drops);
 }
 
 drops::epoch_row drops::advance_epoch()
@@ -168,17 +168,17 @@ drops::generate(name from, name to, asset quantity, std::string memo)
 
    time_point epoch_end = epoch_itr->end;
 
-   // Process the memo field to determine the number of seeds to generate
+   // Process the memo field to determine the number of drops to generate
    std::vector<std::string> parsed = split(memo, ',');
-   check(parsed.size() == 2, "Memo data must contain 2 values, seperated by a comma: amount,seed_data.");
+   check(parsed.size() == 2, "Memo data must contain 2 values, seperated by a comma: amount,drops_data.");
 
    // Ensure amount is a positive value
    int amount = stoi(parsed[0]);
-   check(amount > 0, "The amount of seeds to generate must be a positive value.");
+   check(amount > 0, "The amount of drops to generate must be a positive value.");
 
    // Ensure string length
    string data = parsed[1];
-   check(data.length() > 32, "Seed data must be at least 32 characters in length.");
+   check(data.length() > 32, "Drop data must be at least 32 characters in length.");
 
    // Calculate amount of RAM needing to be purchased
    // TODO: Additional RAM is being purchased to account for the buyrambytes bug
@@ -218,43 +218,43 @@ drops::generate(name from, name to, asset quantity, std::string memo)
           std::make_tuple(_self, _self, ram_purchase_amount))
       .send();
 
-   // Iterate over all seeds to be created and insert them into the seeds table
-   seeds_table seeds(_self, _self.value);
+   // Iterate over all drops to be created and insert them into the drops table
+   drop_table drops(_self, _self.value);
    for (int i = 0; i < amount; i++) {
       string   value      = std::to_string(i) + data;
       auto     hash       = sha256(value.c_str(), value.length());
       auto     byte_array = hash.extract_as_byte_array();
-      uint64_t seed;
-      memcpy(&seed, &byte_array, sizeof(uint64_t));
-      seeds.emplace(_self, [&](auto& row) {
-         row.seed  = seed;
+      uint64_t drops;
+      memcpy(&drops, &byte_array, sizeof(uint64_t));
+      drops.emplace(_self, [&](auto& row) {
+         row.drops = drops;
          row.owner = from;
          row.epoch = epoch;
       });
    }
 
    // Either update the account row or insert a new row
-   uint64_t new_seeds_total = amount;
+   uint64_t new_drops_total = amount;
    if (account_row_exists) {
-      new_seeds_total += account_itr->seeds;
-      accounts.modify(account_itr, _self, [&](auto& row) { row.seeds = new_seeds_total; });
+      new_drops_total += account_itr->drops;
+      accounts.modify(account_itr, _self, [&](auto& row) { row.drops = new_drops_total; });
    } else {
       accounts.emplace(_self, [&](auto& row) {
          row.account = from;
-         row.seeds   = new_seeds_total;
+         row.drops   = new_drops_total;
       });
    }
 
    // Either update the stats row or insert a new row
-   uint64_t new_seeds_epoch = amount;
+   uint64_t new_drops_epoch = amount;
    if (stat_row_exists) {
-      new_seeds_epoch += stat_itr->seeds;
-      stat_idx.modify(stat_itr, _self, [&](auto& row) { row.seeds = new_seeds_epoch; });
+      new_drops_epoch += stat_itr->drops;
+      stat_idx.modify(stat_itr, _self, [&](auto& row) { row.drops = new_drops_epoch; });
    } else {
       stats.emplace(_self, [&](auto& row) {
          row.id      = stats.available_primary_key();
          row.account = from;
-         row.seeds   = new_seeds_epoch;
+         row.drops   = new_drops_epoch;
          row.epoch   = epoch;
       });
    }
@@ -275,18 +275,18 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    }
 
    return {
-      (uint32_t)amount,      // seeds bought
+      (uint32_t)amount,      // drops bought
       epoch,                 // epoch
       ram_purchase_cost,     // cost
       asset{remainder, EOS}, // refund
-      new_seeds_total,       // total seeds
-      new_seeds_epoch,       // epoch seeds
+      new_drops_total,       // total drops
+      new_drops_epoch,       // epoch drops
    };
 }
 
 [[eosio::action]] drops::generate_return_value drops::generatertrn() {}
 
-[[eosio::action]] void drops::transfer(name from, name to, std::vector<uint64_t> seed_ids, string memo)
+[[eosio::action]] void drops::transfer(name from, name to, std::vector<uint64_t> drops_ids, string memo)
 {
    require_auth(from);
    check(is_account(to), "Account does not exist.");
@@ -298,39 +298,39 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    auto        state_itr = state.find(1);
    check(state_itr->enabled, "Contract is currently disabled.");
 
-   check(seed_ids.size() > 0, "No seeds were provided to transfer.");
+   check(drops_ids.size() > 0, "No drops were provided to transfer.");
 
-   drops::seeds_table seeds(_self, _self.value);
+   drops::drop_table drops(_self, _self.value);
 
-   // Map to record which epochs seeds were destroyed in
+   // Map to record which epochs drops were destroyed in
    map<uint64_t, uint64_t> epochs_transferred_in;
 
-   for (auto it = begin(seed_ids); it != end(seed_ids); ++it) {
-      auto seed_itr = seeds.find(*it);
-      check(seed_itr != seeds.end(), "Seed not found");
-      check(seed_itr->owner == from, "Account does not own this seed");
-      // Incremenent the values of all epochs we destroyed seeds in
-      if (epochs_transferred_in.find(seed_itr->epoch) == epochs_transferred_in.end()) {
-         epochs_transferred_in[seed_itr->epoch] = 1;
+   for (auto it = begin(drops_ids); it != end(drops_ids); ++it) {
+      auto drops_itr = drops.find(*it);
+      check(drops_itr != drops.end(), "Drop not found");
+      check(drops_itr->owner == from, "Account does not own this drops");
+      // Incremenent the values of all epochs we destroyed drops in
+      if (epochs_transferred_in.find(drops_itr->epoch) == epochs_transferred_in.end()) {
+         epochs_transferred_in[drops_itr->epoch] = 1;
       } else {
-         epochs_transferred_in[seed_itr->epoch] += 1;
+         epochs_transferred_in[drops_itr->epoch] += 1;
       }
       // Perform the transfer
-      seeds.modify(seed_itr, _self, [&](auto& row) { row.owner = to; });
+      drops.modify(drops_itr, _self, [&](auto& row) { row.owner = to; });
    }
 
    accounts_table accounts(_self, _self.value);
    auto           account_from_itr = accounts.find(from.value);
    check(account_from_itr != accounts.end(), "From account not found");
-   accounts.modify(account_from_itr, _self, [&](auto& row) { row.seeds = row.seeds - seed_ids.size(); });
+   accounts.modify(account_from_itr, _self, [&](auto& row) { row.drops = row.drops - drops_ids.size(); });
 
    auto account_to_itr = accounts.find(to.value);
    if (account_to_itr != accounts.end()) {
-      accounts.modify(account_to_itr, _self, [&](auto& row) { row.seeds = row.seeds + seed_ids.size(); });
+      accounts.modify(account_to_itr, _self, [&](auto& row) { row.drops = row.drops + drops_ids.size(); });
    } else {
       accounts.emplace(from, [&](auto& row) {
          row.account = to;
-         row.seeds   = seed_ids.size();
+         row.drops   = drops_ids.size();
       });
    }
 
@@ -340,7 +340,7 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    for (auto& iter : epochs_transferred_in) {
       auto stat_idx = stats.get_index<"accountepoch"_n>();
       auto stat_itr = stat_idx.find((uint128_t)from.value << 64 | iter.first);
-      stat_idx.modify(stat_itr, _self, [&](auto& row) { row.seeds = row.seeds - iter.second; });
+      stat_idx.modify(stat_itr, _self, [&](auto& row) { row.drops = row.drops - iter.second; });
    }
 
    // Iterate over map that recorded which epochs were transferred in for to, increment table values
@@ -349,19 +349,19 @@ drops::generate(name from, name to, asset quantity, std::string memo)
       auto stat_itr        = stat_idx.find((uint128_t)to.value << 64 | iter.first);
       bool stat_row_exists = stat_itr != stat_idx.end();
       if (stat_row_exists) {
-         stat_idx.modify(stat_itr, _self, [&](auto& row) { row.seeds = row.seeds + iter.second; });
+         stat_idx.modify(stat_itr, _self, [&](auto& row) { row.drops = row.drops + iter.second; });
       } else {
          stats.emplace(from, [&](auto& row) {
             row.id      = stats.available_primary_key();
             row.account = to;
-            row.seeds   = iter.second;
+            row.drops   = iter.second;
             row.epoch   = iter.first;
          });
       }
    }
 }
 
-[[eosio::action]] drops::destroy_return_value drops::destroy(name owner, std::vector<uint64_t> seed_ids, string memo)
+[[eosio::action]] drops::destroy_return_value drops::destroy(name owner, std::vector<uint64_t> drops_ids, string memo)
 {
    require_auth(owner);
 
@@ -370,27 +370,27 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    auto        state_itr = state.find(1);
    check(state_itr->enabled, "Contract is currently disabled.");
 
-   check(seed_ids.size() > 0, "No seeds were provided to destroy.");
-   //    check(seed_ids.size() <= 5000, "Cannot destroy more than 5000 at a time.");
+   check(drops_ids.size() > 0, "No drops were provided to destroy.");
+   //    check(drops_ids.size() <= 5000, "Cannot destroy more than 5000 at a time.");
 
-   drops::seeds_table seeds(_self, _self.value);
+   drops::drop_table drops(_self, _self.value);
 
-   // Map to record which epochs seeds were destroyed in
+   // Map to record which epochs drops were destroyed in
    map<uint64_t, uint64_t> epochs_destroyed_in;
 
-   // Loop to destroy specified seeds
-   for (auto it = begin(seed_ids); it != end(seed_ids); ++it) {
-      auto seed_itr = seeds.find(*it);
-      check(seed_itr != seeds.end(), "Seed not found");
-      check(seed_itr->owner == owner, "Account does not own this seed");
-      // Incremenent the values of all epochs we destroyed seeds in
-      if (epochs_destroyed_in.find(seed_itr->epoch) == epochs_destroyed_in.end()) {
-         epochs_destroyed_in[seed_itr->epoch] = 1;
+   // Loop to destroy specified drops
+   for (auto it = begin(drops_ids); it != end(drops_ids); ++it) {
+      auto drops_itr = drops.find(*it);
+      check(drops_itr != drops.end(), "Drop not found");
+      check(drops_itr->owner == owner, "Account does not own this drops");
+      // Incremenent the values of all epochs we destroyed drops in
+      if (epochs_destroyed_in.find(drops_itr->epoch) == epochs_destroyed_in.end()) {
+         epochs_destroyed_in[drops_itr->epoch] = 1;
       } else {
-         epochs_destroyed_in[seed_itr->epoch] += 1;
+         epochs_destroyed_in[drops_itr->epoch] += 1;
       }
-      // Destroy the seed
-      seeds.erase(seed_itr);
+      // Destroy the drops
+      drops.erase(drops_itr);
    }
 
    // Iterate over map that recorded which epochs were destroyed in, decrement table values
@@ -398,16 +398,16 @@ drops::generate(name from, name to, asset quantity, std::string memo)
       stats_table stats(_self, _self.value);
       auto        stat_idx = stats.get_index<"accountepoch"_n>();
       auto        stat_itr = stat_idx.find((uint128_t)owner.value << 64 | iter.first);
-      stat_idx.modify(stat_itr, _self, [&](auto& row) { row.seeds = row.seeds - iter.second; });
+      stat_idx.modify(stat_itr, _self, [&](auto& row) { row.drops = row.drops - iter.second; });
    }
 
    // Decrement the account row
    accounts_table accounts(_self, _self.value);
    auto           account_itr = accounts.find(owner.value);
-   accounts.modify(account_itr, _self, [&](auto& row) { row.seeds = row.seeds - seed_ids.size(); });
+   accounts.modify(account_itr, _self, [&](auto& row) { row.drops = row.drops - drops_ids.size(); });
 
    // Calculate RAM sell amount and proceeds
-   uint64_t ram_sell_amount   = seed_ids.size() * record_size;
+   uint64_t ram_sell_amount   = drops_ids.size() * record_size;
    asset    ram_sell_proceeds = eosiosystem::ramproceedstminusfee(ram_sell_amount, EOS);
 
    action(permission_level{_self, "active"_n}, "eosio"_n, "sellram"_n, std::make_tuple(_self, ram_sell_amount)).send();
@@ -415,7 +415,7 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    token::transfer_action transfer_act{"eosio.token"_n, {{_self, "active"_n}}};
    //    check(false, "ram_sell_proceeds: " + ram_sell_proceeds.to_string());
    transfer_act.send(_self, owner, ram_sell_proceeds,
-                     "Reclaimed RAM value of " + std::to_string(seed_ids.size()) + " seed(s)");
+                     "Reclaimed RAM value of " + std::to_string(drops_ids.size()) + " drops(s)");
 
    return {
       ram_sell_amount,  // ram sold
@@ -427,20 +427,20 @@ drops::generate(name from, name to, asset quantity, std::string memo)
 {
    require_auth(_self);
 
-   uint64_t            seeds_destroyed = 0;
-   map<name, uint64_t> seeds_destroyed_for;
+   uint64_t            drops_destroyed = 0;
+   map<name, uint64_t> drops_destroyed_for;
 
-   drops::seeds_table seeds(_self, _self.value);
-   auto               seed_itr = seeds.begin();
-   while (seed_itr != seeds.end()) {
-      seeds_destroyed += 1;
-      // Keep track of how many seeds were destroyed per owner for debug refund
-      if (seeds_destroyed_for.find(seed_itr->owner) == seeds_destroyed_for.end()) {
-         seeds_destroyed_for[seed_itr->owner] = 1;
+   drops::drop_table drops(_self, _self.value);
+   auto              drops_itr = drops.begin();
+   while (drops_itr != drops.end()) {
+      drops_destroyed += 1;
+      // Keep track of how many drops were destroyed per owner for debug refund
+      if (drops_destroyed_for.find(drops_itr->owner) == drops_destroyed_for.end()) {
+         drops_destroyed_for[drops_itr->owner] = 1;
       } else {
-         seeds_destroyed_for[seed_itr->owner] += 1;
+         drops_destroyed_for[drops_itr->owner] += 1;
       }
-      seed_itr = seeds.erase(seed_itr);
+      drops_itr = drops.erase(drops_itr);
    }
 
    drops::accounts_table accounts(_self, _self.value);
@@ -456,17 +456,17 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    }
 
    // Calculate RAM sell amount
-   uint64_t ram_to_sell = seeds_destroyed * record_size;
+   uint64_t ram_to_sell = drops_destroyed * record_size;
    action(permission_level{_self, "active"_n}, "eosio"_n, "sellram"_n, std::make_tuple(_self, ram_to_sell)).send();
 
-   for (auto& iter : seeds_destroyed_for) {
+   for (auto& iter : drops_destroyed_for) {
       uint64_t ram_sell_amount   = iter.second * record_size;
       asset    ram_sell_proceeds = eosiosystem::ramproceedstminusfee(ram_sell_amount, EOS);
 
       token::transfer_action transfer_act{"eosio.token"_n, {{_self, "active"_n}}};
       //    check(false, "ram_sell_proceeds: " + ram_sell_proceeds.to_string());
       transfer_act.send(_self, iter.first, ram_sell_proceeds,
-                        "Testnet Reset - Reclaimed RAM value of " + std::to_string(iter.second) + " seed(s)");
+                        "Testnet Reset - Reclaimed RAM value of " + std::to_string(iter.second) + " drops(s)");
    }
 }
 
@@ -483,7 +483,7 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    if (!account_row_exists) {
       accounts.emplace(account, [&](auto& row) {
          row.account = account;
-         row.seeds   = 0;
+         row.drops   = 0;
       });
    }
 
@@ -496,7 +496,7 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    stats.emplace(account, [&](auto& row) {
       row.id      = stats.available_primary_key();
       row.account = account;
-      row.seeds   = 0;
+      row.drops   = 0;
       row.epoch   = epoch;
    });
 }
@@ -603,11 +603,11 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    if (has_revealed.size() == epoch_itr->oracles.size()) {
       // Complete the epoch
       epochs.modify(epoch_itr, _self, [&](auto& row) { row.completed = 1; });
-      // Persist the epoch seed
-      drops::epochseed_table epochseed(_self, _self.value);
-      epochseed.emplace(_self, [&](auto& row) {
+      // Persist the epoch drops
+      drops::epochdrop_table epochdrops(_self, _self.value);
+      epochdrops.emplace(_self, [&](auto& row) {
          row.epoch = epoch;
-         row.seed  = compute_epoch_value(epoch);
+         row.drops = compute_epoch_value(epoch);
       });
    }
 
@@ -634,11 +634,11 @@ drops::generate(name from, name to, asset quantity, std::string memo)
    if (has_revealed.size() == epoch_itr->oracles.size()) {
       // Complete the epoch
       epochs.modify(epoch_itr, _self, [&](auto& row) { row.completed = 1; });
-      // Persist the computed epoch seed
-      drops::epochseed_table epochseed(_self, _self.value);
-      epochseed.emplace(_self, [&](auto& row) {
+      // Persist the computed epoch drops
+      drops::epochdrop_table epochdrops(_self, _self.value);
+      epochdrops.emplace(_self, [&](auto& row) {
          row.epoch = epoch;
-         row.seed  = compute_epoch_value(epoch);
+         row.drops = compute_epoch_value(epoch);
       });
    }
 }
@@ -698,13 +698,13 @@ drops::generate(name from, name to, asset quantity, std::string memo)
 
    accounts_table accounts(_self, _self.value);
    epochs_table   epochs(_self, _self.value);
-   seeds_table    seeds(_self, _self.value);
+   drop_table     drops(_self, _self.value);
    state_table    state(_self, _self.value);
    stats_table    stats(_self, _self.value);
 
    accounts.emplace(_self, [&](auto& row) {
       row.account = "eosio"_n;
-      row.seeds   = 1;
+      row.drops   = 1;
    });
 
    // Load oracles to initialize the first epoch
@@ -729,8 +729,8 @@ drops::generate(name from, name to, asset quantity, std::string memo)
       row.completed = 0;
    });
 
-   seeds.emplace(_self, [&](auto& row) {
-      row.seed  = 0;
+   drops.emplace(_self, [&](auto& row) {
+      row.drops = 0;
       row.owner = "eosio"_n;
       row.epoch = 1;
    });
@@ -745,7 +745,7 @@ drops::generate(name from, name to, asset quantity, std::string memo)
       row.id      = 1;
       row.account = "eosio"_n;
       row.epoch   = 1;
-      row.seeds   = 1;
+      row.drops   = 1;
    });
 }
 
@@ -771,10 +771,10 @@ drops::generate(name from, name to, asset quantity, std::string memo)
       epoch_itr = epochs.erase(epoch_itr);
    }
 
-   drops::epochseed_table epochseed(_self, _self.value);
-   auto                   epochseed_itr = epochseed.begin();
-   while (epochseed_itr != epochseed.end()) {
-      epochseed_itr = epochseed.erase(epochseed_itr);
+   drops::epochdrop_table epochdrops(_self, _self.value);
+   auto                   epochdrops_itr = epochdrops.begin();
+   while (epochdrops_itr != epochdrops.end()) {
+      epochdrops_itr = epochdrops.erase(epochdrops_itr);
    }
 
    drops::reveals_table reveals(_self, _self.value);
@@ -789,10 +789,10 @@ drops::generate(name from, name to, asset quantity, std::string memo)
       oracle_itr = oracles.erase(oracle_itr);
    }
 
-   drops::seeds_table seeds(_self, _self.value);
-   auto               seed_itr = seeds.begin();
-   while (seed_itr != seeds.end()) {
-      seed_itr = seeds.erase(seed_itr);
+   drops::drop_table drops(_self, _self.value);
+   auto              drops_itr = drops.begin();
+   while (drops_itr != drops.end()) {
+      drops_itr = drops.erase(drops_itr);
    }
 
    drops::state_table state(_self, _self.value);
@@ -817,17 +817,17 @@ drops::generate(name from, name to, asset quantity, std::string memo)
 [[eosio::action]] void drops::wipesome()
 {
    require_auth(_self);
-   drops::seeds_table seeds(_self, _self.value);
-   auto               seed_itr = seeds.begin();
+   drops::drop_table drops(_self, _self.value);
+   auto              drops_itr = drops.begin();
 
    int i   = 0;
    int max = 10000;
-   while (seed_itr != seeds.end()) {
+   while (drops_itr != drops.end()) {
       if (i++ > max) {
          break;
       }
       i++;
-      seed_itr = seeds.erase(seed_itr);
+      drops_itr = drops.erase(drops_itr);
    }
 }
 
@@ -843,39 +843,39 @@ std::vector<std::string> drops::split(const std::string& str, char delim)
    return strings;
 }
 
-//   ACTION offer(uint64_t seed, name owner, name recipient) {
+//   ACTION offer(uint64_t drops, name owner, name recipient) {
 //     require_auth(owner);
 
 //     offers_table offers(_self, _self.value);
-//     seeds_table seeds(_self, _self.value);
+//     drop_table drops(_self, _self.value);
 
-//     // Check to ensure owner owns the seed
-//     auto seed_itr = seeds.find(seed);
-//     check(seed_itr != seeds.end(), "Seed not found");
-//     check(seed_itr->owner == owner, "Account does not own this seed");
+//     // Check to ensure owner owns the drops
+//     auto drops_itr = drops.find(drops);
+//     check(drops_itr != drops.end(), "Drop not found");
+//     check(drops_itr->owner == owner, "Account does not own this drops");
 
 //     // Create the offer
 //     offers.emplace(owner, [&](offer_row &row) {
-//       row.seed = seed;
+//       row.drops = drops;
 //       row.to = recipient;
 //     });
 //   }
 
-//   ACTION accept(uint64_t seed, name owner) {
+//   ACTION accept(uint64_t drops, name owner) {
 //     require_auth(owner);
 
 //     offers_table offers(_self, _self.value);
-//     seeds_table seeds(_self, _self.value);
+//     drop_table drops(_self, _self.value);
 
-//     auto offer_itr = offers.find(seed);
+//     auto offer_itr = offers.find(drops);
 //     check(offer_itr != offers.end(), "Offer not found");
 //     check(offer_itr->to == owner, "Offer not valid for this account");
 
-//     auto seed_itr = seeds.find(seed);
-//     check(seed_itr != seeds.end(), "Seed not found");
+//     auto drops_itr = drops.find(drops);
+//     check(drops_itr != drops.end(), "Drop not found");
 
 //     // Take over RAM payment and set as new owner
-//     seeds.modify(seed_itr, owner, [&](auto &row) { row.owner = owner; });
+//     drops.modify(drops_itr, owner, [&](auto &row) { row.owner = owner; });
 
 //     // Remove offer once accepted
 //     offers.erase(offer_itr);

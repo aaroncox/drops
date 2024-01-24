@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from '$lib/i18n';
-	import { sizeSeedRow } from '$lib/constants';
-	import { seedContract } from '$lib/wharf';
+	import { sizeDropRow } from '$lib/constants';
+	import { dropsContract } from '$lib/wharf';
 	import type { Readable } from 'svelte/motion';
 	import { derived, writable } from 'svelte/store';
 	import { onMount } from 'svelte';
@@ -11,17 +11,17 @@
 	let ramLoader: ReturnType<typeof setInterval>;
 
 	const ramPrice = writable(0);
-	const seedPrice = writable(0);
-	const totalSeeds = writable(0);
-	const totalRam = derived(totalSeeds, ($totalRam) => {
-		return (($totalRam * sizeSeedRow) / 1024).toLocaleString(undefined, {
+	const dropsPrice = writable(0);
+	const totaldrops = writable(0);
+	const totalRam = derived(totaldrops, ($totalRam) => {
+		return (($totalRam * sizeDropRow) / 1024).toLocaleString(undefined, {
 			minimumFractionDigits: 3,
 			maximumFractionDigits: 3
 		});
 	});
-	const tvl = derived([totalSeeds, seedPrice], ([$seeds, $price]) => {
-		if ($price && $seeds) {
-			return Number($price) * Number($seeds);
+	const tvl = derived([totaldrops, dropsPrice], ([$drops, $price]) => {
+		if ($price && $drops) {
+			return Number($price) * Number($drops);
 		}
 		return 0;
 	});
@@ -35,36 +35,36 @@
 		const cost_plus_fee = await getRamPrice();
 		if (cost_plus_fee) {
 			ramPrice.set(Number(cost_plus_fee));
-			seedPrice.set(Number(cost_plus_fee) * sizeSeedRow);
+			dropsPrice.set(Number(cost_plus_fee) * sizeDropRow);
 		}
 	}
 
 	interface AccountStats {
 		account: Name;
-		seeds: UInt64;
+		drops: UInt64;
 		ram: string;
 		value: Asset;
 	}
 
 	const accounts: Readable<AccountStats[]> = derived([ramPrice], ([$ramPrice], set) => {
-		seedContract
+		dropsContract
 			.table('account')
 			.all()
 			.then((results) => {
 				const sorted = results
 					.sort((a, b) => {
-						return Number(b.seeds) - Number(a.seeds);
+						return Number(b.drops) - Number(a.drops);
 					})
-					.filter((s) => Number(s.seeds) > 0)
+					.filter((s) => Number(s.drops) > 0)
 					.map((s) => ({
 						...s,
-						ram: ((Number(s.seeds) * sizeSeedRow) / 1024).toLocaleString(undefined, {
+						ram: ((Number(s.drops) * sizeDropRow) / 1024).toLocaleString(undefined, {
 							minimumFractionDigits: 3,
 							maximumFractionDigits: 3
 						}),
-						value: Asset.fromUnits(Number(s.seeds) * sizeSeedRow * $ramPrice, '4,EOS')
+						value: Asset.fromUnits(Number(s.drops) * sizeDropRow * $ramPrice, '4,EOS')
 					}));
-				totalSeeds.set(results.reduce((t, result) => t + Number(result.seeds), 0));
+				totaldrops.set(results.reduce((t, result) => t + Number(result.drops), 0));
 				set(sorted);
 			});
 		set([]);
@@ -83,11 +83,11 @@
 		<tbody>
 			<tr>
 				<td>{$t('home.itemnameprice', { itemname: $t('common.itemnames') })}</td>
-				<td class="text-right">{Asset.fromUnits($seedPrice, '4,EOS')}</td>
+				<td class="text-right">{Asset.fromUnits($dropsPrice, '4,EOS')}</td>
 			</tr>
 			<tr>
 				<td>{$t('home.itemnamesreserved', { itemnames: $t('common.itemnames') })}</td>
-				<td class="text-right">{$totalSeeds}</td>
+				<td class="text-right">{$totaldrops}</td>
 			</tr>
 			<tr>
 				<td>{$t('home.ramreserved')}</td>
@@ -115,7 +115,7 @@
 				<th>{$t('home.account')}</th>
 				<th class="text-right">{$t('home.value')}</th>
 				<th class="text-right">{$t('home.ramkb')}</th>
-				<th class="text-right">{$t('common.seeds')}</th>
+				<th class="text-right">{$t('common.drops')}</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -124,7 +124,7 @@
 					<td>{row.account}</td>
 					<td class="text-right">{row.value}</td>
 					<td class="text-right">{row.ram}</td>
-					<td class="text-right">{Number(row.seeds).toLocaleString()}</td>
+					<td class="text-right">{Number(row.drops).toLocaleString()}</td>
 				</tr>
 			{/each}
 		</tbody>

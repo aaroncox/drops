@@ -1,5 +1,5 @@
 import { type Writable, writable, derived, type Readable, readable, get } from 'svelte/store';
-import { oracleContract, seedContract } from './wharf';
+import { oracleContract, dropsContract } from './wharf';
 import type { Checksum256, UInt64 } from '@wharfkit/session';
 
 export const epochNumber: Writable<UInt64> = writable();
@@ -16,7 +16,7 @@ export const epochRemaining = readable(epochEnd, function start(set) {
 		if (r <= 0) {
 			epochWaitingAdvance.set(true);
 			lastEpochRevealed.set(false);
-			lastEpochSeed.set(undefined);
+			lastEpochDrop.set(undefined);
 			loadEpoch();
 		}
 		set(r);
@@ -65,10 +65,10 @@ export function formatClockValue(value: number) {
 }
 
 export async function loadEpoch() {
-	const state = await seedContract.table('state').get();
+	const state = await dropsContract.table('state').get();
 	if (state && !state.epoch.equals(get(epochNumber))) {
 		epochNumber.set(state.epoch);
-		const epoch = await seedContract.table('epoch').get(state.epoch);
+		const epoch = await dropsContract.table('epoch').get(state.epoch);
 		if (epoch) {
 			epochEnd.set(new Date(epoch.end.toMilliseconds()));
 			epochWaitingAdvance.set(false);
@@ -93,7 +93,7 @@ lastEpochRevealed.subscribe((revealed: boolean) => {
 					.get(get(lastEpoch))
 					.then((epoch) => {
 						if (epoch?.completed.equals(1)) {
-							lastEpochSeed.set(epoch.seed);
+							lastEpochDrop.set(epoch.drops);
 							lastEpochRevealed.set(true);
 							clearInterval(interval);
 						} else {
@@ -114,7 +114,7 @@ export const lastEpochRevealer = readable(lastEpochRevealed, function start(set)
 				.get(get(lastEpoch))
 				.then((epoch) => {
 					if (epoch?.completed.equals(1)) {
-						lastEpochSeed.set(epoch.seed);
+						lastEpochDrop.set(epoch.drops);
 						set(true);
 					} else {
 						set(false);
@@ -129,4 +129,4 @@ export const lastEpochRevealer = readable(lastEpochRevealed, function start(set)
 	};
 });
 
-export const lastEpochSeed: Writable<Checksum256 | undefined> = writable();
+export const lastEpochDrop: Writable<Checksum256 | undefined> = writable();

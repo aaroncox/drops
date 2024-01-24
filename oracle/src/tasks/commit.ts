@@ -1,6 +1,6 @@
 import { Bytes, Checksum256, Name, PrivateKey, Serializer, UInt64 } from '@wharfkit/antelope';
 import { logger } from '../lib/logger';
-import { seedContract, oracleContract, session } from '../lib/wharf';
+import { dropsContract, oracleContract, session } from '../lib/wharf';
 import { db } from '..';
 
 export async function epochCommit() {

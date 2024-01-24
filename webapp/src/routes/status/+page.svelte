@@ -9,7 +9,7 @@
 		epochRemainingSeconds,
 		lastEpoch,
 		lastEpochRevealed,
-		lastEpochSeed
+		lastEpochDrop
 	} from '$lib/epoch';
 	import { t } from '$lib/i18n';
 </script>
@@ -53,8 +53,8 @@
 				<td>{$lastEpochRevealed}</td>
 			</tr>
 			<tr>
-				<td>Last Epoch Seed</td>
-				<td>{$lastEpochSeed}</td>
+				<td>Last Epoch Drop</td>
+				<td>{$lastEpochDrop}</td>
 			</tr>
 		</tbody>
 	</table>

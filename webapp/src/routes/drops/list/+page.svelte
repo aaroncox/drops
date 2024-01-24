@@ -6,17 +6,17 @@
 
 	import { t } from '$lib/i18n';
 	import MyItems from '$lib/components/headers/myitems.svelte';
-	import { SeedContract, session, seedContract } from '$lib/wharf';
+	import { DropContract, session, dropsContract } from '$lib/wharf';
 
 	const loaded = writable(false);
 
-	const seeds: Writable<SeedContract.Types.seed_row[]> = writable([]);
+	const drops: Writable<DropContract.Types.drop_row[]> = writable([]);
 
 	session.subscribe(() => {
-		loadSeeds();
+		loaddrops();
 	});
 
-	async function loadSeeds() {
+	async function loaddrops() {
 		if ($session) {
 			const from = Serializer.decode({
 				data:
@@ -32,8 +32,8 @@
 				type: 'uint128'
 			});
 
-			const rows = await seedContract
-				.table('seed')
+			const rows = await dropsContract
+				.table('drops')
 				.query({
 					key_type: 'i128',
 					index_position: 'secondary',
@@ -43,7 +43,7 @@
 				.all();
 
 			loaded.set(true);
-			seeds.set(rows);
+			drops.set(rows);
 		}
 	}
 
@@ -54,16 +54,16 @@
 		amounts: [10, 25, 100, 500, 1000, 5000]
 	} satisfies PaginationSettings;
 
-	$: paginationSettings.size = $seeds.length;
+	$: paginationSettings.size = $drops.length;
 
-	$: paginatedSource = $seeds.slice(
+	$: paginatedSource = $drops.slice(
 		paginationSettings.page * paginationSettings.limit,
 		paginationSettings.page * paginationSettings.limit + paginationSettings.limit
 	);
 
 	let selected: Writable<UInt64[]> = writable([]);
 
-	function seedSelect(e: Event) {
+	function dropselect(e: Event) {
 		const { checked, value } = e.target;
 		if (checked) {
 			selected.update((s) => {
@@ -85,7 +85,7 @@
 		const { checked } = e.target;
 		if (checked) {
 			selectingAll.set(true);
-			selected.set(paginatedSource.map((s) => s.seed));
+			selected.set(paginatedSource.map((s) => s.drops));
 		} else {
 			selectingAll.set(false);
 			selected.set([]);
@@ -95,7 +95,7 @@
 	interface TransferResult {
 		from: Name;
 		to: Name;
-		seeds: number;
+		drops: number;
 		txid: string;
 	}
 	const transferTo: Writable<string> = writable();
@@ -107,10 +107,10 @@
 			lastTransferError.set(undefined);
 			const to = Name.from($transferTo);
 
-			const action = seedContract.action('transfer', {
+			const action = dropsContract.action('transfer', {
 				from: $session?.actor,
 				to,
-				seed_ids: $selected,
+				drops_ids: $selected,
 				memo: ''
 			});
 
@@ -118,9 +118,9 @@
 			try {
 				result = await $session.transact({ action });
 				// Remove transferred from list
-				const seedsTransferred = $selected.map((s) => String(s));
-				seeds.update((current) =>
-					current.filter((row) => !seedsTransferred.includes(String(row.seed)))
+				const dropsTransferred = $selected.map((s) => String(s));
+				drops.update((current) =>
+					current.filter((row) => !dropsTransferred.includes(String(row.drops)))
 				);
 
 				selected.set([]);
@@ -129,7 +129,7 @@
 				lastTransferResult.set({
 					from: $session.actor,
 					to,
-					seeds: seedsTransferred.length,
+					drops: dropsTransferred.length,
 					txid: String(result.resolved?.transaction.id)
 				});
 			} catch (e) {
@@ -151,9 +151,9 @@
 	async function destroySelected() {
 		console.log('destroy', $selected);
 		if ($session) {
-			const action = seedContract.action('destroy', {
+			const action = dropsContract.action('destroy', {
 				owner: $session?.actor,
-				seed_ids: $selected,
+				drops_ids: $selected,
 				memo: ''
 			});
 
@@ -169,14 +169,14 @@
 				try {
 					const data = Serializer.decode({
 						data: returnValue.hex,
-						type: SeedContract.Types.destroy_return_value
+						type: DropContract.Types.destroy_return_value
 					});
 
 					if (Number(data.ram_sold.value) > 0) {
 						// Remove destroyed from list
-						const seedsDestroyed = $selected.map((s) => String(s));
-						seeds.update((current) =>
-							current.filter((row) => !seedsDestroyed.includes(String(row.seed)))
+						const dropsDestroyed = $selected.map((s) => String(s));
+						drops.update((current) =>
+							current.filter((row) => !dropsDestroyed.includes(String(row.drops)))
 						);
 
 						// Clear selected
@@ -184,7 +184,7 @@
 						selectingAll.set(false);
 
 						lastDestroyResult.set({
-							destroyed: seedsDestroyed.length,
+							destroyed: dropsDestroyed.length,
 							ram: Number(data.ram_sold),
 							redeemed: data.redeemed,
 							txid: String(result.resolved?.transaction.id)
@@ -221,10 +221,10 @@
 					</div>
 				</div>
 			</section>
-		{:else if $seeds.length}
+		{:else if $drops.length}
 			<div class="table-container text-center space-y-4">
 				<div class="h2 font-bold p-6 text-center">
-					{$seeds.length.toLocaleString()}
+					{$drops.length.toLocaleString()}
 					{$t('inventory.totalitems', { itemnames: $t('common.itemnames') })}
 				</div>
 				<TabGroup justify="justify-center">
@@ -301,7 +301,7 @@
 															itemnames: $t('common.itemnames')
 														})}</td
 													>
-													<td>{$lastTransferResult.seeds}</td>
+													<td>{$lastTransferResult.drops}</td>
 												</tr>
 												<tr>
 													<td class="text-right">{$t('inventory.itemsentto')}</td>
@@ -401,30 +401,30 @@
 							</th>
 							<th class="text-center">{$t('common.itemname')}</th>
 							<th class="text-center">{$t('common.epoch')}</th>
-							<th class="text-center">{$t('common.soulbound')}</th>
+							<th class="text-center">{$t('common.bound')}</th>
 						</tr>
 					</thead>
 					<tbody>
-						{#each paginatedSource as seed}
+						{#each paginatedSource as drops}
 							<tr class="text-center">
 								<td>
 									<input
-										checked={$selected.includes(seed.seed)}
+										checked={$selected.includes(seed.drops)}
 										type="checkbox"
-										on:change={seedSelect}
-										value={seed.seed}
+										on:change={dropselect}
+										value={seed.drops}
 									/>
 								</td>
 								<td>
-									<p class="text-lg">{Name.from(seed.seed)}</p>
-									<p class="text-xs">{seed.seed}</p>
+									<p class="text-lg">{Name.from(seed.drops)}</p>
+									<p class="text-xs">{seed.drops}</p>
 								</td>
 								<td>
-									<p class="text-lg">{seed.epoch}</p>
-									<p class="text-xs">{seed.created}</p>
+									<p class="text-lg">{drops.epoch}</p>
+									<p class="text-xs">{drops.created}</p>
 								</td>
 								<td class="flex justify-center items-center">
-									{#if seed.soulbound}
+									{#if drops.bound}
 										<Lock />
 									{/if}
 								</td>

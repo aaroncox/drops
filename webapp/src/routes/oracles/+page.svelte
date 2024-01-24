@@ -60,7 +60,7 @@
 	interface EpochState {
 		epoch: UInt64;
 		oracles: OracleState[];
-		seed?: string;
+		drops?: string;
 	}
 
 	const allOracles: Writable<Name[]> = writable();
@@ -86,11 +86,11 @@
 						});
 						// Sort by name
 						oracles.sort((a, b) => String(a.oracle).localeCompare(b.oracle.value));
-						// Find the epochseed for completed epochs
+						// Find the epochdrops for completed epochs
 						return {
 							epoch: e.epoch,
 							oracles,
-							seed: e.seed ? String(e.seed) : ''
+							drops: e.drops ? String(e.drops) : ''
 						};
 					})
 					.sort((a, b) => Number(b.epoch) - Number(a.epoch));
@@ -109,8 +109,8 @@
 <div class="p-8 space-y-4">
 	<div class="h2">Oracles</div>
 	<p>
-		Oracles are responsible for seeding random data using a commit/reveal strategy in order to seed
-		the final epoch values.
+		Oracles are responsible for dropsing random data using a commit/reveal strategy in order to
+		drops the final epoch values.
 	</p>
 	{#if $epochs && $epochs.length && $allOracles}
 		<div class="table-container">
@@ -122,7 +122,7 @@
 							<div class="text-xs text-slate-400">Number</div>
 						</th>
 						<th class="text-center">
-							Seed
+							Drop
 							<div class="text-xs text-slate-400">From Oracles</div>
 						</th>
 						{#each $allOracles as oracle}
@@ -138,7 +138,7 @@
 						<tr>
 							<td class="text-center">{epoch.epoch}</td>
 							<td class="text-center">
-								<pre class="text-xs">{epoch.seed}</pre>
+								<pre class="text-xs">{epoch.drops}</pre>
 							</td>
 							{#each $allOracles as oracle}
 								{@const record = epoch.oracles.find((o) => o.oracle.equals(oracle))}

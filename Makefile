@@ -10,7 +10,7 @@ NODE_URL ?= https://jungle4.greymass.com
 REV := $(shell git rev-parse --short HEAD)
 BRANCH := $(shell echo $${HEAD:-$$(git branch --show-current)})
 
-CONTRACT_SEED = seed.drops
+CONTRACT_SEED = drops
 CONTRACT_SEED_ACCOUNT = seed.gm
 
 CONTRACT_ORACLE = oracle.drops
@@ -28,27 +28,27 @@ codegen/webapp:
 
 # SEED CONTRACT
 
-contract/seed: contract/seed/build contract/seed/publish
+contract/drops: contract/drops/build contract/drops/publish
 
-contract/seed/build:
-	cdt-cpp -abigen -abigen_output=contracts/seed.drops/build/seed.drops.abi -o contracts/seed.drops/build/seed.drops.wasm -O3 contracts/seed.drops/src/seed.drops.cpp contracts/seed.drops/src/ram.cpp $(INCLUDES)
+contract/drops/build:
+	cdt-cpp -abigen -abigen_output=contracts/seed.drops/build/drops.abi -o contracts/seed.drops/build/drops.wasm -O3 contracts/seed.drops/src/seed.drops.cpp contracts/seed.drops/src/ram.cpp $(INCLUDES)
 
-contract/seed/publish:
+contract/drops/publish:
 	cleos -u $(NODE_URL) set contract $(CONTRACT_SEED_ACCOUNT) \
 		contracts/seed.drops/build/ ${CONTRACT_SEED}.wasm ${CONTRACT_SEED}.abi
 
-contract/seed/reset: contract/seed/build contract/seed/wipe contract/seed/publish contract/seed/wipe contract/seed/init contract/seed/enable
+contract/drops/reset: contract/drops/build contract/drops/wipe contract/drops/publish contract/drops/wipe contract/drops/init contract/drops/enable
 
-contract/seed/init:
+contract/drops/init:
 	cleos -u $(NODE_URL) push action $(CONTRACT_SEED_ACCOUNT) init "{}" -p "$(CONTRACT_SEED_ACCOUNT)@active"
 
-contract/seed/wipe:
+contract/drops/wipe:
 	cleos -u $(NODE_URL) push action $(CONTRACT_SEED_ACCOUNT) wipe "{}" -p "$(CONTRACT_SEED_ACCOUNT)@active"
 
-contract/seed/enable:
+contract/drops/enable:
 	cleos -u $(NODE_URL) push action $(CONTRACT_SEED_ACCOUNT) enable '{"enabled": true}' -p "$(CONTRACT_SEED_ACCOUNT)@active"
 
-contract/seed/advance:
+contract/drops/advance:
 	cleos -u $(NODE_URL) push action $(CONTRACT_SEED_ACCOUNT) advance '{}' -p "$(CONTRACT_SEED_ACCOUNT)@active"
 
 # ORACLE CONTRACT
@@ -126,7 +126,7 @@ publishtestnet:
 
 .PHONY: testnetnotify
 testnetnotify:
-	cleos -u $(NODE_URL) push action testing.gm cmplastepoch '{"seed": "88285382042718202", "contract": "token.gm"}' -p "testing.gm@active"
+	cleos -u $(NODE_URL) push action testing.gm cmplastepoch '{"drops": "88285382042718202", "contract": "token.gm"}' -p "testing.gm@active"
 
 .PHONY: testnetwipe
 testnetwipe:

@@ -46,7 +46,7 @@ public:
    struct [[eosio::table("accounts")]] account_row
    {
       name     account;
-      uint32_t seeds;
+      uint32_t drops;
       uint64_t primary_key() const { return account.value; }
    };
 
@@ -69,14 +69,14 @@ public:
       eosio::indexed_by<"completed"_n, eosio::const_mem_fun<epoch_row, uint64_t, &epoch_row::by_completed>>>
       epochs_table;
 
-   struct [[eosio::table("epochseed")]] epochseed_row
+   struct [[eosio::table("epochdrops")]] epochdrop_row
    {
       uint64_t    epoch;
-      checksum256 seed;
+      checksum256 drops;
       uint64_t    primary_key() const { return epoch; }
    };
 
-   typedef eosio::multi_index<"epochseed"_n, epochseed_row> epochseed_table;
+   typedef eosio::multi_index<"epochdrops"_n, epochdrop_row> epochdrop_table;
 
    struct [[eosio::table("commit")]] commit_row
    {
@@ -122,33 +122,33 @@ public:
       eosio::indexed_by<"epochoracle"_n, eosio::const_mem_fun<reveal_row, uint128_t, &reveal_row::by_epochoracle>>>
       reveals_table;
 
-   struct [[eosio::table("seeds")]] seed_row
+   struct [[eosio::table("drops")]] drop_row
    {
-      uint64_t  seed;
+      uint64_t  drops;
       name      owner;
       uint64_t  epoch;
-      uint64_t  primary_key() const { return seed; }
-      uint128_t by_owner() const { return ((uint128_t)owner.value << 64) | seed; }
+      uint64_t  primary_key() const { return drops; }
+      uint128_t by_owner() const { return ((uint128_t)owner.value << 64) | drops; }
       uint64_t  by_epoch() const { return epoch; }
    };
 
    // Optimized version
-   //    struct [[eosio::table("seeds")]] seed_row
+   //    struct [[eosio::table("drops")]] drop_row
    //    {
    //       uint32_t id;
-   //       uint64_t seed;
+   //       uint64_t drops;
    //       name     owner;
    //       uint16_t epoch;
-   //       uint32_t primary_key() const { return seed; }
+   //       uint32_t primary_key() const { return drops; }
    //       uint64_t by_owner() const { return owner.value; }
    //       uint16_t by_epoch() const { return epoch; }
    //    };
 
    typedef eosio::multi_index<
-      "seeds"_n,
-      seed_row,
-      eosio::indexed_by<"owner"_n, eosio::const_mem_fun<seed_row, uint128_t, &seed_row::by_owner>>>
-      seeds_table;
+      "drops"_n,
+      drop_row,
+      eosio::indexed_by<"owner"_n, eosio::const_mem_fun<drop_row, uint128_t, &drop_row::by_owner>>>
+      drop_table;
 
    struct [[eosio::table("state")]] state_row
    {
@@ -165,7 +165,7 @@ public:
       uint64_t  id;
       name      account;
       uint64_t  epoch;
-      uint32_t  seeds;
+      uint32_t  drops;
       uint64_t  primary_key() const { return id; }
       uint64_t  by_account() const { return account.value; }
       uint128_t by_account_epoch() const { return (uint128_t)account.value << 64 | epoch; }
@@ -189,7 +189,7 @@ public:
    /*
     User actions
    */
-   [[eosio::action]] void transfer(name from, name to, std::vector<uint64_t> seed_ids, string memo);
+   [[eosio::action]] void transfer(name from, name to, std::vector<uint64_t> drops_ids, string memo);
    using transfer_action = eosio::action_wrapper<"transfer"_n, &drops::transfer>;
 
    [[eosio::action]] void enroll(name account, uint64_t epoch);
@@ -201,7 +201,7 @@ public:
       asset    redeemed;
    };
 
-   [[eosio::action]] destroy_return_value destroy(name owner, std::vector<uint64_t> seed_ids, string memo);
+   [[eosio::action]] destroy_return_value destroy(name owner, std::vector<uint64_t> drops_ids, string memo);
    using destroy_action = eosio::action_wrapper<"destroy"_n, &drops::destroy>;
 
    // DEBUGGING ACTION
@@ -210,12 +210,12 @@ public:
 
    struct generate_return_value
    {
-      uint32_t seeds;
+      uint32_t drops;
       uint64_t epoch;
       asset    cost;
       asset    refund;
-      uint64_t total_seeds;
-      uint64_t epoch_seeds;
+      uint64_t total_drops;
+      uint64_t epoch_drops;
    };
 
    [[eosio::on_notify("eosio.token::transfer")]] generate_return_value
@@ -274,15 +274,15 @@ public:
    [[eosio::action]] checksum256 computeepoch(uint64_t epoch);
    using computeepoch_action = eosio::action_wrapper<"computeepoch"_n, &drops::computeepoch>;
 
-   [[eosio::action]] checksum256 computeseed(uint64_t epoch, uint64_t seed);
-   using computeseed_action = eosio::action_wrapper<"computeseed"_n, &drops::computeseed>;
+   [[eosio::action]] checksum256 computedrops(uint64_t epoch, uint64_t drops);
+   using computedrops_action = eosio::action_wrapper<"computedrops"_n, &drops::computedrops>;
 
-   [[eosio::action]] checksum256 cmplastepoch(uint64_t seed, name contract);
+   [[eosio::action]] checksum256 cmplastepoch(uint64_t drops, name contract);
    using cmplastepoch_action = eosio::action_wrapper<"cmplastepoch"_n, &drops::cmplastepoch>;
 
    checksum256 compute_epoch_value(uint64_t epoch);
-   checksum256 compute_epoch_seed_value(uint64_t epoch, uint64_t seed);
-   checksum256 compute_last_epoch_seed_value(uint64_t seed);
+   checksum256 compute_epoch_drops_value(uint64_t epoch, uint64_t drops);
+   checksum256 compute_last_epoch_drops_value(uint64_t drops);
 
    static constexpr char hexmap[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
@@ -327,11 +327,11 @@ public:
       return lzbits;
    }
 
-   static checksum256 hash(checksum256 epochseed, uint64_t seed)
+   static checksum256 hash(checksum256 epochdrops, uint64_t drops)
    {
-      // Combine the epoch seed and seed into a single string
-      auto   epoch_arr = epochseed.extract_as_byte_array();
-      string result    = hexStr(epoch_arr.data(), epoch_arr.size()) + std::to_string(seed);
+      // Combine the epoch drops and drops into a single string
+      auto   epoch_arr = epochdrops.extract_as_byte_array();
+      string result    = hexStr(epoch_arr.data(), epoch_arr.size()) + std::to_string(drops);
 
       // Generate the sha256 value of the combined string
       return sha256(result.c_str(), result.length());
