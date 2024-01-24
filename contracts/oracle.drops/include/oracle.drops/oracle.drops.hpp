@@ -194,6 +194,7 @@ public:
 
 private:
    oracle::epoch_row advance_epoch();
+   void              ensure_epoch_advance(seed::state_row state);
 };
 
 } // namespace drops

@@ -86,14 +86,18 @@ checksum256 oracle::compute_last_epoch_seed_value(uint64_t seed)
 {
    require_auth(oracle);
 
-   // Retrieve contract state
+   // Retrieve seed contract state
    seed::state_table state(seed_contract, seed_contract.value);
    auto              state_itr = state.find(1);
    check(state_itr->enabled, "Contract is currently disabled.");
 
+   // Automatically advance if needed
+   ensure_epoch_advance(*state_itr);
+
+   // Retrieve oracle contract epoch
    oracle::epoch_table epochoracles(_self, _self.value);
    auto                epochoracles_itr = epochoracles.find(epoch);
-   check(epochoracles_itr != epochoracles.end(), "Epoch does not exist");
+   check(epochoracles_itr != epochoracles.end(), "Epoch does not exist in oracle contract");
    check(std::find(epochoracles_itr->oracles.begin(), epochoracles_itr->oracles.end(), oracle) !=
             epochoracles_itr->oracles.end(),
          "Oracle is not in the list of oracles for this epoch");
@@ -111,6 +115,18 @@ checksum256 oracle::compute_last_epoch_seed_value(uint64_t seed)
    });
 }
 
+void oracle::ensure_epoch_advance(seed::state_row state)
+{
+   // Attempt to find current epoch from state in oracle contract
+   oracle::epoch_table epochs(_self, _self.value);
+   auto                epochs_itr = epochs.find(state.epoch);
+
+   // If the epoch does not exist in the oracle contract, advance the epoch
+   if (epochs_itr == epochs.end()) {
+      oracle::epoch_row new_epoch = oracle::advance_epoch();
+   }
+}
+
 [[eosio::action]] void oracle::reveal(name oracle, uint64_t epoch, string reveal)
 {
    require_auth(oracle);
@@ -119,6 +135,9 @@ checksum256 oracle::compute_last_epoch_seed_value(uint64_t seed)
    seed::state_table state(seed_contract, seed_contract.value);
    auto              state_itr = state.find(1);
    check(state_itr->enabled, "Contract is currently disabled.");
+
+   // Automatically advance if needed
+   ensure_epoch_advance(*state_itr);
 
    // Retrieve epoch from seed contract
    seed::epoch_table epochs(seed_contract, seed_contract.value);
@@ -372,7 +391,7 @@ oracle::epoch_row oracle::advance_epoch()
 [[eosio::action]] oracle::epoch_row oracle::advance()
 {
    // Only the seed contract can advance the oracle contract
-   require_auth(seed_contract);
+   require_auth(_self);
 
    // Advance the epoch
    auto new_epoch = advance_epoch();
