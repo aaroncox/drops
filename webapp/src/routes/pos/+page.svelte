@@ -75,7 +75,7 @@
 				type: 'uint128'
 			});
 
-			const cursor: TableRowCursor = await dropsContract.table('drops').query({
+			const cursor: TableRowCursor = await dropsContract.table('drop').query({
 				key_type: 'i128',
 				index_position: 'secondary',
 				from,
@@ -98,9 +98,9 @@
 					if (!validEpoch) {
 						return acc;
 					}
-					const alreadyClaimed = claimed.find((c) => c.drops.equals(row.drops));
+					const alreadyClaimed = claimed.find((c) => c.drops.equals(row.seed));
 					if (!alreadyClaimed) {
-						const combined = String(lastDrop) + String(row.drops);
+						const combined = String(lastDrop) + String(row.seed);
 						const hash = Checksum256.hash(Bytes.from(combined, 'utf8'));
 						const clz = hex2bin(String(hash));
 						// if (String(row.drops) === '76085440965494853') {
@@ -132,7 +132,7 @@
 				authorization: [$session?.permissionLevel],
 				data: {
 					owner: $session.actor,
-					drops_ids: $validdrops.map((s) => s.drops)
+					drops_ids: $validdrops.map((s) => s.seed)
 				}
 			}
 		});

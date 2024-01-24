@@ -1,8 +1,8 @@
 import { APIClient, Chains, Session } from '@wharfkit/session';
 import { WalletPluginPrivateKey } from '@wharfkit/wallet-plugin-privatekey';
 
-import { Contract as DropContract } from './contracts/seed.drops';
-export * as DropContract from './contracts/seed.drops';
+import { Contract as DropContract } from './contracts/drops';
+export * as DropContract from './contracts/drops';
 
 import { Contract as OracleContract } from './contracts/oracle.drops';
 export * as OracleContract from './contracts/oracle.drops';

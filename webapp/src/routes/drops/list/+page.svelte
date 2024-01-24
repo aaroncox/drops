@@ -33,7 +33,7 @@
 			});
 
 			const rows = await dropsContract
-				.table('drops')
+				.table('drop')
 				.query({
 					key_type: 'i128',
 					index_position: 'secondary',
@@ -61,13 +61,14 @@
 		paginationSettings.page * paginationSettings.limit + paginationSettings.limit
 	);
 
-	let selected: Writable<UInt64[]> = writable([]);
+	let selected: Writable<String[]> = writable([]);
 
 	function dropselect(e: Event) {
 		const { checked, value } = e.target;
+		console.log(value);
 		if (checked) {
 			selected.update((s) => {
-				s.push(UInt64.from(value));
+				s.push(value);
 				return s;
 			});
 		} else {
@@ -85,7 +86,7 @@
 		const { checked } = e.target;
 		if (checked) {
 			selectingAll.set(true);
-			selected.set(paginatedSource.map((s) => s.drops));
+			selected.set(paginatedSource.map((s) => String(s.seed)));
 		} else {
 			selectingAll.set(false);
 			selected.set([]);
@@ -120,7 +121,7 @@
 				// Remove transferred from list
 				const dropsTransferred = $selected.map((s) => String(s));
 				drops.update((current) =>
-					current.filter((row) => !dropsTransferred.includes(String(row.drops)))
+					current.filter((row) => !dropsTransferred.includes(String(row.seed)))
 				);
 
 				selected.set([]);
@@ -176,7 +177,7 @@
 						// Remove destroyed from list
 						const dropsDestroyed = $selected.map((s) => String(s));
 						drops.update((current) =>
-							current.filter((row) => !dropsDestroyed.includes(String(row.drops)))
+							current.filter((row) => !dropsDestroyed.includes(String(row.seed)))
 						);
 
 						// Clear selected
@@ -405,26 +406,26 @@
 						</tr>
 					</thead>
 					<tbody>
-						{#each paginatedSource as drops}
+						{#each paginatedSource as drop}
 							<tr class="text-center">
 								<td>
 									<input
-										checked={$selected.includes(seed.drops)}
+										checked={$selected.includes(String(drop.seed))}
 										type="checkbox"
 										on:change={dropselect}
-										value={seed.drops}
+										value={drop.seed}
 									/>
 								</td>
 								<td>
-									<p class="text-lg">{Name.from(seed.drops)}</p>
-									<p class="text-xs">{seed.drops}</p>
+									<p class="text-lg">{Name.from(drop.seed)}</p>
+									<p class="text-xs">{drop.seed}</p>
 								</td>
 								<td>
-									<p class="text-lg">{drops.epoch}</p>
-									<p class="text-xs">{drops.created}</p>
+									<p class="text-lg">{drop.epoch}</p>
+									<p class="text-xs">{drop.created}</p>
 								</td>
 								<td class="flex justify-center items-center">
-									{#if drops.bound}
+									{#if drop.bound}
 										<Lock />
 									{/if}
 								</td>
