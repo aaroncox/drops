@@ -97,6 +97,13 @@ public:
       uint128_t by_account_epoch() const { return (uint128_t)account.value << 64 | epoch; }
    };
 
+   struct [[eosio::table("unbind")]] unbind_row
+   {
+      name                  owner;
+      std::vector<uint64_t> drops_ids;
+      uint64_t              primary_key() const { return owner.value; }
+   };
+
    /*
 
    Indices
@@ -116,7 +123,8 @@ public:
       stat_row,
       eosio::indexed_by<"account"_n, eosio::const_mem_fun<stat_row, uint64_t, &stat_row::by_account>>,
       eosio::indexed_by<"accountepoch"_n, eosio::const_mem_fun<stat_row, uint128_t, &stat_row::by_account_epoch>>>
-      stat_table;
+                                                      stat_table;
+   typedef eosio::multi_index<"unbind"_n, unbind_row> unbind_table;
 
    /*
 
@@ -140,6 +148,12 @@ public:
       asset    redeemed;
    };
 
+   struct bind_return_value
+   {
+      uint64_t ram_sold;
+      asset    redeemed;
+   };
+
    /*
 
     User actions
@@ -155,10 +169,17 @@ public:
 
    [[eosio::action]] destroy_return_value destroy(name owner, std::vector<uint64_t> drops_ids, string memo);
 
-   using generate_action = eosio::action_wrapper<"generate"_n, &drops::generate>;
-   using mint_action     = eosio::action_wrapper<"mint"_n, &drops::mint>;
-   using transfer_action = eosio::action_wrapper<"transfer"_n, &drops::transfer>;
-   using destroy_action  = eosio::action_wrapper<"destroy"_n, &drops::destroy>;
+   [[eosio::action]] bind_return_value bind(name owner, std::vector<uint64_t> drops_ids);
+   [[eosio::action]] void              unbind(name owner, std::vector<uint64_t> drops_ids);
+   [[eosio::action]] void              cancelunbind(name owner);
+
+   using generate_action     = eosio::action_wrapper<"generate"_n, &drops::generate>;
+   using mint_action         = eosio::action_wrapper<"mint"_n, &drops::mint>;
+   using transfer_action     = eosio::action_wrapper<"transfer"_n, &drops::transfer>;
+   using destroy_action      = eosio::action_wrapper<"destroy"_n, &drops::destroy>;
+   using bind_action         = eosio::action_wrapper<"bind"_n, &drops::bind>;
+   using unbind_action       = eosio::action_wrapper<"unbind"_n, &drops::unbind>;
+   using cancelunbind_action = eosio::action_wrapper<"cancelunbind"_n, &drops::cancelunbind>;
 
    /*
 
@@ -201,7 +222,11 @@ public:
    using destroyall_action = eosio::action_wrapper<"destroyall"_n, &drops::destroyall>;
 
 private:
-   drops::epoch_row         advance_epoch();
+   drops::epoch_row advance_epoch();
+
+   generate_return_value do_generate(name from, name to, asset quantity, std::vector<std::string> parsed);
+   generate_return_value do_unbind(name from, name to, asset quantity, std::vector<std::string> parsed);
+
    std::vector<std::string> split(const std::string& str, char delim);
 };
 
