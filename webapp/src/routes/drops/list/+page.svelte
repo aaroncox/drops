@@ -311,8 +311,7 @@
 			let result: TransactResult;
 			try {
 				result = await $session.transact({
-					actions: [transfer],
-					context_free_actions: [unbind]
+					actions: [unbind, transfer]
 				});
 			} catch (e) {
 				lastUnbindResult.set(undefined);
