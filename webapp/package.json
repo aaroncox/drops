@@ -44,7 +44,7 @@
 	"dependencies": {
 		"@wharfkit/account": "^1.0.0",
 		"@wharfkit/contract": "^1.1.2",
-		"@wharfkit/session": "^1.2.5",
+		"@wharfkit/session": "^1.2.7",
 		"@wharfkit/transact-plugin-resource-provider": "^1.1.0",
 		"@wharfkit/wallet-plugin-anchor": "^1.2.1",
 		"@wharfkit/wallet-plugin-privatekey": "^1.1.0",

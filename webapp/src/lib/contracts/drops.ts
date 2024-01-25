@@ -3,7 +3,7 @@ import {ABI, Asset, Blob, Name, Struct, TimePoint, UInt16, UInt32, UInt64} from 
 import type {ActionOptions, ContractArgs, PartialBy, Table} from '@wharfkit/contract'
 import {Contract as BaseContract} from '@wharfkit/contract'
 export const abiBlob = Blob.from(
-    'DmVvc2lvOjphYmkvMS4yABELYWNjb3VudF9yb3cAAgdhY2NvdW50BG5hbWUFZHJvcHMGdWludDMyB2FkdmFuY2UAAAdkZXN0cm95AAMFb3duZXIEbmFtZQlkcm9wc19pZHMIdWludDY0W10EbWVtbwZzdHJpbmcUZGVzdHJveV9yZXR1cm5fdmFsdWUAAghyYW1fc29sZAZ1aW50NjQIcmVkZWVtZWQFYXNzZXQKZGVzdHJveWFsbAAACGRyb3Bfcm93AAUEc2VlZAZ1aW50NjQFZXBvY2gGdWludDY0BW93bmVyBG5hbWUHY3JlYXRlZAp0aW1lX3BvaW50BWJvdW5kBGJvb2wGZW5hYmxlAAEHZW5hYmxlZARib29sCWVwb2NoX3JvdwADBWVwb2NoBnVpbnQ2NAVzdGFydAp0aW1lX3BvaW50A2VuZAp0aW1lX3BvaW50FWdlbmVyYXRlX3JldHVybl92YWx1ZQAGBWRyb3BzBnVpbnQzMgVlcG9jaAZ1aW50NjQEY29zdAVhc3NldAZyZWZ1bmQFYXNzZXQLdG90YWxfZHJvcHMGdWludDY0C2Vwb2NoX2Ryb3BzBnVpbnQ2NAxnZW5lcmF0ZXJ0cm4AAARpbml0AAAEbWludAADBW93bmVyBG5hbWUGYW1vdW50BnVpbnQzMgRkYXRhBnN0cmluZwhzdGF0X3JvdwAEAmlkBnVpbnQ2NAdhY2NvdW50BG5hbWUFZXBvY2gGdWludDY0BWRyb3BzBnVpbnQzMglzdGF0ZV9yb3cAAwJpZAZ1aW50MTYFZXBvY2gGdWludDY0B2VuYWJsZWQEYm9vbAh0cmFuc2ZlcgAEBGZyb20EbmFtZQJ0bwRuYW1lCWRyb3BzX2lkcwh1aW50NjRbXQRtZW1vBnN0cmluZwR3aXBlAAAId2lwZXNvbWUAAAoAAABAoWl2MgdhZHZhbmNlAAAAAMDTm7FKB2Rlc3Ryb3kAAECMxtObsUoKZGVzdHJveWFsbAAAAAAAqHjMVAZlbmFibGUAMG++KpurpmIMZ2VuZXJhdGVydHJuAAAAAAAAkN10BGluaXQAAAAAAACQp5MEbWludAAAAABXLTzNzQh0cmFuc2ZlcgAAAAAAAKCq4wR3aXBlAAAAAEpSrKrjCHdpcGVzb21lAAUAAAAgT00RMgNpNjQAAAthY2NvdW50X3JvdwAAAAAAUOlNA2k2NAAACGRyb3Bfcm93AAAAAICGaFUDaTY0AAAJZXBvY2hfcm93AAAAAACQTcYDaTY0AAAIc3RhdF9yb3cAAAAAAJVNxgNpNjQAAAlzdGF0ZV9yb3cAAAAABAAAAEChaXYyCWVwb2NoX3JvdwAAAMDTm7FKFGRlc3Ryb3lfcmV0dXJuX3ZhbHVlMG++KpurpmIVZ2VuZXJhdGVfcmV0dXJuX3ZhbHVlAAAAAACQp5MVZ2VuZXJhdGVfcmV0dXJuX3ZhbHVl'
+    'DmVvc2lvOjphYmkvMS4yABYLYWNjb3VudF9yb3cAAgdhY2NvdW50BG5hbWUFZHJvcHMGdWludDMyB2FkdmFuY2UAAARiaW5kAAIFb3duZXIEbmFtZQlkcm9wc19pZHMIdWludDY0W10RYmluZF9yZXR1cm5fdmFsdWUAAghyYW1fc29sZAZ1aW50NjQIcmVkZWVtZWQFYXNzZXQMY2FuY2VsdW5iaW5kAAEFb3duZXIEbmFtZQdkZXN0cm95AAMFb3duZXIEbmFtZQlkcm9wc19pZHMIdWludDY0W10EbWVtbwZzdHJpbmcUZGVzdHJveV9yZXR1cm5fdmFsdWUAAghyYW1fc29sZAZ1aW50NjQIcmVkZWVtZWQFYXNzZXQKZGVzdHJveWFsbAAACGRyb3Bfcm93AAUEc2VlZAZ1aW50NjQFZXBvY2gGdWludDY0BW93bmVyBG5hbWUHY3JlYXRlZAp0aW1lX3BvaW50BWJvdW5kBGJvb2wGZW5hYmxlAAEHZW5hYmxlZARib29sCWVwb2NoX3JvdwADBWVwb2NoBnVpbnQ2NAVzdGFydAp0aW1lX3BvaW50A2VuZAp0aW1lX3BvaW50FWdlbmVyYXRlX3JldHVybl92YWx1ZQAGBWRyb3BzBnVpbnQzMgVlcG9jaAZ1aW50NjQEY29zdAVhc3NldAZyZWZ1bmQFYXNzZXQLdG90YWxfZHJvcHMGdWludDY0C2Vwb2NoX2Ryb3BzBnVpbnQ2NAxnZW5lcmF0ZXJ0cm4AAARpbml0AAAEbWludAADBW93bmVyBG5hbWUGYW1vdW50BnVpbnQzMgRkYXRhBnN0cmluZwhzdGF0X3JvdwAEAmlkBnVpbnQ2NAdhY2NvdW50BG5hbWUFZXBvY2gGdWludDY0BWRyb3BzBnVpbnQzMglzdGF0ZV9yb3cAAwJpZAZ1aW50MTYFZXBvY2gGdWludDY0B2VuYWJsZWQEYm9vbAh0cmFuc2ZlcgAEBGZyb20EbmFtZQJ0bwRuYW1lCWRyb3BzX2lkcwh1aW50NjRbXQRtZW1vBnN0cmluZwZ1bmJpbmQAAgVvd25lcgRuYW1lCWRyb3BzX2lkcwh1aW50NjRbXQp1bmJpbmRfcm93AAIFb3duZXIEbmFtZQlkcm9wc19pZHMIdWludDY0W10Ed2lwZQAACHdpcGVzb21lAAANAAAAQKFpdjIHYWR2YW5jZQAAAAAAAJCmOwRiaW5kAJCmO1NHhaZBDGNhbmNlbHVuYmluZAAAAADA05uxSgdkZXN0cm95AABAjMbTm7FKCmRlc3Ryb3lhbGwAAAAAAKh4zFQGZW5hYmxlADBvviqbq6ZiDGdlbmVyYXRlcnRybgAAAAAAAJDddARpbml0AAAAAAAAkKeTBG1pbnQAAAAAVy08zc0IdHJhbnNmZXIAAAAAAKTpztQGdW5iaW5kAAAAAAAAoKrjBHdpcGUAAAAASlKsquMId2lwZXNvbWUABgAAACBPTREyA2k2NAAAC2FjY291bnRfcm93AAAAAABQ6U0DaTY0AAAIZHJvcF9yb3cAAAAAgIZoVQNpNjQAAAllcG9jaF9yb3cAAAAAAJBNxgNpNjQAAAhzdGF0X3JvdwAAAAAAlU3GA2k2NAAACXN0YXRlX3JvdwAAAACk6c7UA2k2NAAACnVuYmluZF9yb3cAAAAABQAAAEChaXYyCWVwb2NoX3JvdwAAAAAAkKY7EWJpbmRfcmV0dXJuX3ZhbHVlAAAAwNObsUoUZGVzdHJveV9yZXR1cm5fdmFsdWUwb74qm6umYhVnZW5lcmF0ZV9yZXR1cm5fdmFsdWUAAAAAAJCnkxVnZW5lcmF0ZV9yZXR1cm5fdmFsdWU='
 )
 export const abi = ABI.from(abiBlob)
 export class Contract extends BaseContract {
@@ -33,6 +33,8 @@ export class Contract extends BaseContract {
 }
 export interface ActionNameParams {
     advance: ActionParams.advance
+    bind: ActionParams.bind
+    cancelunbind: ActionParams.cancelunbind
     destroy: ActionParams.destroy
     destroyall: ActionParams.destroyall
     enable: ActionParams.enable
@@ -40,12 +42,20 @@ export interface ActionNameParams {
     init: ActionParams.init
     mint: ActionParams.mint
     transfer: ActionParams.transfer
+    unbind: ActionParams.unbind
     wipe: ActionParams.wipe
     wipesome: ActionParams.wipesome
 }
 export namespace ActionParams {
     export namespace Type {}
     export interface advance {}
+    export interface bind {
+        owner: NameType
+        drops_ids: UInt64Type[]
+    }
+    export interface cancelunbind {
+        owner: NameType
+    }
     export interface destroy {
         owner: NameType
         drops_ids: UInt64Type[]
@@ -68,6 +78,10 @@ export namespace ActionParams {
         drops_ids: UInt64Type[]
         memo: string
     }
+    export interface unbind {
+        owner: NameType
+        drops_ids: UInt64Type[]
+    }
     export interface wipe {}
     export interface wipesome {}
 }
@@ -81,6 +95,25 @@ export namespace Types {
     }
     @Struct.type('advance')
     export class advance extends Struct {}
+    @Struct.type('bind')
+    export class bind extends Struct {
+        @Struct.field(Name)
+        owner!: Name
+        @Struct.field(UInt64, {array: true})
+        drops_ids!: UInt64[]
+    }
+    @Struct.type('bind_return_value')
+    export class bind_return_value extends Struct {
+        @Struct.field(UInt64)
+        ram_sold!: UInt64
+        @Struct.field(Asset)
+        redeemed!: Asset
+    }
+    @Struct.type('cancelunbind')
+    export class cancelunbind extends Struct {
+        @Struct.field(Name)
+        owner!: Name
+    }
     @Struct.type('destroy')
     export class destroy extends Struct {
         @Struct.field(Name)
@@ -185,6 +218,20 @@ export namespace Types {
         @Struct.field('string')
         memo!: string
     }
+    @Struct.type('unbind')
+    export class unbind extends Struct {
+        @Struct.field(Name)
+        owner!: Name
+        @Struct.field(UInt64, {array: true})
+        drops_ids!: UInt64[]
+    }
+    @Struct.type('unbind_row')
+    export class unbind_row extends Struct {
+        @Struct.field(Name)
+        owner!: Name
+        @Struct.field(UInt64, {array: true})
+        drops_ids!: UInt64[]
+    }
     @Struct.type('wipe')
     export class wipe extends Struct {}
     @Struct.type('wipesome')
@@ -196,6 +243,7 @@ export const TableMap = {
     epoch: Types.epoch_row,
     stat: Types.stat_row,
     state: Types.state_row,
+    unbind: Types.unbind_row,
 }
 export interface TableTypes {
     account: Types.account_row
@@ -203,12 +251,14 @@ export interface TableTypes {
     epoch: Types.epoch_row
     stat: Types.stat_row
     state: Types.state_row
+    unbind: Types.unbind_row
 }
 export type RowType<T> = T extends keyof TableTypes ? TableTypes[T] : any
 export type ActionNames = keyof ActionNameParams
 export type TableNames = keyof TableTypes
 export interface ActionReturnValues {
     advance: Types.epoch_row
+    bind: Types.bind_return_value
     destroy: Types.destroy_return_value
     generatertrn: Types.generate_return_value
     mint: Types.generate_return_value

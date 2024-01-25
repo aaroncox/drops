@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { writable, type Writable } from 'svelte/store';
 	import { AlertCircle, Combine, Lock, Package2, PackageX } from 'svelte-lucide';
 	import { Asset, Serializer, UInt64, type TransactResult, Name } from '@wharfkit/session';
@@ -6,7 +7,9 @@
 
 	import { t } from '$lib/i18n';
 	import MyItems from '$lib/components/headers/myitems.svelte';
-	import { DropContract, session, dropsContract } from '$lib/wharf';
+	import { DropContract, session, dropsContract, tokenContract } from '$lib/wharf';
+	import { getRamPrice } from '$lib/bancor';
+	import { sizeDropRow } from '$lib/constants';
 
 	const loaded = writable(false);
 
@@ -15,6 +18,22 @@
 	session.subscribe(() => {
 		loaddrops();
 	});
+
+	// let accountLoader: ReturnType<typeof setInterval>;
+	let ramLoader: ReturnType<typeof setInterval>;
+
+	onMount(async () => {
+		loadRamPrice();
+		ramLoader = setInterval(loadRamPrice, 2000);
+	});
+
+	const dropsPrice = writable(0);
+	async function loadRamPrice() {
+		const cost_plus_fee = await getRamPrice();
+		if (cost_plus_fee) {
+			dropsPrice.set(Number(cost_plus_fee) * sizeDropRow);
+		}
+	}
 
 	async function loaddrops() {
 		if ($session) {
@@ -151,6 +170,7 @@
 
 	async function destroySelected() {
 		console.log('destroy', $selected);
+		lastDestroyError.set(undefined);
 		if ($session) {
 			const action = dropsContract.action('destroy', {
 				owner: $session?.actor,
@@ -198,7 +218,146 @@
 		}
 	}
 
-	let tabSet: number = 0;
+	interface BindResult {
+		bound: number;
+		ram: number;
+		redeemed: Asset;
+		txid: string;
+	}
+
+	const lastBindResult: Writable<BindResult | undefined> = writable();
+	const lastBindError = writable();
+
+	async function bindSelected() {
+		console.log('bind', $selected);
+		lastBindError.set(undefined);
+		if ($session) {
+			const action = dropsContract.action('bind', {
+				owner: $session?.actor,
+				drops_ids: $selected
+			});
+
+			let result: TransactResult;
+			try {
+				result = await $session.transact({ action });
+			} catch (e) {
+				lastBindResult.set(undefined);
+				lastBindError.set(e);
+			}
+
+			result.returns.forEach((returnValue) => {
+				try {
+					const data = Serializer.decode({
+						data: returnValue.hex,
+						type: DropContract.Types.bind_return_value
+					});
+
+					if (Number(data.ram_sold.value) > 0) {
+						// Refresh drops that were bound
+						const dropsBound = $selected.map((s) => String(s));
+						drops.update((current) => {
+							const newDrops = [...current];
+							newDrops.forEach((row) => {
+								if (dropsBound.includes(String(row.seed))) {
+									row.bound = true;
+								}
+							});
+							return newDrops;
+						});
+
+						// Clear selected
+						selected.set([]);
+						selectingAll.set(false);
+
+						lastBindResult.set({
+							bound: dropsBound.length,
+							ram: Number(data.ram_sold),
+							redeemed: data.redeemed,
+							txid: String(result.resolved?.transaction.id)
+						});
+					}
+				} catch (e) {
+					// console.warn(e);
+				}
+			});
+		}
+	}
+
+	interface UnbindResult {
+		unbound: number;
+		cost: Asset;
+		refund: Asset;
+		txid: string;
+	}
+
+	const lastUnbindResult: Writable<UnbindResult | undefined> = writable();
+	const lastUnbindError = writable();
+
+	async function unbindSelected() {
+		console.log('bind', $selected);
+		lastUnbindError.set(undefined);
+		if ($session) {
+			const unbind = dropsContract.action('unbind', {
+				owner: $session?.actor,
+				drops_ids: $selected
+			});
+			const quantity = $dropsPrice * $selected.length;
+			const transfer = tokenContract.action('transfer', {
+				from: $session?.actor,
+				to: 'seed.gm',
+				quantity: Asset.fromUnits(quantity, '4,EOS'),
+				memo: 'unbind'
+			});
+			let result: TransactResult;
+			try {
+				result = await $session.transact({
+					actions: [transfer],
+					context_free_actions: [unbind]
+				});
+			} catch (e) {
+				lastUnbindResult.set(undefined);
+				lastUnbindError.set(e);
+			}
+
+			result.returns.forEach((returnValue) => {
+				try {
+					const data = Serializer.decode({
+						data: returnValue.hex,
+						type: DropContract.Types.generate_return_value
+					});
+
+					if (Number(data.cost.value) > 0) {
+						// Refresh drops that were unbound
+						const dropsUnbound = $selected.map((s) => String(s));
+						drops.update((current) => {
+							const newDrops = [...current];
+							newDrops.forEach((row) => {
+								if (dropsUnbound.includes(String(row.seed))) {
+									row.bound = false;
+								}
+							});
+							return newDrops;
+						});
+
+						// Clear selected
+						selected.set([]);
+						selectingAll.set(false);
+
+						lastUnbindResult.set({
+							unbound: dropsUnbound.length,
+							cost: data.cost,
+							refund: data.refund,
+							txid: String(result.resolved?.transaction.id)
+						});
+					}
+				} catch (e) {
+					// console.warn(e);
+				}
+			});
+		}
+	}
+
+	let tabSet: number = 4;
 </script>
 
 <div class="container p-4 sm:p-8 lg:p-16 mx-auto flex justify-center items-center">
@@ -245,6 +404,18 @@
 						<span
 							><PackageX class={`dark:text-pink-400 inline size-4 mr-2`} />
 							{$t('common.destroy')}</span
+						>
+					</Tab>
+					<Tab bind:group={tabSet} name="tab3" value={3}>
+						<span
+							><PackageX class={`dark:text-pink-400 inline size-4 mr-2`} />
+							Bind</span
+						>
+					</Tab>
+					<Tab bind:group={tabSet} name="tab4" value={4}>
+						<span
+							><PackageX class={`dark:text-pink-400 inline size-4 mr-2`} />
+							Unbind</span
 						>
 					</Tab>
 					<svelte:fragment slot="panel">
@@ -370,6 +541,132 @@
 												<tr>
 													<td class="text-right">{$t('inventory.itemeosredeemed')}</td>
 													<td>{$lastDestroyResult.redeemed}</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								{/if}
+							</form>
+						{:else if tabSet === 3}
+							<form class="space-y-4 p-8">
+								<p>
+									{$t('inventory.bindheader', { itemnames: $t('common.itemnames') })}
+								</p>
+								<button
+									type="button"
+									class="btn variant-filled"
+									on:click={bindSelected}
+									disabled={!$selected.length}
+								>
+									{$t('inventory.binditems', { itemnames: $t('common.itemnames') })}
+									{$selected.length}
+								</button>
+								{#if $lastBindError}
+									<aside class="alert variant-filled-error">
+										<div><AlertCircle /></div>
+										<div class="alert-message">
+											<h3 class="h3">{$t('common.transacterror')}</h3>
+											<p>{$lastBindError}</p>
+										</div>
+										<div class="alert-actions"></div>
+									</aside>
+								{/if}
+								{#if $lastBindResult}
+									<div class="table-container">
+										<table class="table">
+											<thead>
+												<tr>
+													<th
+														colspan="3"
+														class="variant-filled w-full bg-gradient-to-br from-green-500 to-green-700 box-decoration-clone"
+													>
+														<div class="lowercase text-sm text-white">
+															<a href={`https://bloks.io/transaction/${$lastBindResult.txid}`}
+																>{$lastBindResult.txid}</a
+															>
+														</div>
+													</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr>
+													<td class="text-right"
+														>{$t('inventory.itemsbound', {
+															itemnames: $t('common.itemnames')
+														})}</td
+													>
+													<td>{$lastBindResult.bound}</td>
+												</tr>
+												<tr>
+													<td class="text-right">{$t('inventory.itemramreclaimed')}</td>
+													<td>{$lastBindResult.ram}</td>
+												</tr>
+												<tr>
+													<td class="text-right">{$t('inventory.itemeosredeemed')}</td>
+													<td>{$lastBindResult.redeemed}</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								{/if}
+							</form>
+						{:else if tabSet === 4}
+							<form class="space-y-4 p-8">
+								<p>
+									{$t('inventory.unbindheader', { itemnames: $t('common.itemnames') })}
+								</p>
+								<button
+									type="button"
+									class="btn variant-filled"
+									on:click={unbindSelected}
+									disabled={!$selected.length}
+								>
+									{$t('inventory.unbinditems', { itemnames: $t('common.itemnames') })}
+									{$selected.length}
+								</button>
+								{#if $lastBindError}
+									<aside class="alert variant-filled-error">
+										<div><AlertCircle /></div>
+										<div class="alert-message">
+											<h3 class="h3">{$t('common.transacterror')}</h3>
+											<p>{$lastBindError}</p>
+										</div>
+										<div class="alert-actions"></div>
+									</aside>
+								{/if}
+								{#if $lastBindResult}
+									<div class="table-container">
+										<table class="table">
+											<thead>
+												<tr>
+													<th
+														colspan="3"
+														class="variant-filled w-full bg-gradient-to-br from-green-500 to-green-700 box-decoration-clone"
+													>
+														<div class="lowercase text-sm text-white">
+															<a href={`https://bloks.io/transaction/${$lastBindResult.txid}`}
+																>{$lastBindResult.txid}</a
+															>
+														</div>
+													</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr>
+													<td class="text-right"
+														>{$t('inventory.itemsbound', {
+															itemnames: $t('common.itemnames')
+														})}</td
+													>
+													<td>{$lastBindResult.bound}</td>
+												</tr>
+												<tr>
+													<td class="text-right">{$t('inventory.itemramreclaimed')}</td>
+													<td>{$lastBindResult.ram}</td>
+												</tr>
+												<tr>
+													<td class="text-right">{$t('inventory.itemeosredeemed')}</td>
+													<td>{$lastBindResult.redeemed}</td>
 												</tr>
 											</tbody>
 										</table>

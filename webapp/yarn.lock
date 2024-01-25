@@ -652,12 +652,13 @@
     bn.js "^4.11.9"
     tslib "^2.1.0"
 
-"@wharfkit/session@^1.2.5":
-  version "1.2.5"
-  resolved "https://registry.yarnpkg.com/@wharfkit/session/-/session-1.2.5.tgz#56a8a99de0424d96d0b00488180db3c9729d3609"
-  integrity sha512-EXKA9EB/8zF1CtLU/0ZXGAzieD8/vZDLd3jzj+zSQjZ4TyI8m22qxU/78y3JOvAS6g1m6Mh5bqDPCZN6oBWtxA==
+"@wharfkit/session@^1.2.7":
+  version "1.2.7"
+  resolved "https://registry.yarnpkg.com/@wharfkit/session/-/session-1.2.7.tgz#8ff802d311038058d0cd5f65abcb1a85725bd18f"
+  integrity sha512-EP6uszhUlC90UAHDg+ZoXJid4z+d+iXPgOcMlWfNivq6XtyYXU+uDO9nyuZ9aiGezUs0dcnWuXsB8SM8vuR2Nw==
   dependencies:
     "@wharfkit/abicache" "^1.2.1"
+    "@wharfkit/account" "^1.0.0"
     "@wharfkit/antelope" "^1.0.2"
     "@wharfkit/common" "^1.2.0"
     "@wharfkit/signing-request" "^3.1.0"

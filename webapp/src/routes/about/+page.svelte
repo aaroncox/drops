@@ -48,30 +48,63 @@
 			<li>
 				<p><strong>Use tokens to purchase RAM automatically</strong></p>
 				<p>
-					An account with an EOS token balance can send tokens to the smart contract to
-					automatically purchase RAM from the blockchain and create a Drop. The amount of RAM
-					purchased by the contract will be the exact amount required for the Drop(s) and amount
-					sent will be returned to the creator automatically.
+					An account with a token balance can send tokens directly to the smart contract to create
+					one or more drops. The smart contract will use the tokens sent to automatically purchase
+					the exact amount of RAM required to create the amount of Drops requested.
 				</p>
 				<p>
-					The smart contract will retain control of the RAM resource until the Drop is destroyed. By
-					allowing the smart contract this control, the Drop <u>will remain transferrable</u> to other
-					accounts.
+					Any excess tokens sent during this transfer that are not used to purchase RAM for the
+					creation of Drops will be automatically returned to the sender.
+				</p>
+				<p>
+					Using this method will create an <strong>unbound</strong> Drop. The smart contract will retain
+					control of the RAM resources used to create the Drop until the Drop is either destroyed or
+					is later bound to an account.
 				</p>
 			</li>
 			<li>
-				<p><strong>Use an accounts RAM balance</strong></p>
+				<p><strong>Use an accounts own RAM quota</strong></p>
 				<p>
-					An account may use its existing and available RAM balance to create a Drop. Creating a
-					Drop using this method will consume RAM directly from the account and will not require any
-					additional tokens.
+					An account with an available RAM quota may use its own resources to create one or more
+					Drops. Creating a Drop using this method will use the exact RAM amount required directly
+					from the account.
 				</p>
 				<p>
-					The account that created the Drop using this method will retain ownership of the RAM, but
-					the Drop <u>will not be transferrable</u> to other accounts.
+					Using this method will create a Drop that is <strong>bound</strong> to the account that created
+					it. The account that created the Drop will retain control of the RAM resources used to create
+					it.
 				</p>
 			</li>
 		</ol>
+		<h2>What are bound vs unbound Drops?</h2>
+		<p>
+			Every Drop that exists is either <strong>bound</strong> or <strong>unbound</strong>. This
+			property only affects whether a Drop may be transferred to another account or not.
+		</p>
+		<p>
+			A Drop which is <strong>bound</strong> is locked to a specific account and cannot be traded. The
+			underlying RAM resources for bound Drops are controlled by the owner.
+		</p>
+		<p>
+			A Drop which is <strong>unbound</strong> is unlocked and may be traded to other accounts. The underlying
+			RAM resources of the unbound Drops are controlled by the contract.
+		</p>
+		<p>
+			A Drop which is <strong>unbound</strong> may be <strong>bound</strong> to an account at any time.
+			This is done by requesting the Drop to be bound, which will use the owners RAM resources and sell
+			the RAM resources on the contract. The value of the RAM sold from the smart contract is sent to
+			the owner of the Drop.
+		</p>
+		<p>
+			A Drop which is <strong>bound</strong> to an account may be <strong>unbound</strong> at any time.
+			This is done by requesting the Drop to be unbound and sending the appropriate amount of tokens
+			to the smart contract in order to purchase the RAM required to transfer the Drop.
+		</p>
+		<p>
+			The process of switching between these two states will cause the smart contract to buy or sell
+			RAM resources in order to transfer who the RAM payer is, and will incur the 0.5% fee the
+			network charges for these operations.
+		</p>
 		<h2>Are there any fees when creating a Drop?</h2>
 		<p>Yes, network fees are required to create a Drop.</p>
 		<p>
