@@ -2,6 +2,7 @@
 
 #include <eosio.system/eosio.system.hpp>
 #include <eosio.token/eosio.token.hpp>
+#include <eosio/transaction.hpp>
 
 #include <drops/drops.hpp>
 #include <drops/ram.hpp>
@@ -152,6 +153,12 @@ public:
    {
       uint64_t ram_sold;
       asset    redeemed;
+   };
+
+   struct unbind_request
+   {
+      name                  owner;
+      std::vector<uint64_t> drops_ids;
    };
 
    /*

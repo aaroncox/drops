@@ -158,15 +158,18 @@ drops::generate_return_value drops::do_unbind(name from, name to, asset quantity
    auto        state_itr = state.find(1);
    check(state_itr->enabled, "Contract is currently disabled.");
 
-   // Find the unbind request of the owner
-   unbind_table unbinds(_self, _self.value);
-   auto         unbinds_itr = unbinds.find(from.value);
-   check(unbinds_itr != unbinds.end(), "No unbind request found for account.");
+   auto cfa = get_action(0, 1);
+   check(cfa.account == _self, "The unbind request must be sent to this contract.");
+   check(cfa.name == "unbind"_n, "The unbind request must be sent via a unbind action.");
+
+   drops::unbind_request unbind = unpack<drops::unbind_request>(cfa.data.data(), cfa.data.size());
+   check(unbind.owner == from, "The unbind request must be sent from the owner of the drops.");
+   check(unbind.drops_ids.size() > 0, "No drops were provided to unbind.");
 
    // Calculate amount of RAM needing to be purchased
    // NOTE: Additional RAM is being purchased to account for the buyrambytes bug
    // SEE: https://github.com/EOSIO/eosio.system/issues/30
-   uint64_t ram_purchase_amount = unbinds_itr->drops_ids.size() * (record_size + purchase_buffer);
+   uint64_t ram_purchase_amount = unbind.drops_ids.size() * (record_size + purchase_buffer);
 
    // Purchase the RAM for this transaction using the tokens from the transfer
    action(permission_level{_self, "active"_n}, "eosio"_n, "buyrambytes"_n,
@@ -175,7 +178,7 @@ drops::generate_return_value drops::do_unbind(name from, name to, asset quantity
 
    // Iterate over all drops selected to be unbound
    drops::drop_table drops(_self, _self.value);
-   for (auto it = begin(unbinds_itr->drops_ids); it != end(unbinds_itr->drops_ids); ++it) {
+   for (auto it = begin(unbind.drops_ids); it != end(unbind.drops_ids); ++it) {
       auto            drops_itr = drops.find(*it);
       drops::drop_row drop      = *drops_itr;
 
@@ -211,9 +214,6 @@ drops::generate_return_value drops::do_unbind(name from, name to, asset quantity
              std::tuple<name, name, asset, std::string>{_self, from, asset{remainder, EOS}, ""}}
          .send();
    }
-
-   // Destroy the unbind request now that its complete
-   unbinds.erase(unbinds_itr);
 
    return {
       0,                     // drops bought
