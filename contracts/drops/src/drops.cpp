@@ -545,9 +545,13 @@ drops::generate_return_value drops::do_unbind(name from, name to, asset quantity
                         "Reclaimed RAM value of " + std::to_string(drops_ids.size()) + " drops(s)");
    }
 
+   // Calculate how much of their own RAM the account reclaimed
+   uint64_t ram_reclaimed = bound_destroyed * record_size;
+
    return {
-      ram_sell_amount,  // ram sold
-      ram_sell_proceeds // redeemed ram value
+      ram_sell_amount,   // ram sold
+      ram_sell_proceeds, // redeemed ram value
+      ram_reclaimed      // ram released from owner
    };
 }
 

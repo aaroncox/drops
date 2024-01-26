@@ -146,6 +146,7 @@ public:
    {
       uint64_t ram_sold;
       asset    redeemed;
+      uint64_t ram_reclaimed;
    };
 
    struct bind_return_value
