@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { writable, type Writable } from 'svelte/store';
 	import { AlertCircle, Combine, Lock, Package2, PackageX } from 'svelte-lucide';
-	import { Asset, Serializer, UInt64, type TransactResult, Name } from '@wharfkit/session';
+	import { Asset, Serializer, UInt64, type TransactResult, Name, Bytes } from '@wharfkit/session';
 	import { Paginator, type PaginationSettings, TabGroup, Tab } from '@skeletonlabs/skeleton';
 
 	import { t } from '$lib/i18n';
@@ -713,8 +713,8 @@
 									/>
 								</td>
 								<td>
-									<p class="text-lg">{Name.from(drop.seed)}</p>
-									<p class="text-xs">{drop.seed}</p>
+									<p class="text-lg font-mono">{Bytes.from(drop.seed.byteArray)}</p>
+									<p class="text-xs font-mono">{drop.seed}</p>
 								</td>
 								<td>
 									<p class="text-lg">{drop.epoch}</p>
