@@ -109,8 +109,8 @@
 <div class="p-8 space-y-4">
 	<div class="h2">Oracles</div>
 	<p>
-		Oracles are responsible for dropsing random data using a commit/reveal strategy in order to
-		drops the final epoch values.
+		Oracles are responsible for seeding random data using a commit/reveal strategy in order to drops
+		the final epoch values.
 	</p>
 	{#if $epochs && $epochs.length && $allOracles}
 		<div class="table-container">

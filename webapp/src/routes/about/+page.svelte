@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { sizeDropRow } from '$lib/constants';
+	import { sizeDropRowPurchase } from '$lib/constants';
 	import { t } from '$lib/i18n';
 </script>
 
@@ -34,19 +34,6 @@
 			that anyone can create them by voluntarily consuming the resources they own to participate.
 			This voluntary resource consumption allows them to be used as the basis of a fair distribution
 			system or as drops data for cryptographic algorithms.
-		</p>
-		<h2>What is an Epoch?</h2>
-		<p>
-			Each Drop that is created is automatically associated to the epoch it was created during. Each
-			epoch represents a set period of time since the launch of the smart contract. When the Drops
-			contract launches, the first period of time will be epoch 1. After a predefined period of time
-			passes the contract will advance to epoch 2. This process will continue for the life of the
-			contract.
-		</p>
-		<p>
-			When a Drop is created it starts in an immature state and will remain that way until the next
-			epoch. Once the next epoch begins, the Drop will be considered mature and can be combined with
-			the epoch drops provided by the oracles for use in algorithms.
 		</p>
 		<h2>How do I create a Drop?</h2>
 		<p>
@@ -130,6 +117,19 @@
 				href="https://github.com/EOSIO/eosio.system/issues/30"
 				>an unresolved bug in the precision of the Bancor algorithm</a
 			>. This extra RAM will be utilized by the contract for additional data storage.
+		</p>
+		<h2>What is an Epoch?</h2>
+		<p>
+			Each Drop that is created is automatically associated to the epoch it was created during. Each
+			epoch represents a set period of time since the launch of the smart contract. When the Drops
+			contract launches, the first period of time will be epoch 1. After a predefined period of time
+			passes the contract will advance to epoch 2. This process will continue for the life of the
+			contract.
+		</p>
+		<p>
+			When a Drop is created it starts in an immature state and will remain that way until the next
+			epoch. Once the next epoch begins, the Drop will be considered mature and can be combined with
+			the epoch drops provided by the oracles for use in algorithms.
 		</p>
 		<h2>Oracles</h2>
 		<p>

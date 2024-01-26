@@ -107,7 +107,6 @@ lastEpochRevealed.subscribe((revealed: boolean) => {
 
 export const lastEpochRevealer = readable(lastEpochRevealed, function start(set) {
 	const interval = setInterval(() => {
-		console.log('lastEpochRevealed tick', lastEpochRevealed);
 		if (!lastEpochRevealed) {
 			oracleContract
 				.table('epoch')
@@ -119,7 +118,6 @@ export const lastEpochRevealer = readable(lastEpochRevealed, function start(set)
 					} else {
 						set(false);
 					}
-					console.log(epoch);
 				});
 		}
 	}, 1000);

@@ -1,4 +1,6 @@
 {
+	"bind": "Bind",
+	"unbind": "Unbind",
 	"itemname": "Drop",
 	"itemnames": "Drops",
 	"myitemnames": "My Drops",
@@ -6,6 +8,7 @@
 	"signout": "Sign out",
 	"home": "Home",
 	"generate": "Generate",
+	"language": "Language",
 	"accountname": "Account Name",
 	"current": "Current",
 	"costof": "at cost of",
@@ -20,5 +23,6 @@
 	"about": "About",
 	"readytoadvance": "Ready to advance...",
 	"signinfirst": "Sign-in first",
-	"transacterror": "Error processing transaction"
+	"transacterror": "Error processing transaction",
+	"transactsuccess": "Transaction Successful"
 }

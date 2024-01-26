@@ -15,7 +15,7 @@
 	import { AlertCircle, Loader2, MemoryStick, PackagePlus } from 'svelte-lucide';
 	import { DropContract, dropsContract, session, tokenContract } from '$lib/wharf';
 	import { getRamPrice } from '$lib/bancor';
-	import { sizeDropRow, sizeAccountRow, sizeStatRow } from '$lib/constants';
+	import { sizeDropRowPurchase, sizeAccountRow, sizeStatRow } from '$lib/constants';
 	import { t } from '$lib/i18n';
 	import { epochEnded, epochNumber, epochWaitingAdvance } from '$lib/epoch';
 	import { Tab, TabAnchor, TabGroup } from '@skeletonlabs/skeleton';
@@ -71,7 +71,7 @@
 	const totalRam: Readable<number | undefined> = derived(
 		[dropsAmount, accountStats, accountThisEpochStats],
 		([$dropsAmount, $accountStats, $accountThisEpochStats]) => {
-			let amount = $dropsAmount * sizeDropRow;
+			let amount = $dropsAmount * sizeDropRowPurchase;
 			if (!$accountStats) {
 				amount += sizeAccountRow;
 			}
@@ -137,8 +137,6 @@
 				})
 				.all();
 			if (results) {
-				console.log('loaded account epoch stats', JSON.stringify(results));
-
 				accountEpochStats.set(results);
 			}
 		}
@@ -147,7 +145,7 @@
 	async function loadRamPrice() {
 		const cost_plus_fee = await getRamPrice();
 		if (cost_plus_fee) {
-			dropsPrice.set(Number(cost_plus_fee) * sizeDropRow);
+			dropsPrice.set(Number(cost_plus_fee) * sizeDropRowPurchase);
 			accountPrice.set(Number(cost_plus_fee) * sizeAccountRow);
 			statsPrice.set(Number(cost_plus_fee) * sizeStatRow);
 		}
@@ -256,13 +254,6 @@
 		transacting.set(true);
 		if ($session) {
 			const hash = String(Checksum256.hash(Bytes.from(String($randomDrop), 'utf8')));
-			console.log(
-				JSON.stringify({
-					amount: $dropsAmount,
-					owner: $session.actor,
-					data: hash
-				})
-			);
 			const action = dropsContract.action('mint', {
 				amount: $dropsAmount,
 				owner: $session.actor,
@@ -537,7 +528,7 @@
 								<div class="text-lg font-bold">
 									{Asset.fromUnits($dropsAmount * $dropsPrice, '4,EOS')}
 								</div>
-								<div>{$dropsAmount * sizeDropRow} bytes</div>
+								<div>{$dropsAmount * sizeDropRowPurchase} bytes</div>
 							</td>
 						</tr>
 						{#if !$accountStats}

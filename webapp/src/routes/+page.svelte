@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from '$lib/i18n';
-	import { sizeDropRow } from '$lib/constants';
+	import { sizeDropRowPurchase } from '$lib/constants';
 	import { dropsContract } from '$lib/wharf';
 	import type { Readable } from 'svelte/motion';
 	import { derived, writable } from 'svelte/store';
@@ -14,7 +14,7 @@
 	const dropsPrice = writable(0);
 	const totaldrops = writable(0);
 	const totalRam = derived(totaldrops, ($totalRam) => {
-		return (($totalRam * sizeDropRow) / 1024).toLocaleString(undefined, {
+		return (($totalRam * sizeDropRowPurchase) / 1024).toLocaleString(undefined, {
 			minimumFractionDigits: 3,
 			maximumFractionDigits: 3
 		});
@@ -35,7 +35,7 @@
 		const cost_plus_fee = await getRamPrice();
 		if (cost_plus_fee) {
 			ramPrice.set(Number(cost_plus_fee));
-			dropsPrice.set(Number(cost_plus_fee) * sizeDropRow);
+			dropsPrice.set(Number(cost_plus_fee) * sizeDropRowPurchase);
 		}
 	}
 
@@ -58,11 +58,11 @@
 					.filter((s) => Number(s.drops) > 0)
 					.map((s) => ({
 						...s,
-						ram: ((Number(s.drops) * sizeDropRow) / 1024).toLocaleString(undefined, {
+						ram: ((Number(s.drops) * sizeDropRowPurchase) / 1024).toLocaleString(undefined, {
 							minimumFractionDigits: 3,
 							maximumFractionDigits: 3
 						}),
-						value: Asset.fromUnits(Number(s.drops) * sizeDropRow * $ramPrice, '4,EOS')
+						value: Asset.fromUnits(Number(s.drops) * sizeDropRowPurchase * $ramPrice, '4,EOS')
 					}));
 				totaldrops.set(results.reduce((t, result) => t + Number(result.drops), 0));
 				set(sorted);

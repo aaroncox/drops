@@ -23,3 +23,14 @@ export async function getRamPrice(): Promise<number | undefined> {
 		return cost_plus_fee / 10000;
 	}
 }
+
+export async function getRamPriceMinusFee(): Promise<number | undefined> {
+	const results = await systemContract.table('rammarket').get();
+	if (results) {
+		const { base, quote } = results;
+		const bytes = 10000;
+		const cost = get_bancor_input(base.balance, quote.balance, bytes);
+		const cost_plus_fee = Number(cost) * 0.995;
+		return cost_plus_fee / 10000;
+	}
+}
