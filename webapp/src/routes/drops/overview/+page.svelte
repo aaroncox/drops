@@ -6,8 +6,8 @@
 
 	import { t } from '$lib/i18n';
 
-	import MyItems from '../../lib/components/headers/myitems.svelte';
-	import { DropContract, dropsContract, session, systemContract } from '../../lib/wharf';
+	import MyItems from '$lib/components/headers/myitems.svelte';
+	import { DropContract, dropsContract, session, systemContract } from '$lib/wharf';
 	import { epochNumber } from '$lib/epoch';
 
 	const dropPrice: Writable<number> = writable();
