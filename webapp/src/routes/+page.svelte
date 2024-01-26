@@ -108,27 +108,6 @@
 			</tr>
 		</tbody>
 	</table>
-	<div class="h2 font-bold">{$t('home.distribution')}</div>
-	<table class="table">
-		<thead>
-			<tr>
-				<th>{$t('home.account')}</th>
-				<th class="text-right">{$t('home.value')}</th>
-				<th class="text-right">{$t('home.ramkb')}</th>
-				<th class="text-right">{$t('common.drops')}</th>
-			</tr>
-		</thead>
-		<tbody>
-			{#each $accounts as row}
-				<tr>
-					<td>{row.account}</td>
-					<td class="text-right">{row.value}</td>
-					<td class="text-right">{row.ram}</td>
-					<td class="text-right">{Number(row.drops).toLocaleString()}</td>
-				</tr>
-			{/each}
-		</tbody>
-	</table>
 </div>
 
 <style lang="postcss">

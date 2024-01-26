@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { derived, writable, type Readable, type Writable } from 'svelte/store';
 	import { AlertCircle } from 'svelte-lucide';
-	import { Asset, Serializer, type TransactResult, Name } from '@wharfkit/session';
+	import { Asset, Serializer, type TransactResult } from '@wharfkit/session';
 
 	import { t } from '$lib/i18n';
-	import { DropContract, session, dropsContract, tokenContract } from '$lib/wharf';
-	import { sizeDropRow, sizeDropRowPurchase } from '$lib/constants';
+	import { DropContract, session, dropsContract } from '$lib/wharf';
+	import { sizeDropRow } from '$lib/constants';
 
 	const destroying = writable(false);
 	export let drops: Writable<DropContract.Types.drop_row[]> = writable([]);

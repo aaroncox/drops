@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { derived, writable, type Readable, type Writable } from 'svelte/store';
 	import { AlertCircle, Combine } from 'svelte-lucide';
-	import { Asset, type TransactResult, Name } from '@wharfkit/session';
+	import { type TransactResult, Name } from '@wharfkit/session';
 
 	import { t } from '$lib/i18n';
 	import { DropContract, session, dropsContract } from '$lib/wharf';

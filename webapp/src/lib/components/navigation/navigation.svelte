@@ -1,14 +1,11 @@
 <script lang="ts">
 	import { getDrawerStore } from '@skeletonlabs/skeleton';
-	import { BadgeInfo, Home, LogOut, VenetianMask } from 'svelte-lucide';
+	import { BadgeInfo, Home, LogOut, PieChart, VenetianMask } from 'svelte-lucide';
 
 	import Generate from '../headers/generate.svelte';
 	import MyItems from '../headers/myitems.svelte';
-	import POS from '../headers/pos.svelte';
-	import Loot from '../headers/loot.svelte';
-	import Destroy from '../headers/destroy.svelte';
 	import { t, locales, locale } from '$lib/i18n';
-	import { logout, login, session } from '$lib/wharf';
+	import { logout, session } from '$lib/wharf';
 
 	const drawerStore = getDrawerStore();
 
@@ -55,6 +52,18 @@
 						class="bg-gradient-to-br from-slate-400 to-slate-300 bg-clip-text text-transparent box-decoration-clone"
 					>
 						Oracles
+					</span>
+				</div>
+			</a>
+		</li>
+		<li>
+			<a href="/distribution" on:click={drawerClose}>
+				<div class={`h4 flex items-center`}>
+					<PieChart class={`dark:text-slate-300 inline size-6 mr-4`} />
+					<span
+						class="bg-gradient-to-br from-slate-400 to-slate-300 bg-clip-text text-transparent box-decoration-clone"
+					>
+						Distribution
 					</span>
 				</div>
 			</a>
