@@ -10,7 +10,7 @@
 	const binding = writable(false);
 	export let drops: Writable<DropContract.Types.drop_row[]> = writable([]);
 	export let dropsPrice: Writable<number> = writable(0);
-	export let selected: Writable<string[]> = writable([]);
+	export let selected: Writable<Record<string, boolean>> = writable({});
 	export let selectingAll: Writable<boolean> = writable(false);
 
 	interface BindResult {
@@ -24,14 +24,14 @@
 	const lastBindError = writable();
 
 	const numBoundSelected = derived([drops, selected], ([$drops, $selected]) => {
-		const selectedBound = $selected.filter(
+		const selectedBound = Object.keys($selected).filter(
 			(s) => $drops.find((d) => String(d.seed) === String(s))?.bound
 		);
 		return selectedBound.length;
 	});
 
 	const numUnboundSelected = derived([drops, selected], ([$drops, $selected]) => {
-		const selectedBound = $selected.filter(
+		const selectedBound = Object.keys($selected).filter(
 			(s) => !$drops.find((d) => String(d.seed) === String(s))?.bound
 		);
 		return selectedBound.length;
@@ -64,7 +64,7 @@
 		if ($session) {
 			const action = dropsContract.action('bind', {
 				owner: $session?.actor,
-				drops_ids: $selected
+				drops_ids: Object.keys($selected)
 			});
 
 			let result: TransactResult;
@@ -81,19 +81,17 @@
 
 						if (Number(data.ram_sold.value) > 0) {
 							// Refresh drops that were bound
-							const dropsBound = $selected.map((s) => String(s));
+							const dropsBound = Object.keys($selected).map((s) => String(s));
 							drops.update((current) => {
-								const newDrops = [...current];
-								newDrops.forEach((row) => {
-									if (dropsBound.includes(String(row.seed))) {
-										row.bound = true;
-									}
-								});
-								return newDrops;
+								for (const toBind of dropsBound) {
+									const index = current.findIndex((row) => String(row.seed) === String(toBind));
+									current[index].bound = true;
+								}
+								return current;
 							});
 
 							// Clear selected
-							selected.set([]);
+							selected.set({});
 							selectingAll.set(false);
 
 							lastBindResult.set({
@@ -174,10 +172,10 @@
 		type="button"
 		class="btn bg-blue-400 w-full"
 		on:click={bindSelected}
-		disabled={!$selected.length || $isBoundSelected}
+		disabled={!Object.keys($selected).length || $isBoundSelected}
 	>
 		{$t('inventory.binditems', { itemnames: $t('common.itemnames') })}
-		{$selected.length}
+		{Object.keys($selected).length}
 	</button>
 	{#if $lastBindResult}
 		<div class="table-container">

@@ -8,14 +8,14 @@
 	import { DropContract } from '$lib/wharf';
 
 	export let drops: Writable<DropContract.Types.drop_row[]>;
-	export let selected: Writable<string[]>;
+	export let selected: Writable<Record<string, boolean>> = writable({});
 	export let selectingAll: Writable<boolean>;
 
 	let paginationSettings = {
 		page: 0,
 		limit: 10,
 		size: 20,
-		amounts: [10, 25, 100, 500, 1000, 5000]
+		amounts: [10, 25, 100, 500, 1000, 2500]
 	} satisfies PaginationSettings;
 
 	const searchingFor: Writable<string> = writable();
@@ -42,15 +42,13 @@
 			const { checked, value } = e.target as HTMLInputElement;
 			if (checked) {
 				selected.update((s) => {
-					s.push(value);
+					s[value] = true;
 					return s;
 				});
 			} else {
 				selected.update((s) => {
-					const newSelected = [...s];
-					const index = newSelected.indexOf(value);
-					newSelected.splice(index, 1);
-					return newSelected;
+					delete s[value];
+					return s;
 				});
 			}
 		}
@@ -61,10 +59,15 @@
 			const { checked } = e.target as HTMLInputElement;
 			if (checked) {
 				selectingAll.set(true);
-				selected.set(paginatedSource.map((s) => String(s.seed)));
+				selected.update((current) => {
+					paginatedSource.forEach((s) => (current[String(s.seed)] = true));
+					return current;
+				});
+				console.log('selected complete');
 			} else {
 				selectingAll.set(false);
-				selected.set([]);
+				selected.set({});
+				console.log('selected complete');
 			}
 		}
 	}
@@ -110,12 +113,16 @@
 			{#each paginatedSource as drop}
 				<tr>
 					<td class="text-center">
-						<input
-							checked={$selected.includes(String(drop.seed))}
-							type="checkbox"
-							on:change={selectDrop}
-							value={drop.seed}
-						/>
+						{#if $selectingAll}
+							<input checked type="checkbox" disabled />
+						{:else}
+							<input
+								checked={$selected[String(drop.seed)]}
+								type="checkbox"
+								on:change={selectDrop}
+								value={drop.seed}
+							/>
+						{/if}
 					</td>
 					<td class="flex justify-center items-center">
 						{#if drop.bound}

@@ -10,7 +10,7 @@
 	const destroying = writable(false);
 	export let drops: Writable<DropContract.Types.drop_row[]> = writable([]);
 	export let dropsPrice: Writable<number> = writable(0);
-	export let selected: Writable<string[]> = writable([]);
+	export let selected: Writable<Record<string, boolean>> = writable({});
 	export let selectingAll: Writable<boolean> = writable(false);
 
 	interface DestroyResult {
@@ -22,14 +22,14 @@
 	}
 
 	const numBoundSelected = derived([drops, selected], ([$drops, $selected]) => {
-		const selectedBound = $selected.filter(
+		const selectedBound = Object.keys($selected).filter(
 			(s) => $drops.find((d) => String(d.seed) === String(s))?.bound
 		);
 		return selectedBound.length;
 	});
 
 	const numUnboundSelected = derived([drops, selected], ([$drops, $selected]) => {
-		const selectedBound = $selected.filter(
+		const selectedBound = Object.keys($selected).filter(
 			(s) => !$drops.find((d) => String(d.seed) === String(s))?.bound
 		);
 		return selectedBound.length;
@@ -65,7 +65,7 @@
 		if ($session) {
 			const action = dropsContract.action('destroy', {
 				owner: $session?.actor,
-				drops_ids: $selected,
+				drops_ids: Object.keys($selected),
 				memo: ''
 			});
 
@@ -81,16 +81,24 @@
 							type: DropContract.Types.destroy_return_value
 						});
 
+						console.log('destroyed');
 						if (Number(data.ram_sold.value) > 0 || Number(data.ram_reclaimed.value) > 0) {
 							// Remove destroyed from list
-							const dropsDestroyed = $selected.map((s) => String(s));
-							drops.update((current) =>
-								current.filter((row) => !dropsDestroyed.includes(String(row.seed)))
-							);
+							const dropsDestroyed = Object.keys($selected).map((s) => String(s));
+							console.log('were destroyed', dropsDestroyed);
 
 							// Clear selected
-							selected.set([]);
+							selected.set({});
 							selectingAll.set(false);
+
+							// Update the store and remove those that were destroyed
+							drops.update((current) => {
+								for (const toRemove of dropsDestroyed) {
+									const index = current.findIndex((row) => String(row.seed) === String(toRemove));
+									current.splice(index, 1);
+								}
+								return current;
+							});
 
 							lastDestroyResult.set({
 								destroyed: dropsDestroyed.length,
@@ -99,6 +107,7 @@
 								reclaimed: Number(data.ram_reclaimed),
 								txid: String(result.resolved?.transaction.id)
 							});
+							console.log('result updated');
 						}
 					} catch (e) {
 						// console.log(e);
@@ -115,7 +124,10 @@
 
 <form class="space-y-8 p-4">
 	<p>
-		{$t('inventory.destroyheader', { itemnames: $t('common.itemnames'), drops: $selected.length })}
+		{$t('inventory.destroyheader', {
+			itemnames: $t('common.itemnames'),
+			drops: Object.keys($selected).length
+		})}
 	</p>
 	<div class="table-container">
 		<table class="table">
@@ -161,9 +173,12 @@
 		type="button"
 		class="btn w-full bg-pink-600"
 		on:click={destroySelected}
-		disabled={!$selected.length || $destroying}
+		disabled={!Object.keys($selected).length || $destroying}
 	>
-		{$t('inventory.destroyitems', { itemnames: $t('common.itemnames'), drops: $selected.length })}
+		{$t('inventory.destroyitems', {
+			itemnames: $t('common.itemnames'),
+			drops: Object.keys($selected).length
+		})}
 	</button>
 	{#if $lastDestroyResult}
 		<div class="table-container">

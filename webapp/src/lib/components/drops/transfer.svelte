@@ -8,7 +8,7 @@
 
 	const transferring = writable(false);
 	export let drops: Writable<DropContract.Types.drop_row[]> = writable([]);
-	export let selected: Writable<string[]> = writable([]);
+	export let selected: Writable<Record<string, boolean>> = writable({});
 	export let selectingAll: Writable<boolean> = writable(false);
 
 	interface TransferResult {
@@ -22,7 +22,7 @@
 	const lastTransferResult: Writable<TransferResult | undefined> = writable();
 	const lastTransferError = writable();
 	const isBoundSelected: Readable<boolean> = derived([drops, selected], ([$drops, $selected]) => {
-		const selectedBound = $selected.find(
+		const selectedBound = Object.keys($selected).find(
 			(s) => $drops.find((d) => String(d.seed) === String(s))?.bound
 		);
 		return !!selectedBound;
@@ -30,7 +30,7 @@
 	const isDisabled = derived(
 		[isBoundSelected, selected, transferTo, transferring],
 		([$isBoundSelected, $selected, $transferTo, $transferring]) => {
-			return $transferring || $isBoundSelected || !$selected.length || !$transferTo;
+			return $transferring || $isBoundSelected || !Object.keys($selected).length || !$transferTo;
 		}
 	);
 
@@ -43,7 +43,7 @@
 			const action = dropsContract.action('transfer', {
 				from: $session?.actor,
 				to,
-				drops_ids: $selected,
+				drops_ids: Object.keys($selected),
 				memo: ''
 			});
 
@@ -53,12 +53,16 @@
 				transferring.set(false);
 
 				// Remove transferred from list
-				const dropsTransferred = $selected.map((s) => String(s));
-				drops.update((current) =>
-					current.filter((row) => !dropsTransferred.includes(String(row.seed)))
-				);
+				const dropsTransferred = Object.keys($selected).map((s) => String(s));
+				drops.update((current) => {
+					for (const toTransfer of dropsTransferred) {
+						const index = current.findIndex((row) => String(row.seed) === String(toTransfer));
+						current.splice(index, 1);
+					}
+					return current;
+				});
 
-				selected.set([]);
+				selected.set({});
 				selectingAll.set(false);
 
 				lastTransferResult.set({
@@ -80,7 +84,7 @@
 	<p>
 		{$t('inventory.transferdescription', {
 			itemnames: $t('common.itemnames'),
-			drops: $selected.length
+			drops: Object.keys($selected).length
 		})}
 	</p>
 	<label class="label">
@@ -120,7 +124,10 @@
 		disabled={$isDisabled}
 	>
 		<Combine class={`inline size-6 mr-2`} />
-		{$t('inventory.transferitem', { itemnames: $t('common.itemnames'), drops: $selected.length })}
+		{$t('inventory.transferitem', {
+			itemnames: $t('common.itemnames'),
+			drops: Object.keys($selected).length
+		})}
 	</button>
 	{#if $lastTransferResult}
 		<div class="table-container">
