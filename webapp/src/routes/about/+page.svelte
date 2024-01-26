@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { sizeDropRow } from '$lib/constants';
 	import { t } from '$lib/i18n';
 </script>
 
@@ -6,18 +7,27 @@
 	<article class="prose lg:prose-xl dark:prose-invert">
 		<h1>Drops</h1>
 		<h2>What is a Drop?</h2>
+		<p>Each individual Drop is a unique, non-fungible piece of data owned by a specific account.</p>
 		<p>
-			Each Drop is a non-fungible piece of data owned by a specific account and persisted on the
-			blockchain. Anyone can create a unique Drop by consuming network resources (CPU, NET, and
-			RAM). Drops can be freely transferred and traded between accounts. An unwanted Drop can also
-			be destroyed to reclaim the RAM that was used to create it.
+			Anyone is free to create as many unique Drops as they'd like by using their own network
+			resources. These Drops can then be used by other applications as seed data in various types of
+			algorithms in a provably fair manner, with each Drop representing a unique outcome.
+		</p>
+		<p>
+			Using a Drop with another application can happen in multiple ways, which is decided by
+			creators of that application. The application could require you verify ownership of a Drop,
+			transfer a Drop, or even Destroy a drop to participate.
+		</p>
+		<p>
+			Drops can also be traded between accounts and an unwanted Drop can also be destroyed to
+			reclaim the RAM (bound) or RAM value (unbound) that was used to create it.
 		</p>
 		<h2>Are Drops a form of inscription?</h2>
 		<p>
 			At the most primitive level, yes - Drops are a form of inscription. However, Drops are not
 			inscriptions in the traditional sense. Drops are not associated directly with a fungible token
 			through use of an ordinal, they are instead guaranteed unique non-fungible entries in a smart
-			contract that can be used in any number of ways.
+			contract that can be used in many different of ways.
 		</p>
 		<p>
 			They do share many of the same qualities as inscriptions, such as fairness and inclusion, in
