@@ -81,11 +81,9 @@
 							type: DropContract.Types.destroy_return_value
 						});
 
-						console.log('destroyed');
 						if (Number(data.ram_sold.value) > 0 || Number(data.ram_reclaimed.value) > 0) {
 							// Remove destroyed from list
 							const dropsDestroyed = Object.keys($selected).map((s) => String(s));
-							console.log('were destroyed', dropsDestroyed);
 
 							// Clear selected
 							selected.set({});
@@ -107,7 +105,6 @@
 								reclaimed: Number(data.ram_reclaimed),
 								txid: String(result.resolved?.transaction.id)
 							});
-							console.log('result updated');
 						}
 					} catch (e) {
 						// console.log(e);
