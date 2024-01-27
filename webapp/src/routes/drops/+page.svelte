@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { writable, type Writable } from 'svelte/store';
-	import { Combine, Lock, PackageX, Unlock } from 'svelte-lucide';
+	import { AlertCircle, Combine, Lock, PackageX, Unlock } from 'svelte-lucide';
 	import { Checksum256, Serializer, UInt64 } from '@wharfkit/session';
 	import { TabGroup, Tab } from '@skeletonlabs/skeleton';
 
@@ -154,7 +154,18 @@
 	</div>
 	<div class="col-span-3 2xl:col-span-3">
 		<div class="p-8">
-			{#if !$loaded}
+			{#if !$session}
+				<div class="p-4 space-y-4">
+					<aside class="alert variant-filled-error">
+						<div><AlertCircle /></div>
+						<div class="alert-message">
+							<h3 class="h3">{$t('common.signinfirst')}</h3>
+							<p>{$t('inventory.signinfirst', { itemnames: $t('common.itemnames') })}</p>
+						</div>
+						<div class="alert-actions"></div>
+					</aside>
+				</div>
+			{:else if !$loaded}
 				<section class="card w-full p-12">
 					<div class="p-4 space-y-4">
 						<div class="text-center h2">{$t('common.loading')}</div>
