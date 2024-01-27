@@ -86,7 +86,8 @@
 						{#if $epochWaitingAdvance}
 							{$t('common.readytoadvance')}
 						{:else}
-							{$t('common.epochend')}: {formatClockValue($epochRemainingHours)}:{formatClockValue(
+							<span class="hidden sm:block">{$t('common.epochend')}:</span>
+							{formatClockValue($epochRemainingHours)}:{formatClockValue(
 								$epochRemainingMinutes
 							)}:{formatClockValue($epochRemainingSeconds)}
 						{/if}
