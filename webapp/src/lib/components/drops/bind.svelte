@@ -122,24 +122,24 @@
 		<table class="table">
 			<thead>
 				<tr>
-					<th colspan="2"> Estimated Results </th>
+					<th colspan="2"> {$t('inventory.estimatedresults')} </th>
 				</tr>
 			</thead>
 			<tbody>
 				{#if $isUnboundSelected}
 					<tr>
-						<th>RAM to be used</th>
+						<th>{$t('inventory.ramtouse')}</th>
 						<td>{$estimatedRAM} bytes</td>
 					</tr>
 					<tr>
-						<th>EOS Redeemed</th>
+						<th>{$t('inventory.tokenredeemed', { token: 'EOS' })}</th>
 						<td>{Asset.fromUnits($estimatedEOS, '4,EOS')}</td>
 					</tr>
 				{/if}
 				{#if !$isBoundSelected && !$isUnboundSelected}
 					<tr>
 						<td colspan="2" class="text-center">
-							Select one or more {$t('common.itemnames')} to begin estimation.
+							{$t('inventory.estimationwaiting', { itemnames: $t('common.itemnames') })}
 						</td>
 					</tr>
 				{/if}

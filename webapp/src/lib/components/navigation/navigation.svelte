@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getDrawerStore } from '@skeletonlabs/skeleton';
-	import { BadgeInfo, Home, LogOut, PieChart, VenetianMask } from 'svelte-lucide';
+	import { Home, LogOut, PieChart, VenetianMask } from 'svelte-lucide';
 
 	import Generate from '../headers/generate.svelte';
 	import MyItems from '../headers/myitems.svelte';
@@ -51,7 +51,7 @@
 					<span
 						class="bg-gradient-to-br from-pink-300 to-violet-300 bg-clip-text text-transparent box-decoration-clone"
 					>
-						Oracles
+						{$t('common.oracles')}
 					</span>
 				</div>
 			</a>
@@ -63,7 +63,7 @@
 					<span
 						class="bg-gradient-to-br from-purple-300 to-blue-300 bg-clip-text text-transparent box-decoration-clone"
 					>
-						Distribution
+						{$t('common.distribution')}
 					</span>
 				</div>
 			</a>
@@ -89,7 +89,9 @@
 				<span>{$t('common.language')}</span>
 				<select class="select" bind:value={$locale} on:change={handleChange}>
 					{#each $locales as value}
-						<option {value} selected={$locale === value}>{value}</option>
+						<option {value} selected={$locale === value}
+							>{$t(`common.${value}`)} ({value.toUpperCase()})</option
+						>
 					{/each}
 				</select>
 			</label>

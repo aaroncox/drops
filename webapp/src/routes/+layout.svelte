@@ -25,12 +25,12 @@
 
 	const handleChange = ({ currentTarget }) => {
 		const { value } = currentTarget;
-		document.cookie = `lang=${value} ;`;
+		document.cookie = `lang=${value};`;
 	};
 
 	function getLanguage(name: string) {
-		const value = `; ${document.cookie}`;
-		const parts = value.split(`; ${name}=`);
+		const value = document.cookie;
+		const parts = value.split(`=`);
 		if (parts && parts.length === 2) {
 			return parts.pop().split(';').shift();
 		}
@@ -84,11 +84,9 @@
 					<p>Epoch: {$epochNumber}</p>
 					<span class="text-sm">
 						{#if $epochWaitingAdvance}
-							<span title="Will advance to next epoch on next action"
-								>{$t('common.readytoadvance')}</span
-							>
+							{$t('common.readytoadvance')}
 						{:else}
-							Ends: {formatClockValue($epochRemainingHours)}:{formatClockValue(
+							{$t('common.epochend')}: {formatClockValue($epochRemainingHours)}:{formatClockValue(
 								$epochRemainingMinutes
 							)}:{formatClockValue($epochRemainingSeconds)}
 						{/if}

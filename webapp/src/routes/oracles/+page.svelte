@@ -107,10 +107,9 @@
 </script>
 
 <div class="p-8 space-y-4">
-	<div class="h2">Oracles</div>
+	<div class="h2">{$t('common.oracles')}</div>
 	<p>
-		Oracles are responsible for seeding random data using a commit/reveal strategy in order to drops
-		the final epoch values.
+		{$t('common.oraclesdescription')}
 	</p>
 	{#if $epochs && $epochs.length && $allOracles}
 		<div class="table-container">
@@ -118,17 +117,17 @@
 				<thead>
 					<tr>
 						<th class="text-center">
-							Epoch
-							<div class="text-xs text-slate-400">Number</div>
+							{$t('common.epoch')}
+							<div class="text-xs text-slate-400">{$t('common.number')}</div>
 						</th>
 						<th class="text-center">
-							Drop
-							<div class="text-xs text-slate-400">From Oracles</div>
+							{$t('common.itemname')}
+							<div class="text-xs text-slate-400">{$t('common.fromoracles')}</div>
 						</th>
 						{#each $allOracles as oracle}
 							<th class="text-center lowercase">
 								<span class="text-xs">{oracle}</span>
-								<div class="text-xs text-slate-400">Oracle</div>
+								<div class="text-xs text-slate-400">{$t('common.oracle')}</div>
 							</th>
 						{/each}
 					</tr>
@@ -145,14 +144,14 @@
 								<td class="text-center">
 									{#if record}
 										{#if record.reveal}
-											<span class="text-green-500">Revealed</span>
+											<span class="text-green-500">{$t('common.oraclerevealed')}</span>
 										{:else if record.commit}
-											<span class="text-yellow-500">Committed</span>
+											<span class="text-yellow-500">{$t('common.oraclecommitted')}</span>
 										{:else}
-											<span class="text-red-500">Waiting...</span>
+											<span class="text-red-500">{$t('common.oraclewaiting')}</span>
 										{/if}
 									{:else}
-										<span class="text-slate-500">n/a</span>
+										<span class="text-slate-500">{$t('common.oraclena')}</span>
 									{/if}
 								</td>
 							{/each}

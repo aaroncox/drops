@@ -1,12 +1,15 @@
 {
-	"header": "使用EOS代幣從區塊鏈購買RAM並生成種子。",
-	"togenerate": "要生成的種子數",
-	"signinfirst": "您必須登錄才能生成種子。",
-	"generatedropsepoch": "紀元的種子",
+	"costbreakdown": "文件声明",
+	"generatedropsepoch": "{{itemnames}} 生成於 epoch {{epoch}}",
+	"generateitemnamesepoch": "紀元中的{{itemnames}}",
+	"headereos": "使用EOS代币从区块链购买RAM并生成未绑定的{{itemnames}}。",
+	"headerram": "使用可用的帳戶RAM餘額生成綁定的{{itemnames}}。",
 	"ramcost": "RAM 成本",
-	"overpaymentrefund": "退還多付的款項",
-	"costbreakdown": "成本明細",
-	"ramstorage": "RAM存儲",
-	"ramsignup": "RAM註冊",
-	"ramepoch": "RAM時代"
+	"ramepoch": "RAM时代",
+	"ramsignup": "RAM注册",
+	"ramstorage": "RAM存储",
+	"signinfirst": "您必须登录才能生成 {{itemnames}}。",
+	"togenerate": "要生成的 {{itemnames}} 個数",
+	"useeos": "使用EOS",
+	"useram": "使用RAM"
 }

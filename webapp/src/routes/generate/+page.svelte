@@ -377,18 +377,18 @@
 			class="bg-surface-100-800-token w-full"
 		>
 			<Tab bind:group={tabSet} name="tab1" value={0}>
-				<span>Use EOS</span>
+				<span>{$t('generate.useeos')}</span>
 			</Tab>
 			<Tab bind:group={tabSet} name="tab2" value={1}>
-				<span>Use RAM</span>
+				<span>{$t('generate.useram')}</span>
 			</Tab>
 			<svelte:fragment slot="panel">
 				<div class="p-6 space-y-8 shadow-xl rounded-lg">
 					<form class="space-y-8" on:submit|preventDefault={tabSet === 0 ? buy : mint}>
 						{#if tabSet === 0}
-							<p>{$t('generate.header', { itemnames: $t('common.itemnames') })}</p>
+							<p>{$t('generate.headereos', { itemnames: $t('common.itemnames') })}</p>
 						{:else if tabSet === 1}
-							<p>Use the RAM you currently own to generate drops.</p>
+							<p>{$t('generate.headerram', { itemnames: $t('common.itemnames') })}</p>
 						{/if}
 						<label class="label">
 							<span>{$t('generate.togenerate')}</span>
@@ -413,7 +413,9 @@
                         </label> -->
 						{#if !$useRandomDrop}
 							<label class="label space-y-4">
-								<span class="h4 font-bold">Unique Drop Value</span>
+								<span class="h4 font-bold"
+									>{$t('generate.dropseedvalue', { itemname: $t('common.itemname') })}</span
+								>
 								<input class="input" type="text" placeholder="Random Drop" value={$randomDrop} />
 							</label>
 						{/if}
@@ -474,7 +476,7 @@
 								colspan="3"
 								class="variant-filled w-full bg-gradient-to-br from-green-500 to-green-700 box-decoration-clone"
 							>
-								<div class="text-white text-center">Success</div>
+								<div class="text-white text-center">{$t('common.transactsuccess')}</div>
 								<div class="lowercase text-xs text-white text-center">
 									<a href={`https://bloks.io/transaction/${$lastResultId}`}
 										><pre>{$lastResultId}</pre></a
@@ -486,7 +488,12 @@
 					<tbody>
 						<tr>
 							<td class="text-right">{$lastResult.drops}</td>
-							<td>{$t('generate.generatedropsepoch')} {$lastResult.epoch}</td>
+							<td
+								>{$t('generate.generatedropsepoch', {
+									itemnames: $t('common.itemnames'),
+									epoch: $lastResult.epoch
+								})}
+							</td>
 						</tr>
 						<tr>
 							<td class="text-right">{$lastResult.cost}</td>
@@ -494,7 +501,7 @@
 						</tr>
 						<tr>
 							<td class="text-right">{$lastResult.refund}</td>
-							<td>{$t('generate.overpaymentrefund')}</td>
+							<td>{$t('common.overpaymentrefund')}</td>
 						</tr>
 					</tbody>
 				</table>
@@ -505,7 +512,7 @@
 				<table class="table table-hover">
 					<thead>
 						<tr>
-							<th colspan="3"> Cost Breakdown </th>
+							<th colspan="3"> {$t('generate.costbreakdown')} </th>
 						</tr>
 						<!-- <tr>
 								<th class="text-right">Item</th>

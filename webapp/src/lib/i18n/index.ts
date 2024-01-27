@@ -61,6 +61,30 @@ export const config = {
 			key: 'generate',
 			routes: ['/generate'],
 			loader: async () => (await import('./zh/generate.json')).default
+		},
+		// Korean
+		{
+			locale: 'kr',
+			key: 'common',
+			loader: async () => (await import('./kr/common.json')).default
+		},
+		{
+			locale: 'kr',
+			key: 'home',
+			routes: ['/'],
+			loader: async () => (await import('./kr/home.json')).default
+		},
+		{
+			locale: 'kr',
+			key: 'inventory',
+			routes: ['/drops', '/drops/list'],
+			loader: async () => (await import('./kr/inventory.json')).default
+		},
+		{
+			locale: 'kr',
+			key: 'generate',
+			routes: ['/generate'],
+			loader: async () => (await import('./kr/generate.json')).default
 		}
 	]
 };

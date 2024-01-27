@@ -1,0 +1,15 @@
+{
+	"costbreakdown": "문서 명세서",
+	"generatedropsepoch": "{{itemnames}} 生成於 시대 {{epoch}}",
+	"generateitemnamesepoch": "紀元中的{{itemnames}}",
+	"headereos": "EOS 토큰을 사용하여 블록체인에서 RAM을 구매하고 언본드 {{itemnames}}를 생성합니다.",
+	"headerram": "使用可用的帳戶RAM餘額生成綁定的{{itemnames}}。",
+	"ramcost": "RAM 비용",
+	"ramepoch": "RAM 시대",
+	"ramsignup": "RAM 등록",
+	"ramstorage": "RAM 스토리지",
+	"signinfirst": "{{itemnames}}을(를) 생성하려면 로그인해야 합니다.",
+	"togenerate": "要生成的 {{itemnames}} 個数",
+	"useeos": "EOS 사용",
+	"useram": "RAM 사용"
+}

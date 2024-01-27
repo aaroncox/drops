@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { writable, type Writable } from 'svelte/store';
 	import { AlertCircle, Combine, Lock, PackageX, Unlock } from 'svelte-lucide';
-	import { Checksum256, Serializer, UInt64 } from '@wharfkit/session';
+	import { Serializer, UInt64 } from '@wharfkit/session';
 	import { TabGroup, Tab } from '@skeletonlabs/skeleton';
 
 	import { t } from '$lib/i18n';

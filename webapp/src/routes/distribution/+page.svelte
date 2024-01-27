@@ -42,15 +42,15 @@
 </script>
 
 <div class="p-8 space-y-8">
-	<div class="h2 font-bold">{$t('home.distribution')}</div>
-	<p>The accounts who currently hold Drops.</p>
+	<div class="h2 font-bold">{$t('common.distribution')}</div>
+	<p>{$t('common.distributiondescription')}</p>
 	<table class="table">
 		<thead>
 			<tr>
 				<th />
-				<th>{$t('home.account')}</th>
+				<th>{$t('common.accountname')}</th>
 				<th class="text-right">%</th>
-				<th class="text-right">{$t('home.ramkb')}</th>
+				<th class="text-right">{$t('common.ramkb')}</th>
 				<th class="text-right">{$t('common.itemnames')}</th>
 			</tr>
 		</thead>

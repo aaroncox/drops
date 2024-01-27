@@ -95,7 +95,7 @@
 							bind:value={$searchingFor}
 							class="input rounded"
 							type="text"
-							placeholder="Search..."
+							placeholder={$t('common.search')}
 						/>
 					</label>
 				</td>
