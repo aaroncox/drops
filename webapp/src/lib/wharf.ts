@@ -10,7 +10,7 @@ import { WalletPluginWombat } from '@wharfkit/wallet-plugin-wombat';
 import WebRenderer from '@wharfkit/web-renderer';
 
 import { writable, type Writable } from 'svelte/store';
-import { env } from '$env/dynamic/public';
+import { PUBLIC_CHAIN_NAME, PUBLIC_LOCAL_SIGNER } from '$env/static/public';
 
 import { Contract as SystemContract } from './contracts/eosio';
 export * as SystemContract from './contracts/drops';
@@ -24,9 +24,10 @@ export * as DropContract from './contracts/drops';
 import { Contract as OracleContract } from './contracts/oracle.drops';
 export * as OracleContract from './contracts/oracle.drops';
 
-const queryString = window.location.search;
-const urlParams = new URLSearchParams(queryString);
-export const url = urlParams.get('node') || 'https://jungle4.greymass.com';
+export const chain = Chains[PUBLIC_CHAIN_NAME];
+if (!chain) {
+	throw new Error(`Unknown chain: ${PUBLIC_CHAIN_NAME}`);
+}
 
 const walletPlugins = [
 	new WalletPluginAnchor(),
@@ -36,12 +37,12 @@ const walletPlugins = [
 ];
 
 // If a local key is provided, add the private key wallet
-if (env.PUBLIC_LOCAL_SIGNER) {
-	walletPlugins.unshift(new WalletPluginPrivateKey(env.PUBLIC_LOCAL_SIGNER));
+if (PUBLIC_LOCAL_SIGNER) {
+	walletPlugins.unshift(new WalletPluginPrivateKey(PUBLIC_LOCAL_SIGNER));
 }
 
-export const client = new APIClient({ url });
-export const accountKit = new AccountKit(Chains.EOS, { client });
+export const client = new APIClient({ url: chain.url });
+export const accountKit = new AccountKit(chain, { client });
 export const contractKit = new ContractKit({
 	client
 });
@@ -54,12 +55,7 @@ export const oracleContract: OracleContract = new OracleContract({ client });
 export const sessionKit = new SessionKit(
 	{
 		appName: 'Drops',
-		chains: [
-			{
-				id: Chains.Jungle4.id,
-				url
-			}
-		],
+		chains: [chain],
 		ui: new WebRenderer({ minimal: true }),
 		walletPlugins
 	},
