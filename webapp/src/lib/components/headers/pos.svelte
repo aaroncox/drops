@@ -10,8 +10,9 @@
 	<PackageOpen class={`dark:text-purple-400 inline size-${size} mr-4`} />
 	<span
 		class="bg-gradient-to-br from-purple-500 to-blue-300 bg-clip-text text-transparent box-decoration-clone"
-		>Proof of {$t('common.itemnames')}</span
 	>
+		Proof of {$t('common.itemnames')}
+	</span>
 </div>
 
 <style lang="postcss">

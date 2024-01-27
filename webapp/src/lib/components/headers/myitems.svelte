@@ -9,7 +9,7 @@
 <div class={`${format} flex items-center`}>
 	<Package class={`dark:text-green-400 inline size-${size} mr-4`} />
 	<span
-		class="bg-gradient-to-br from-green-500 to-blue-300 bg-clip-text text-transparent box-decoration-clone"
+		class="bg-gradient-to-br from-green-300 to-blue-300 bg-clip-text text-transparent box-decoration-clone"
 		>{$t('common.myitemnames')}</span
 	>
 </div>

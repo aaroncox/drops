@@ -25,9 +25,9 @@
 		<li>
 			<a href="/" on:click={drawerClose}>
 				<div class={`h4 flex items-center`}>
-					<Home class={`dark:text-slate-300 inline size-6 mr-4`} />
+					<Home class={`dark:text-yellow-300 inline size-6 mr-4`} />
 					<span
-						class="bg-gradient-to-br from-slate-400 to-slate-300 bg-clip-text text-transparent box-decoration-clone"
+						class="bg-gradient-to-br from-yellow-400 to-orange-200 bg-clip-text text-transparent box-decoration-clone"
 					>
 						{$t('common.home')}
 					</span>
@@ -47,9 +47,9 @@
 		<li>
 			<a href="/oracles" on:click={drawerClose}>
 				<div class={`h4 flex items-center`}>
-					<VenetianMask class={`dark:text-slate-300 inline size-6 mr-4`} />
+					<VenetianMask class={`dark:text-pink-400 inline size-6 mr-4`} />
 					<span
-						class="bg-gradient-to-br from-slate-400 to-slate-300 bg-clip-text text-transparent box-decoration-clone"
+						class="bg-gradient-to-br from-pink-300 to-violet-300 bg-clip-text text-transparent box-decoration-clone"
 					>
 						Oracles
 					</span>
@@ -59,27 +59,16 @@
 		<li>
 			<a href="/distribution" on:click={drawerClose}>
 				<div class={`h4 flex items-center`}>
-					<PieChart class={`dark:text-slate-300 inline size-6 mr-4`} />
+					<PieChart class={`dark:text-purple-400 inline size-6 mr-4`} />
 					<span
-						class="bg-gradient-to-br from-slate-400 to-slate-300 bg-clip-text text-transparent box-decoration-clone"
+						class="bg-gradient-to-br from-purple-300 to-blue-300 bg-clip-text text-transparent box-decoration-clone"
 					>
 						Distribution
 					</span>
 				</div>
 			</a>
 		</li>
-		<li>
-			<a href="/about" on:click={drawerClose}>
-				<div class={`h4 flex items-center`}>
-					<BadgeInfo class={`dark:text-slate-300 inline size-6 mr-4`} />
-					<span
-						class="bg-gradient-to-br from-slate-400 to-slate-300 bg-clip-text text-transparent box-decoration-clone"
-					>
-						{$t('common.about')}
-					</span>
-				</div>
-			</a>
-		</li>
+
 		<li>
 			{#if $session}
 				<!-- svelte-ignore a11y-invalid-attribute -->
