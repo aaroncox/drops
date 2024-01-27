@@ -24,5 +24,6 @@
 	"readytoadvance": "Ready to advance...",
 	"signinfirst": "Sign-in first",
 	"transacterror": "Error processing transaction",
-	"transactsuccess": "Transaction Successful"
+	"transactsuccess": "Transaction Successful",
+	"testnetnotice": "Testnet version running on Jungle 4"
 }

@@ -105,6 +105,9 @@
 				{/if}
 			</svelte:fragment>
 		</AppBar>
+		<aside class="alert bg-gradient-to-br variant-gradient-error-warning rounded-none">
+			<div class="text-center w-full font-bold">{$t('common.testnetnotice')}</div>
+		</aside>
 	</svelte:fragment>
 	<svelte:fragment slot="sidebarLeft">
 		<img src="/logo.png" class="w-48 px-6 py-4" />
