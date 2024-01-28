@@ -9,7 +9,7 @@
 <div class={`${format} flex items-center`}>
 	<PackageX class={`dark:text-pink-400 inline size-${size} mr-4`} />
 	<span
-		class="bg-gradient-to-br from-pink-400 to-violet-500 bg-clip-text text-transparent box-decoration-clone"
+		class="leading-snug bg-gradient-to-br from-pink-400 to-violet-500 bg-clip-text text-transparent box-decoration-clone"
 		>{$t('common.destroy')}</span
 	>
 </div>
