@@ -320,7 +320,7 @@
 
 	const selectDropAmount = (e: Event) => dropsAmount.set(Number(e.target.value));
 
-	let tabSet: number = 0;
+	let tabSet: number = 1;
 </script>
 
 <div class="container p-4 sm:p-8 lg:p-16 mx-auto flex justify-center items-center">
@@ -376,11 +376,11 @@
 			border=""
 			class="bg-surface-100-800-token w-full"
 		>
-			<Tab bind:group={tabSet} name="tab1" value={0}>
-				<span>{$t('generate.useeos')}</span>
-			</Tab>
 			<Tab bind:group={tabSet} name="tab2" value={1}>
 				<span>{$t('generate.useram')}</span>
+			</Tab>
+			<Tab bind:group={tabSet} name="tab1" value={0}>
+				<span>{$t('generate.useeos')}</span>
 			</Tab>
 			<svelte:fragment slot="panel">
 				<div class="p-6 space-y-8 shadow-xl rounded-lg">
