@@ -13,7 +13,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { derived, writable, type Readable, type Writable } from 'svelte/store';
 	import { AlertCircle, Loader2, MemoryStick, PackagePlus } from 'svelte-lucide';
-	import { DropContract, dropsContract, session, tokenContract } from '$lib/wharf';
+	import { DropContract, accountKit, dropsContract, session, tokenContract } from '$lib/wharf';
 	import { getRamPrice } from '$lib/bancor';
 	import { sizeDropRowPurchase, sizeAccountRow, sizeStatRow } from '$lib/constants';
 	import { t } from '$lib/i18n';
@@ -23,6 +23,9 @@
 	const useRandomDrop: Writable<boolean> = writable(true);
 	const dropsAmount: Writable<number> = writable(1);
 	const randomDrop: Writable<Name> = writable(randomName());
+
+	const accountRamBalance: Writable<number> = writable();
+	const accountTokenBalance: Writable<Asset> = writable();
 
 	// Price of individual drops
 	const dropsPrice: Writable<number> = writable();
@@ -106,6 +109,7 @@
 	});
 
 	async function loadAccountData() {
+		await loadAccountBalances();
 		await loadAccountStats();
 		await loadAccountEpochStats();
 	}
@@ -138,6 +142,17 @@
 				.all();
 			if (results) {
 				accountEpochStats.set(results);
+			}
+		}
+	}
+
+	async function loadAccountBalances() {
+		if ($session) {
+			const result = await accountKit.load($session.actor);
+			accountRamBalance.set(Number(result.resource('ram').available));
+			console.log(String(result.data.core_liquid_balance));
+			if (result.data.core_liquid_balance) {
+				accountTokenBalance.set(result.data.core_liquid_balance);
 			}
 		}
 	}
@@ -246,6 +261,7 @@
 				lastResultError.set(e);
 			}
 			transacting.set(false);
+			setTimeout(loadAccountBalances, 400);
 		}
 	}
 
@@ -315,6 +331,7 @@
 				lastResultError.set(e);
 			}
 			transacting.set(false);
+			setTimeout(loadAccountBalances, 400);
 		}
 	}
 
@@ -445,14 +462,23 @@
 									{#if tabSet === 0}
 										{$t('common.generate')}
 										{$t('common.costof')}
-										{Asset.fromUnits($totalPrice, '4,EOS')}
+										~{Asset.fromUnits($totalPrice, '4,EOS')}
 									{:else if tabSet === 1}
 										{$t('common.generate')}
 										{$t('common.costof')}
-										{($totalRam / 1024).toLocaleString()}kb
+										~{($totalRam / 1024).toLocaleString()}kb
 									{/if}
 								</span>
 							</button>
+							<div class="text-center">
+								{#if tabSet === 0}
+									<span>EOS Balance:</span>
+									<span>{$accountTokenBalance}</span>
+								{:else if tabSet === 1}
+									<span>RAM Balance:</span>
+									<span>{($accountRamBalance / 1024).toLocaleString()} kb</span>
+								{/if}
+							</div>
 						{:else}
 							<aside class="alert variant-filled-error">
 								<div><AlertCircle /></div>
@@ -532,10 +558,16 @@
 								</div>
 							</td>
 							<td class="text-right">
-								<div class="text-lg font-bold">
-									{Asset.fromUnits($dropsAmount * $dropsPrice, '4,EOS')}
-								</div>
-								<div>{$dropsAmount * sizeDropRowPurchase} bytes</div>
+								{#if tabSet === 0}
+									<div class="text-lg font-bold">
+										{Asset.fromUnits($dropsAmount * $dropsPrice, '4,EOS')}
+									</div>
+									<div>{($dropsAmount * sizeDropRowPurchase).toLocaleString()} bytes</div>
+								{:else if tabSet === 1}
+									<div class="text-lg font-bold">
+										<div>{($dropsAmount * sizeDropRowPurchase).toLocaleString()} bytes</div>
+									</div>
+								{/if}
 							</td>
 						</tr>
 						{#if !$accountStats}
@@ -548,8 +580,14 @@
 									<div class="text-lg font-bold">1</div>
 								</td>
 								<td class="text-right">
-									<div class="text-lg font-bold">{Asset.fromUnits($accountPrice, '4,EOS')}</div>
-									<div>{sizeAccountRow} bytes</div>
+									{#if tabSet === 0}
+										<div class="text-lg font-bold">{Asset.fromUnits($accountPrice, '4,EOS')}</div>
+										<div>{sizeAccountRow.toLocaleString()} bytes</div>
+									{:else if tabSet === 1}
+										<div class="text-lg font-bold">
+											<div>{sizeAccountRow.toLocaleString()} bytes</div>
+										</div>
+									{/if}
 								</td>
 							</tr>
 						{/if}
@@ -563,8 +601,14 @@
 									<div class="text-lg font-bold">1</div>
 								</td>
 								<td class="text-right">
-									<div class="text-lg font-bold">{Asset.fromUnits($statsPrice, '4,EOS')}</div>
-									<div>{sizeStatRow} bytes</div>
+									{#if tabSet === 0}
+										<div class="text-lg font-bold">{Asset.fromUnits($statsPrice, '4,EOS')}</div>
+										<div>{sizeStatRow.toLocaleString()} bytes</div>
+									{:else if tabSet === 1}
+										<div class="text-lg font-bold">
+											{sizeStatRow.toLocaleString()} bytes
+										</div>
+									{/if}
 								</td>
 							</tr>
 						{/if}
@@ -572,11 +616,17 @@
 					<tfoot>
 						<tr>
 							<td colspan="3" class="text-right">
-								<div class="font-bold text-xl">
-									<div class="text-sm">{$t('common.total')}</div>
-									{Asset.fromUnits($totalPrice, '4,EOS')}
-								</div>
-								<div>{$totalRam} bytes</div>
+								{#if tabSet === 0}
+									<div class="font-bold text-xl">
+										<div class="text-sm">{$t('common.total')}</div>
+										{Asset.fromUnits(Number($totalPrice), '4,EOS')}
+									</div>
+									<div>{$totalRam?.toLocaleString()} bytes</div>
+								{:else if tabSet === 1}
+									<div class="text-lg font-bold">
+										{$totalRam?.toLocaleString()} bytes
+									</div>
+								{/if}
 							</td>
 						</tr>
 					</tfoot>
