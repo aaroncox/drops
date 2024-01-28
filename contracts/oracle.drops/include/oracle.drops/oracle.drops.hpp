@@ -18,7 +18,7 @@ public:
       uint64_t          epoch;
       std::vector<name> oracles;
       uint64_t          completed;
-      checksum256       drops;
+      checksum256       seed;
       uint64_t          primary_key() const { return epoch; }
       uint64_t          by_completed() const { return completed; }
    };
